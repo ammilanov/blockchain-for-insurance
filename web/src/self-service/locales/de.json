@@ -1,0 +1,17 @@
+{
+  "Claim Self-Service": "Schadensmeldung",
+  "Customer Login": "Kundenlogin",
+  "Username": "Benutzername",
+  "Password": "Passwort",
+  "Signing In...": "Einloggen...",
+  "Login": "Anmelden",
+  "Invalid login. Please try again.": "Ungültige Anmeldedaten. Bitten versuchen Sie es erneut.",
+  "Loading Contracts...": "Lade Verträge...",
+  "Your Contracts": "Abgeschlossene Verträge",
+  "File a Claim": "Schaden melden",
+  "Valid From": "Gültig Von",
+  "Valid To": "Gültig Bis",
+  "Submit": "Abschicken",
+  "Description": "Beschreibung",
+  "Theft": "Diebstahl"
+}

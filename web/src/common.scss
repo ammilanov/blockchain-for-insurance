@@ -1,0 +1,13 @@
+@import 'normalize';
+
+.ibm-card {
+  img {
+    width: 100%;
+  }
+}
+
+[class^="ibm-"] [class$="-form"] {
+  input, select, textarea {
+    width: 100%;
+  }
+}

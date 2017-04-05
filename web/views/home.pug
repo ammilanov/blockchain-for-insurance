@@ -1,0 +1,40 @@
+extends _layout
+
+block content
+  .ibm-columns(data-items='.ibm-card' data-widget='setsameheight')
+      .ibm-col-4-1
+        .ibm-card
+          .ibm-card__image
+            img(src='http://placehold.it/350x350')
+          .ibm-card__content
+              h3.ibm-h3 #{ __('Shop') }
+              p #{ __('Shop Description') }
+              p.ibm-ind-link
+                a.ibm-forward-link(href='/shop') #{ __('Go To The Shop Section') }
+      .ibm-col-4-1
+        .ibm-card
+          .ibm-card__image
+            img(src='http://placehold.it/350x350')
+          .ibm-card__content
+              h3.ibm-h3 #{ __('Claim Self-Service') }
+              p #{ __('Claim Self-Service Description') }
+              p.ibm-ind-link
+                a.ibm-forward-link(href='/self-service') #{ __('Go To The Self Service Section') }
+      .ibm-col-4-1
+        .ibm-card
+          .ibm-card__image
+            img(src='http://placehold.it/350x350')
+          .ibm-card__content
+              h3.ibm-h3 #{ __('Repair Service') }
+              p #{ __('Repair Service Description') }
+              p.ibm-ind-link
+                a.ibm-forward-link(href='/repair-service') #{ __('Go To The Repair Service Section') }
+      .ibm-col-4-1
+        .ibm-card
+          .ibm-card__image
+            img(src='http://placehold.it/350x350')
+          .ibm-card__content
+              h3.ibm-h3 #{ __('Contract Management') }
+              p #{ __('Contract Management Description') }
+              p.ibm-ind-link
+                a.ibm-forward-link(href='/contract-management') #{ __('Go To The Contract Management Section') }
