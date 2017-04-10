@@ -4,7 +4,7 @@ ENV NODE_ENV production
 ENV PORT 3000
 
 RUN mkdir /app
-ADD . /app
+COPY . /app
 WORKDIR /app
 RUN npm i && npm i --only=dev \
       && npm run build \

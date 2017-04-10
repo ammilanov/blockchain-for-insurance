@@ -1,0 +1,121 @@
+version: '2'
+
+services:
+  orderer0:
+    container_name: orderer0
+    image: bc-insurance-orderer
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=debug
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/localMspConfig
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/localMspConfig/keystore/ordererSigner.pem
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/localMspConfig/signcerts/orderer0Signer.pem
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/localMspConfig/cacerts/ordererOrg.pem]
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    ports:
+      - 7050:7050
+
+  insurancePeer:
+    container_name: insurancePeer
+    extends:
+      file: ./peer-base.yaml
+      service: peer-base
+    image: bc-insurance-insurance
+    environment:
+      - CORE_PEER_ID=insurancePeer
+      - CORE_PEER_ADDRESS=insurancePeer:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=insurancePeer:7051
+      - CORE_PEER_LOCALMSPID=InsuranceOrgMSP
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/msp/sampleconfig/signcerts/insuranceOrgSigner.pem
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/msp/sampleconfig/keystore/insuranceOrgSigner.pem
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/msp/sampleconfig/cacerts/insuranceOrg.pem
+    volumes:
+      - /var/run/:/host/var/run/
+    ports:
+      - 7051:7051
+      - 7053:7053
+    depends_on:
+      - orderer0
+
+  shopPeer:
+    container_name: shopPeer
+    extends:
+      file: ./peer-base.yaml
+      service: peer-base
+    image: bc-insurance-shop
+    environment:
+      - CORE_PEER_ID=shopPeer
+      - CORE_PEER_ADDRESS=shopPeer:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=shopPeer:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=shopPeer:7051
+      - CORE_PEER_LOCALMSPID=ShopOrgMSP
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/msp/sampleconfig/signcerts/shopOrgSigner.pem
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/msp/sampleconfig/keystore/shopOrgSigner.pem
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/msp/sampleconfig/cacerts/shopOrg.pem
+    volumes:
+      - /var/run/:/host/var/run/
+    ports:
+      - 8051:7051
+      - 8053:7053
+    depends_on:
+      - orderer0
+      - insurancePeer
+  
+  repairServicePeer:
+    container_name: repairServicePeer
+    extends:
+      file: ./peer-base.yaml
+      service: peer-base
+    image: bc-insurance-repairservice
+    environment:
+      - CORE_PEER_ID=repairServicePeer
+      - CORE_PEER_ADDRESS=repairServicePeer:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=repairServicePeer:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=repairServicePeer:7051
+      - CORE_PEER_LOCALMSPID=RepairServiceOrgMSP
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/msp/sampleconfig/signcerts/repairServiceOrgSigner.pem
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/msp/sampleconfig/keystore/repairServiceOrgSigner.pem
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/msp/sampleconfig/cacerts/repairServiceOrg.pem
+    volumes:
+      - /var/run/:/host/var/run/
+    ports:
+      - 9051:7051
+      - 9053:7053
+    depends_on:
+      - orderer0
+      - insurancePeer
+      - shopPeer
+
+  cli:
+    container_name: cli
+    image: bc-insurance-cli
+    tty: true
+    environment:
+      - GOPATH=/opt/gopath
+      - CORE_PEER_ADDRESSAUTODETECT=true
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_LOGGING_LEVEL=DEBUG
+      - CORE_NEXT=true
+      - CORE_PEER_ID=cli
+      - CORE_PEER_ENDORSER_ENABLED=true
+      - CORE_PEER_ADDRESS=insurancePeer:7051
+      - CORE_PEER_LOCALMSPID=InsuranceOrgMSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/peers/insurancePeer/localMspConfig/signcerts/insuranceOrgSigner.pem
+      - CORE_PEER_TLS_KEY_FILE=/peers/insurancePeer/localMspConfig/keystore/insuranceOrgSigner.pem
+      - CORE_PEER_TLS_ROOTCERT_FILE=/peers/insurancePeer/localMspConfig/cacerts/insuranceOrg.pem
+      - CORE_PEER_MSPCONFIGPATH=/peers/insurancePeer/localMspConfig
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    volumes:
+      - /var/run/:/host/var/run/
+    depends_on:
+      - orderer0
+      - insurancePeer
+      - shopPeer
+      - repairServicePeer

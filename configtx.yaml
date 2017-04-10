@@ -1,0 +1,82 @@
+---
+Organizations:
+  - &OrdererOrg
+    Name: OrdererOrg
+    ID: OrdererMSP
+    MSPDir: orderer/crypto/localMspConfig
+    BCCSP:
+      Default: SW
+      SW:
+        Hash: SHA2
+        Security: 256
+        FileKeyStore:
+          KeyStore:
+  - &InsuranceOrg
+    Name: InsuranceOrgMSP
+    ID: InsuranceOrgMSP
+    MSPDir: insurancePeer/crypto/localMspConfig
+    BCCSP:
+      Default: SW
+      SW:
+        Hash: SHA2
+        Security: 256
+        FileKeyStore:
+          KeyStore:
+    AnchorPeers:
+      - Host: insurancePeer
+        Port: 7051
+  - &ShopOrg
+    Name: ShopOrgMSP
+    ID: ShopOrgMSP
+    MSPDir: shopPeer/crypto/localMspConfig
+    BCCSP:
+      Default: SW
+      SW:
+        Hash: SHA2
+        Security: 256
+        FileKeyStore:
+          KeyStore:
+    AnchorPeers:
+      - Host: shopPeer
+        Port: 7051
+  - &RepairServiceOrg
+    Name: RepairServiceOrgMSP
+    ID: RepairServiceOrgMSP
+    MSPDir: repairServicePeer/crypto/localMspConfig
+    BCCSP:
+      Default: SW
+      SW:
+        Hash: SHA2
+        Security: 256
+        FileKeyStore:
+          KeyStore:
+    AnchorPeers:
+      - Host: repairServicePeer
+        Port: 7051
+
+Orderer: &OrdererDefaults
+  OrdererType: solo
+  Addresses:
+    - orderer0:7050
+  BatchTimeout: 2s
+  BatchSize:
+    MaxMessageCount: 10
+    AbsoluteMaxBytes: 99 MB
+    PreferredMaxBytes: 512 KB
+  Organizations:
+
+Application: &ApplicationDefaults
+  Organizations:
+
+Profiles:
+  ThreeOrgs:
+    Orderer:
+      <<: *OrdererDefaults
+      Organizations:
+        - *OrdererOrg
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - *InsuranceOrg
+        - *ShopOrg
+        - *RepairServiceOrg
