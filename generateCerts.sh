@@ -60,7 +60,7 @@ openssl ecparam -genkey -name prime256v1 -noout \
     -out $INSURANCEMSP/keystore/insuranceOrgSigner.pem
 
 echo "> Generating peer node certificate"
-openssl req -new -subj '/CN=insurance' \
+openssl req -new -subj '/CN=insurancePeer' \
     -key $INSURANCEMSP/keystore/insuranceOrgSigner.pem \
     -out $INSURANCEMSP/signcerts/insuranceOrgSigner.csr
 openssl x509 -req -days 3650 -sha256 -set_serial 1000 \
@@ -97,7 +97,7 @@ openssl ecparam -genkey -name prime256v1 -noout \
     -out $SHOPMSP/keystore/shopOrgSigner.pem
 
 echo "> Generating peer node certificate"
-openssl req -new -subj '/CN=shop' \
+openssl req -new -subj '/CN=shopPeer' \
     -key $SHOPMSP/keystore/shopOrgSigner.pem \
     -out $SHOPMSP/signcerts/shopOrgSigner.csr
 openssl x509 -req -days 3650 -sha256 -set_serial 1000 \
@@ -135,7 +135,7 @@ openssl ecparam -genkey -name prime256v1 -noout \
     -out $REPAIRSERVICEMSP/keystore/repairServiceOrgSigner.pem
 
 echo "> Generating peer node certificate"
-openssl req -new -subj '/CN=repairService' \
+openssl req -new -subj '/CN=repairServicePeer' \
     -key $REPAIRSERVICEMSP/keystore/repairServiceOrgSigner.pem \
     -out $REPAIRSERVICEMSP/signcerts/repairServiceOrgSigner.csr
 openssl x509 -req -days 3650 -sha256 -set_serial 1000 \

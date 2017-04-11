@@ -52,7 +52,6 @@ services:
       - CORE_PEER_ID=shopPeer
       - CORE_PEER_ADDRESS=shopPeer:7051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=shopPeer:7051
-      - CORE_PEER_GOSSIP_BOOTSTRAP=shopPeer:7051
       - CORE_PEER_LOCALMSPID=ShopOrgMSP
       - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/msp/sampleconfig/signcerts/shopOrgSigner.pem
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/msp/sampleconfig/keystore/shopOrgSigner.pem
@@ -76,7 +75,6 @@ services:
       - CORE_PEER_ID=repairServicePeer
       - CORE_PEER_ADDRESS=repairServicePeer:7051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=repairServicePeer:7051
-      - CORE_PEER_GOSSIP_BOOTSTRAP=repairServicePeer:7051
       - CORE_PEER_LOCALMSPID=RepairServiceOrgMSP
       - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/msp/sampleconfig/signcerts/repairServiceOrgSigner.pem
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/msp/sampleconfig/keystore/repairServiceOrgSigner.pem
@@ -97,7 +95,6 @@ services:
     tty: true
     environment:
       - GOPATH=/opt/gopath
-      - CORE_PEER_ADDRESSAUTODETECT=true
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - CORE_LOGGING_LEVEL=DEBUG
       - CORE_NEXT=true
@@ -106,10 +103,10 @@ services:
       - CORE_PEER_ADDRESS=insurancePeer:7051
       - CORE_PEER_LOCALMSPID=InsuranceOrgMSP
       - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_MSPCONFIGPATH=/peers/insurancePeer/localMspConfig
       - CORE_PEER_TLS_CERT_FILE=/peers/insurancePeer/localMspConfig/signcerts/insuranceOrgSigner.pem
       - CORE_PEER_TLS_KEY_FILE=/peers/insurancePeer/localMspConfig/keystore/insuranceOrgSigner.pem
       - CORE_PEER_TLS_ROOTCERT_FILE=/peers/insurancePeer/localMspConfig/cacerts/insuranceOrg.pem
-      - CORE_PEER_MSPCONFIGPATH=/peers/insurancePeer/localMspConfig
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: /bin/bash
     volumes:
