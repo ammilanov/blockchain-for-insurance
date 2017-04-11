@@ -1,6 +1,10 @@
+#!/bin/bash
+
+PROJPATH=$(cd $(dirname "$0") && pwd)
+
 ### Orderer
 echo "--> Generating certificates for orderer..."
-ORDERERPATH=orderer/crypto
+ORDERERPATH=$PROJPATH/orderer/crypto
 ORDERERMSP=$ORDERERPATH/localMspConfig
 mkdir -p $ORDERERMSP/{admincerts,cacerts,keystore,signcerts}
 
@@ -36,7 +40,7 @@ echo
 
 ### Insurance Peer
 echo "--> Generating certificates for insurance peer..."
-INSURANCEPATH=insurancePeer/crypto
+INSURANCEPATH=$PROJPATH/insurancePeer/crypto
 INSURANCEMSP=$INSURANCEPATH/localMspConfig
 mkdir -p $INSURANCEMSP/{admincerts,cacerts,keystore,signcerts}
 
@@ -74,7 +78,7 @@ echo
 
 ### Shop Peer
 echo "--> Generating certificates for shop peer..."
-SHOPPATH=shopPeer/crypto
+SHOPPATH=$PROJPATH/shopPeer/crypto
 SHOPMSP=$SHOPPATH/localMspConfig
 mkdir -p $SHOPMSP/{admincerts,cacerts,keystore,signcerts}
 
@@ -111,7 +115,7 @@ echo
 
 ### Repair Service Peer
 echo "--> Generating certificates for repair service peer..."
-REPAIRSERVICEPATH=repairServicePeer/crypto
+REPAIRSERVICEPATH=$PROJPATH/repairServicePeer/crypto
 REPAIRSERVICEMSP=$REPAIRSERVICEPATH/localMspConfig
 mkdir -p $REPAIRSERVICEMSP/{admincerts,cacerts,keystore,signcerts}
 
@@ -147,11 +151,20 @@ rm $REPAIRSERVICEMSP/cakey.pem
 echo
 echo
 
+### Copying cryptographic material across peers
+echo "--> Copying CA certificates across peers"
+eval `echo 'cp '$INSURANCEMSP/cacerts/*.pem\ {$SHOPMSP/,$REPAIRSERVICEMSP/}{admincerts,cacerts}';'`
+eval `echo 'cp '$SHOPMSP/cacerts/*.pem\ {$INSURANCEMSP/,$REPAIRSERVICEMSP/}{admincerts,cacerts}';'`
+eval `echo 'cp '$REPAIRSERVICEMSP/cacerts/*.pem\ {$INSURANCEMSP/,$SHOPMSP/}{admincerts,cacerts}';'`
+
+echo
+echo
+
 sh generateCfgTx.sh
 
 ### Copying Certificates to the CLI
 echo "--> Copying cryptographic material to cli container definition..."
-CLIPATH=cli/peers
+CLIPATH=$PROJPATH/cli/peers
 mkdir -p $CLIPATH/{orderer,insurancePeer,shopPeer,repairServicePeer}
 echo "> Copying orderer certificates"
 cp -r $ORDERERPATH/* $CLIPATH/orderer
