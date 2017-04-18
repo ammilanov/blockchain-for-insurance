@@ -3,37 +3,38 @@ version: '2'
 services:
   orderer0:
     container_name: orderer0
-    image: bc-insurance-orderer
+    image: registry.ng.bluemix.net/bcins/orderer
     environment:
       - ORDERER_GENERAL_LOGLEVEL=debug
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
       - ORDERER_GENERAL_GENESISMETHOD=file
-      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.block
+      - ORDERER_GENERAL_GENESISFILE=/peer/crypto/orderer.block
       - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
-      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/localMspConfig
+      - ORDERER_GENERAL_LOCALMSPDIR=/peer/crypto/localMspConfig
       - ORDERER_GENERAL_TLS_ENABLED=true
-      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/localMspConfig/keystore/ordererSigner.pem
-      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/localMspConfig/signcerts/orderer0Signer.pem
-      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/localMspConfig/cacerts/ordererOrg.pem]
-    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/peer/crypto/localMspConfig/keystore/ordererSigner.pem
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/peer/crypto/localMspConfig/signcerts/orderer0Signer.pem
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/peer/crypto/localMspConfig/cacerts/ordererOrg.pem]
+    working_dir: /peer
     command: orderer
     ports:
       - 7050:7050
 
   insurancePeer:
-    container_name: insurancePeer
+    container_name: insurance-peer
     extends:
       file: ./peer-base.yaml
       service: peer-base
-    image: bc-insurance-insurance
+    image: registry.ng.bluemix.net/bcins/insurance
     environment:
       - CORE_PEER_ID=insurancePeer
       - CORE_PEER_ADDRESS=insurancePeer:7051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=insurancePeer:7051
       - CORE_PEER_LOCALMSPID=InsuranceOrgMSP
-      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/msp/sampleconfig/signcerts/insuranceOrgSigner.pem
-      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/msp/sampleconfig/keystore/insuranceOrgSigner.pem
-      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/msp/sampleconfig/cacerts/insuranceOrg.pem
+      - CORE_PEER_MSPCONFIGPATH=/peer/crypto/localMspConfig
+      - CORE_PEER_TLS_CERT_FILE=/peer/crypto/localMspConfig/signcerts/insuranceOrgSigner.pem
+      - CORE_PEER_TLS_KEY_FILE=/peer/crypto/localMspConfig/keystore/insuranceOrgSigner.pem
+      - CORE_PEER_TLS_ROOTCERT_FILE=/peer/crypto/localMspConfig/cacerts/insuranceOrg.pem
     volumes:
       - /var/run/:/host/var/run/
     ports:
@@ -43,19 +44,20 @@ services:
       - orderer0
 
   shopPeer:
-    container_name: shopPeer
+    container_name: shop-peer
     extends:
       file: ./peer-base.yaml
       service: peer-base
-    image: bc-insurance-shop
+    image: registry.ng.bluemix.net/bcins/shop
     environment:
       - CORE_PEER_ID=shopPeer
       - CORE_PEER_ADDRESS=shopPeer:7051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=shopPeer:7051
       - CORE_PEER_LOCALMSPID=ShopOrgMSP
-      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/msp/sampleconfig/signcerts/shopOrgSigner.pem
-      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/msp/sampleconfig/keystore/shopOrgSigner.pem
-      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/msp/sampleconfig/cacerts/shopOrg.pem
+      - CORE_PEER_MSPCONFIGPATH=/peer/crypto/localMspConfig
+      - CORE_PEER_TLS_CERT_FILE=/peer/crypto/localMspConfig/signcerts/shopOrgSigner.pem
+      - CORE_PEER_TLS_KEY_FILE=/peer/crypto/localMspConfig/keystore/shopOrgSigner.pem
+      - CORE_PEER_TLS_ROOTCERT_FILE=/peer/crypto/localMspConfig/cacerts/shopOrg.pem
     volumes:
       - /var/run/:/host/var/run/
     ports:
@@ -66,19 +68,20 @@ services:
       - insurancePeer
   
   repairServicePeer:
-    container_name: repairServicePeer
+    container_name: repair-service-peer
     extends:
       file: ./peer-base.yaml
       service: peer-base
-    image: bc-insurance-repairservice
+    image: registry.ng.bluemix.net/bcins/repairservice
     environment:
       - CORE_PEER_ID=repairServicePeer
       - CORE_PEER_ADDRESS=repairServicePeer:7051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=repairServicePeer:7051
       - CORE_PEER_LOCALMSPID=RepairServiceOrgMSP
-      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/msp/sampleconfig/signcerts/repairServiceOrgSigner.pem
-      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/msp/sampleconfig/keystore/repairServiceOrgSigner.pem
-      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/msp/sampleconfig/cacerts/repairServiceOrg.pem
+      - CORE_PEER_MSPCONFIGPATH=/peer/crypto/localMspConfig
+      - CORE_PEER_TLS_CERT_FILE=/peer/crypto/localMspConfig/signcerts/repairServiceOrgSigner.pem
+      - CORE_PEER_TLS_KEY_FILE=/peer/crypto/localMspConfig/keystore/repairServiceOrgSigner.pem
+      - CORE_PEER_TLS_ROOTCERT_FILE=/peer/crypto/localMspConfig/cacerts/repairServiceOrg.pem
     volumes:
       - /var/run/:/host/var/run/
     ports:
@@ -91,7 +94,7 @@ services:
 
   cli:
     container_name: cli
-    image: bc-insurance-cli
+    image: registry.ng.bluemix.net/bcins/cli
     tty: true
     environment:
       - GOPATH=/opt/gopath
@@ -101,13 +104,14 @@ services:
       - CORE_PEER_ID=cli
       - CORE_PEER_ENDORSER_ENABLED=true
       - CORE_PEER_ADDRESS=insurancePeer:7051
+      - CORE_PEER_ADDRESSAUTODETECT=true
       - CORE_PEER_LOCALMSPID=InsuranceOrgMSP
       - CORE_PEER_TLS_ENABLED=true
       - CORE_PEER_MSPCONFIGPATH=/peers/insurancePeer/localMspConfig
       - CORE_PEER_TLS_CERT_FILE=/peers/insurancePeer/localMspConfig/signcerts/insuranceOrgSigner.pem
       - CORE_PEER_TLS_KEY_FILE=/peers/insurancePeer/localMspConfig/keystore/insuranceOrgSigner.pem
       - CORE_PEER_TLS_ROOTCERT_FILE=/peers/insurancePeer/localMspConfig/cacerts/insuranceOrg.pem
-    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    working_dir: /peers
     command: /bin/bash
     volumes:
       - /var/run/:/host/var/run/
@@ -116,3 +120,16 @@ services:
       - insurancePeer
       - shopPeer
       - repairServicePeer
+
+  # web:
+  #   container_name: registry.ng.bluemix.net/bcins/web
+  #   image: registry.ng.bluemix.net/bcins/web
+  #   environment:
+  #     - PORT=3000
+  #   ports:
+  #     - 3000:3000
+  #   depends_on:
+  #     - orderer0
+  #     - insurancePeer
+  #     - shopPeer
+  #     - repairServicePeer
