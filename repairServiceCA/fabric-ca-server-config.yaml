@@ -1,0 +1,68 @@
+port: 7054
+debug: false
+tls:
+  enabled: true
+  certfile: /ca/tls/cert.pem
+  keyfile: /ca/tls/key.pem
+
+ca:
+  name: repairservice-ca
+  keyfile: ./ca/key.pem
+  certfile: ./ca/cert.pem
+
+registry:
+  maxEnrollments: 0
+  identities:
+    - name: admin
+      pass: adminpw
+      type: client
+      affiliation: ""
+      attrs:
+        hf.Registrar.Roles: "client,user,peer,validator,auditor,ca"
+        hf.Registrar.DelegateRoles: "client,user,validator,auditor"
+        hf.Revoker: true
+        hf.IntermediateCA: true
+
+db:
+  type: sqlite3
+  datasource: /tmp/fabric-ca-server.db
+  tls:
+    enabled: false
+
+ldap:
+  enabled: false
+
+signing:
+  profiles:
+    ca:
+      usage:
+        - cert sign
+      expiry: 8000h
+      caconstraint:
+        isca: true
+  default:
+    usage:
+      - cert sign
+    expiry: 8000h
+
+csr:
+  cn: fabric-ca-server
+  names:
+    - C: DE
+      ST: "Baden-Wuerttemberg"
+      L: "Ehningen"
+      O: "IBM"
+      OU: "Cloud"
+  hosts:
+    - e09474d5d16f
+  ca:
+    pathlen:
+    pathlenzero:
+    expiry:
+
+crypto:
+  software:
+    hash_family: SHA2
+    security_level: 256
+    ephemeral: false
+    key_store_dir: keys

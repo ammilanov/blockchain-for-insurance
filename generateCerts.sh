@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 PROJPATH=$(cd $(dirname "$0") && pwd)
 
 ### Orderer
@@ -39,21 +41,25 @@ echo
 echo
 
 ### Insurance Peer
-echo "--> Generating certificates for insurance peer..."
-INSURANCEPATH=$PROJPATH/insurancePeer/crypto
-INSURANCEMSP=$INSURANCEPATH/localMspConfig
+echo "--> Generating certificates for insurance organization..."
+INSURANCEPEERPATH=$PROJPATH/insurancePeer/crypto
+INSURANCECAPATH=$PROJPATH/insuranceCA
+INSURANCEMSP=$INSURANCEPEERPATH/localMspConfig
+mkdir -p $INSURANCECAPATH/{ca,tls}
 mkdir -p $INSURANCEMSP/{admincerts,cacerts,keystore,signcerts}
 
 echo "> Generating CA private key"
 openssl ecparam -genkey -name prime256v1 -noout \
-    -out $INSURANCEMSP/cakey.pem
+    | tee $INSURANCECAPATH/ca/key.pem \
+        $INSURANCECAPATH/tls/key.pem > /dev/null
 
 echo "> Generating CA certificates"
 openssl req -new -x509 -sha256 -days 3650 -nodes -subj '/CN=insuranceOrg' \
-    -key $INSURANCEMSP/cakey.pem \
-    -out $INSURANCEMSP/cacerts/insuranceOrg.pem
-cp $INSURANCEMSP/cacerts/insuranceOrg.pem \
-    $INSURANCEMSP/admincerts/insuranceOrg.pem
+    -key $INSURANCECAPATH/ca/key.pem \
+    | tee $INSURANCECAPATH/ca/cert.pem \
+        $INSURANCECAPATH/tls/cert.pem \
+        $INSURANCEMSP/cacerts/insuranceOrg.pem \
+        $INSURANCEMSP/admincerts/insuranceOrg.pem > /dev/null
 
 echo "> Generating peer node private key"
 openssl ecparam -genkey -name prime256v1 -noout \
@@ -65,32 +71,36 @@ openssl req -new -subj '/CN=insurancePeer' \
     -out $INSURANCEMSP/signcerts/insuranceOrgSigner.csr
 openssl x509 -req -days 3650 -sha256 -set_serial 1000 \
     -CA $INSURANCEMSP/cacerts/insuranceOrg.pem \
-    -CAkey $INSURANCEMSP/cakey.pem \
+    -CAkey $INSURANCECAPATH/ca/key.pem \
     -in $INSURANCEMSP/signcerts/insuranceOrgSigner.csr \
     -out $INSURANCEMSP/signcerts/insuranceOrgSigner.pem
 
 # Cleaning up
 rm $INSURANCEMSP/signcerts/insuranceOrgSigner.csr
-rm $INSURANCEMSP/cakey.pem
 
 echo
 echo
 
 ### Shop Peer
-echo "--> Generating certificates for shop peer..."
-SHOPPATH=$PROJPATH/shopPeer/crypto
-SHOPMSP=$SHOPPATH/localMspConfig
+echo "--> Generating certificates for shop organization..."
+SHOPPEERPATH=$PROJPATH/shopPeer/crypto
+SHOPCAPATH=$PROJPATH/shopCA
+SHOPMSP=$SHOPPEERPATH/localMspConfig
+mkdir -p $SHOPCAPATH/{ca,tls}
 mkdir -p $SHOPMSP/{admincerts,cacerts,keystore,signcerts}
 
 echo "> Generating CA private key"
 openssl ecparam -genkey -name prime256v1 -noout \
-    -out $SHOPMSP/cakey.pem
+    | tee $SHOPCAPATH/ca/key.pem \
+        $SHOPCAPATH/tls/key.pem > /dev/null
 
 echo "> Generating CA certificates"
 openssl req -new -x509 -sha256 -days 3650 -nodes -subj '/CN=shopOrg' \
-    -key $SHOPMSP/cakey.pem \
-    -out $SHOPMSP/cacerts/shopOrg.pem
-cp $SHOPMSP/cacerts/shopOrg.pem $SHOPMSP/admincerts/shopOrg.pem
+    -key $SHOPCAPATH/ca/key.pem \
+    | tee $SHOPCAPATH/ca/cert.pem \
+        $SHOPCAPATH/tls/cert.pem \
+        $SHOPMSP/cacerts/shopOrg.pem \
+        $SHOPMSP/admincerts/shopOrg.pem > /dev/null
 
 echo "> Generating peer node private key"
 openssl ecparam -genkey -name prime256v1 -noout \
@@ -102,33 +112,36 @@ openssl req -new -subj '/CN=shopPeer' \
     -out $SHOPMSP/signcerts/shopOrgSigner.csr
 openssl x509 -req -days 3650 -sha256 -set_serial 1000 \
     -CA $SHOPMSP/cacerts/shopOrg.pem \
-    -CAkey $SHOPMSP/cakey.pem \
+    -CAkey $SHOPCAPATH/ca/key.pem \
     -in $SHOPMSP/signcerts/shopOrgSigner.csr \
     -out $SHOPMSP/signcerts/shopOrgSigner.pem
 
 # Cleaning up
 rm $SHOPMSP/signcerts/shopOrgSigner.csr
-rm $SHOPMSP/cakey.pem
 
 echo
 echo
 
 ### Repair Service Peer
-echo "--> Generating certificates for repair service peer..."
-REPAIRSERVICEPATH=$PROJPATH/repairServicePeer/crypto
-REPAIRSERVICEMSP=$REPAIRSERVICEPATH/localMspConfig
+echo "--> Generating certificates for repair service organization..."
+REPAIRSERVICEPEERPATH=$PROJPATH/repairServicePeer/crypto
+REPAIRSERVICECAPATH=$PROJPATH/repairServiceCA
+REPAIRSERVICEMSP=$REPAIRSERVICEPEERPATH/localMspConfig
+mkdir -p $REPAIRSERVICECAPATH/{ca,tls}
 mkdir -p $REPAIRSERVICEMSP/{admincerts,cacerts,keystore,signcerts}
 
 echo "> Generating CA private key"
 openssl ecparam -genkey -name prime256v1 -noout \
-    -out $REPAIRSERVICEMSP/cakey.pem
+    | tee $REPAIRSERVICECAPATH/ca/key.pem \
+        $REPAIRSERVICECAPATH/tls/key.pem > /dev/null
 
 echo "> Generating CA certificates"
 openssl req -new -x509 -sha256 -days 3650 -nodes -subj '/CN=repairServiceOrg' \
-    -key $REPAIRSERVICEMSP/cakey.pem \
-    -out $REPAIRSERVICEMSP/cacerts/repairServiceOrg.pem
-cp $REPAIRSERVICEMSP/cacerts/repairServiceOrg.pem \
-    $REPAIRSERVICEMSP/admincerts/repairServiceOrg.pem
+    -key $REPAIRSERVICECAPATH/ca/key.pem \
+    | tee $REPAIRSERVICECAPATH/ca/cert.pem \
+        $REPAIRSERVICECAPATH/tls/cert.pem \
+        $REPAIRSERVICEMSP/cacerts/repairServiceOrg.pem \
+        $REPAIRSERVICEMSP/admincerts/repairServiceOrg.pem > /dev/null
 
 echo "> Generating peer node private key"
 openssl ecparam -genkey -name prime256v1 -noout \
@@ -140,13 +153,12 @@ openssl req -new -subj '/CN=repairServicePeer' \
     -out $REPAIRSERVICEMSP/signcerts/repairServiceOrgSigner.csr
 openssl x509 -req -days 3650 -sha256 -set_serial 1000 \
     -CA $REPAIRSERVICEMSP/cacerts/repairServiceOrg.pem \
-    -CAkey $REPAIRSERVICEMSP/cakey.pem \
+    -CAkey $REPAIRSERVICECAPATH/ca/key.pem \
     -in $REPAIRSERVICEMSP/signcerts/repairServiceOrgSigner.csr \
     -out $REPAIRSERVICEMSP/signcerts/repairServiceOrgSigner.pem
 
 # Cleaning up
 rm $REPAIRSERVICEMSP/signcerts/repairServiceOrgSigner.csr
-rm $REPAIRSERVICEMSP/cakey.pem
 
 echo
 echo
@@ -169,8 +181,8 @@ mkdir -p $CLIPATH/{orderer,insurancePeer,shopPeer,repairServicePeer}
 echo "> Copying orderer certificates"
 cp -r $ORDERERPATH/* $CLIPATH/orderer
 echo "> Copying insurance peer certificates"
-cp -r $INSURANCEPATH/* $CLIPATH/insurancePeer
+cp -r $INSURANCEPEERPATH/* $CLIPATH/insurancePeer
 echo "> Copying shop peer certificates"
-cp -r $SHOPPATH/* $CLIPATH/shopPeer
+cp -r $SHOPPEERPATH/* $CLIPATH/shopPeer
 echo "> Copying repair service peer certificates"
-cp -r $REPAIRSERVICEPATH/* $CLIPATH/repairServicePeer
+cp -r $REPAIRSERVICEPEERPATH/* $CLIPATH/repairServicePeer

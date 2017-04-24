@@ -1,6 +1,33 @@
 version: '2'
 
 services:
+  insuranceCA:
+    container_name: insurance-ca
+    image: registry.ng.bluemix.net/bcins/insurance-ca
+    environment:
+      - FABRIC_CA_HOME=/ca
+    ports:
+      - 7054:7054
+    command: fabric-ca-server start
+
+  shopCA:
+    container_name: shop-ca
+    image: registry.ng.bluemix.net/bcins/shop-ca
+    environment:
+      - FABRIC_CA_HOME=/ca
+    ports:
+      - 8054:7054
+    command: fabric-ca-server start
+  
+  repairServiceCA:
+    container_name: repairservice-ca
+    image: registry.ng.bluemix.net/bcins/repairservice-ca
+    environment:
+      - FABRIC_CA_HOME=/ca
+    ports:
+      - 9054:7054
+    command: fabric-ca-server start
+
   orderer0:
     container_name: orderer0
     image: registry.ng.bluemix.net/bcins/orderer
@@ -68,7 +95,7 @@ services:
       - insurancePeer
   
   repairServicePeer:
-    container_name: repair-service-peer
+    container_name: repairservice-peer
     extends:
       file: ./peer-base.yaml
       service: peer-base
