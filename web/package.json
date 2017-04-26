@@ -25,7 +25,8 @@
     "serve": "cross-env NODE_ENV=production node ./bin/server",
     "lint": "eslint .",
     "autofix": "eslint --fix .",
-    "clean": "rimraf -rf ./dist ./bin"
+    "clean": "rimraf -rf ./dist ./bin",
+    "test": "babel-node --inspect test.js"
   },
   "dependencies": {
     "babel-polyfill": "6.22.0",
@@ -40,6 +41,7 @@
     "express": "4.14.1",
     "express-rate-limit": "2.6.0",
     "express-status-monitor": "0.1.9",
+    "fabric-ca-client": "1.0.0-alpha.0",
     "fabric-client": "1.0.0-alpha",
     "helmet": "3.5.0",
     "i18n": "0.8.3",

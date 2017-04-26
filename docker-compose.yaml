@@ -1,7 +1,7 @@
 version: '2'
 
 services:
-  insuranceCA:
+  insurance-ca:
     container_name: insurance-ca
     image: registry.ng.bluemix.net/bcins/insurance-ca
     environment:
@@ -10,7 +10,7 @@ services:
       - 7054:7054
     command: fabric-ca-server start
 
-  shopCA:
+  shop-ca:
     container_name: shop-ca
     image: registry.ng.bluemix.net/bcins/shop-ca
     environment:
@@ -19,7 +19,7 @@ services:
       - 8054:7054
     command: fabric-ca-server start
   
-  repairServiceCA:
+  repairservice-ca:
     container_name: repairservice-ca
     image: registry.ng.bluemix.net/bcins/repairservice-ca
     environment:
@@ -47,16 +47,16 @@ services:
     ports:
       - 7050:7050
 
-  insurancePeer:
+  insurance-peer:
     container_name: insurance-peer
     extends:
       file: ./peer-base.yaml
       service: peer-base
-    image: registry.ng.bluemix.net/bcins/insurance
+    image: registry.ng.bluemix.net/bcins/insurance-peer
     environment:
-      - CORE_PEER_ID=insurancePeer
-      - CORE_PEER_ADDRESS=insurancePeer:7051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=insurancePeer:7051
+      - CORE_PEER_ID=insurance-peer
+      - CORE_PEER_ADDRESS=insurance-peer:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=insurance-peer:7051
       - CORE_PEER_LOCALMSPID=InsuranceOrgMSP
       - CORE_PEER_MSPCONFIGPATH=/peer/crypto/localMspConfig
       - CORE_PEER_TLS_CERT_FILE=/peer/crypto/localMspConfig/signcerts/insuranceOrgSigner.pem
@@ -70,16 +70,16 @@ services:
     depends_on:
       - orderer0
 
-  shopPeer:
+  shop-peer:
     container_name: shop-peer
     extends:
       file: ./peer-base.yaml
       service: peer-base
-    image: registry.ng.bluemix.net/bcins/shop
+    image: registry.ng.bluemix.net/bcins/shop-peer
     environment:
-      - CORE_PEER_ID=shopPeer
-      - CORE_PEER_ADDRESS=shopPeer:7051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=shopPeer:7051
+      - CORE_PEER_ID=shop-peer
+      - CORE_PEER_ADDRESS=shop-peer:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=shop-peer:7051
       - CORE_PEER_LOCALMSPID=ShopOrgMSP
       - CORE_PEER_MSPCONFIGPATH=/peer/crypto/localMspConfig
       - CORE_PEER_TLS_CERT_FILE=/peer/crypto/localMspConfig/signcerts/shopOrgSigner.pem
@@ -92,18 +92,18 @@ services:
       - 8053:7053
     depends_on:
       - orderer0
-      - insurancePeer
+      - insurance-peer
   
-  repairServicePeer:
+  repairservice-peer:
     container_name: repairservice-peer
     extends:
       file: ./peer-base.yaml
       service: peer-base
-    image: registry.ng.bluemix.net/bcins/repairservice
+    image: registry.ng.bluemix.net/bcins/repairservice-peer
     environment:
-      - CORE_PEER_ID=repairServicePeer
-      - CORE_PEER_ADDRESS=repairServicePeer:7051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=repairServicePeer:7051
+      - CORE_PEER_ID=repairservice-peer
+      - CORE_PEER_ADDRESS=repairservice-peer:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=repairservice-peer:7051
       - CORE_PEER_LOCALMSPID=RepairServiceOrgMSP
       - CORE_PEER_MSPCONFIGPATH=/peer/crypto/localMspConfig
       - CORE_PEER_TLS_CERT_FILE=/peer/crypto/localMspConfig/signcerts/repairServiceOrgSigner.pem
@@ -116,8 +116,8 @@ services:
       - 9053:7053
     depends_on:
       - orderer0
-      - insurancePeer
-      - shopPeer
+      - insurance-peer
+      - shop-peer
 
   cli:
     container_name: cli
@@ -128,9 +128,8 @@ services:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - CORE_LOGGING_LEVEL=DEBUG
       - CORE_NEXT=true
-      - CORE_PEER_ID=cli
       - CORE_PEER_ENDORSER_ENABLED=true
-      - CORE_PEER_ADDRESS=insurancePeer:7051
+      - CORE_PEER_ADDRESS=insurance-peer:7051
       - CORE_PEER_ADDRESSAUTODETECT=true
       - CORE_PEER_LOCALMSPID=InsuranceOrgMSP
       - CORE_PEER_TLS_ENABLED=true
@@ -144,9 +143,9 @@ services:
       - /var/run/:/host/var/run/
     depends_on:
       - orderer0
-      - insurancePeer
-      - shopPeer
-      - repairServicePeer
+      - insurance-peer
+      - shop-peer
+      - repairservice-peer
 
   # web:
   #   container_name: registry.ng.bluemix.net/bcins/web
@@ -157,6 +156,6 @@ services:
   #     - 3000:3000
   #   depends_on:
   #     - orderer0
-  #     - insurancePeer
-  #     - shopPeer
-  #     - repairServicePeer
+  #     - insurance-peer
+  #     - shop-peer
+  #     - repairservice-peer

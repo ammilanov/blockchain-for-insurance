@@ -23,7 +23,7 @@ Organizations:
         FileKeyStore:
           KeyStore:
     AnchorPeers:
-      - Host: insurancePeer
+      - Host: insurance-peer
         Port: 7051
   - &ShopOrg
     Name: ShopOrgMSP
@@ -37,7 +37,7 @@ Organizations:
         FileKeyStore:
           KeyStore:
     AnchorPeers:
-      - Host: shopPeer
+      - Host: shop-peer
         Port: 7051
   - &RepairServiceOrg
     Name: RepairServiceOrgMSP
@@ -51,7 +51,7 @@ Organizations:
         FileKeyStore:
           KeyStore:
     AnchorPeers:
-      - Host: repairServicePeer
+      - Host: repairservice-peer
         Port: 7051
 
 Orderer: &OrdererDefaults

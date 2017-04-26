@@ -8,13 +8,14 @@ PROJPATH=$(cd $(dirname "$0") && pwd)
 echo "--> Generating certificates for orderer..."
 ORDERERPATH=$PROJPATH/orderer/crypto
 ORDERERMSP=$ORDERERPATH/localMspConfig
+rm -rf $ORDERERPATH
 mkdir -p $ORDERERMSP/{admincerts,cacerts,keystore,signcerts}
 
 echo "> Generating CA private key"
 openssl ecparam -genkey -name prime256v1 -noout -out $ORDERERMSP/cakey.pem
 
 echo "> Generating CA certificates"
-openssl req -new -x509 -sha256 -days 3650 -nodes -subj '/CN=ordererOrg' \
+openssl req -new -x509 -sha256 -days 3650 -nodes -subj '/CN=orderer-org' \
     -key $ORDERERMSP/cakey.pem \
     -out $ORDERERMSP/cacerts/ordererOrg.pem
 cp $ORDERERMSP/cacerts/ordererOrg.pem $ORDERERMSP/admincerts/ordererOrg.pem
@@ -45,6 +46,8 @@ echo "--> Generating certificates for insurance organization..."
 INSURANCEPEERPATH=$PROJPATH/insurancePeer/crypto
 INSURANCECAPATH=$PROJPATH/insuranceCA
 INSURANCEMSP=$INSURANCEPEERPATH/localMspConfig
+rm -rf $INSURANCEPEERPATH
+rm -rf $INSURANCECAPATH/{ca,tls}
 mkdir -p $INSURANCECAPATH/{ca,tls}
 mkdir -p $INSURANCEMSP/{admincerts,cacerts,keystore,signcerts}
 
@@ -54,7 +57,7 @@ openssl ecparam -genkey -name prime256v1 -noout \
         $INSURANCECAPATH/tls/key.pem > /dev/null
 
 echo "> Generating CA certificates"
-openssl req -new -x509 -sha256 -days 3650 -nodes -subj '/CN=insuranceOrg' \
+openssl req -new -x509 -sha256 -days 3650 -nodes -subj '/CN=insurance-org' \
     -key $INSURANCECAPATH/ca/key.pem \
     | tee $INSURANCECAPATH/ca/cert.pem \
         $INSURANCECAPATH/tls/cert.pem \
@@ -66,7 +69,7 @@ openssl ecparam -genkey -name prime256v1 -noout \
     -out $INSURANCEMSP/keystore/insuranceOrgSigner.pem
 
 echo "> Generating peer node certificate"
-openssl req -new -subj '/CN=insurancePeer' \
+openssl req -new -subj '/CN=insurance-peer' \
     -key $INSURANCEMSP/keystore/insuranceOrgSigner.pem \
     -out $INSURANCEMSP/signcerts/insuranceOrgSigner.csr
 openssl x509 -req -days 3650 -sha256 -set_serial 1000 \
@@ -86,6 +89,8 @@ echo "--> Generating certificates for shop organization..."
 SHOPPEERPATH=$PROJPATH/shopPeer/crypto
 SHOPCAPATH=$PROJPATH/shopCA
 SHOPMSP=$SHOPPEERPATH/localMspConfig
+rm -rf $SHOPPEERPATH
+rm -rf $SHOPCAPATH/{ca,tls}
 mkdir -p $SHOPCAPATH/{ca,tls}
 mkdir -p $SHOPMSP/{admincerts,cacerts,keystore,signcerts}
 
@@ -95,7 +100,7 @@ openssl ecparam -genkey -name prime256v1 -noout \
         $SHOPCAPATH/tls/key.pem > /dev/null
 
 echo "> Generating CA certificates"
-openssl req -new -x509 -sha256 -days 3650 -nodes -subj '/CN=shopOrg' \
+openssl req -new -x509 -sha256 -days 3650 -nodes -subj '/CN=shop-org' \
     -key $SHOPCAPATH/ca/key.pem \
     | tee $SHOPCAPATH/ca/cert.pem \
         $SHOPCAPATH/tls/cert.pem \
@@ -107,7 +112,7 @@ openssl ecparam -genkey -name prime256v1 -noout \
     -out $SHOPMSP/keystore/shopOrgSigner.pem
 
 echo "> Generating peer node certificate"
-openssl req -new -subj '/CN=shopPeer' \
+openssl req -new -subj '/CN=shop-peer' \
     -key $SHOPMSP/keystore/shopOrgSigner.pem \
     -out $SHOPMSP/signcerts/shopOrgSigner.csr
 openssl x509 -req -days 3650 -sha256 -set_serial 1000 \
@@ -127,6 +132,8 @@ echo "--> Generating certificates for repair service organization..."
 REPAIRSERVICEPEERPATH=$PROJPATH/repairServicePeer/crypto
 REPAIRSERVICECAPATH=$PROJPATH/repairServiceCA
 REPAIRSERVICEMSP=$REPAIRSERVICEPEERPATH/localMspConfig
+rm -rf $REPAIRSERVICEPEERPATH
+rm -rf $REPAIRSERVICECAPATH/{ca,tls}
 mkdir -p $REPAIRSERVICECAPATH/{ca,tls}
 mkdir -p $REPAIRSERVICEMSP/{admincerts,cacerts,keystore,signcerts}
 
@@ -136,7 +143,7 @@ openssl ecparam -genkey -name prime256v1 -noout \
         $REPAIRSERVICECAPATH/tls/key.pem > /dev/null
 
 echo "> Generating CA certificates"
-openssl req -new -x509 -sha256 -days 3650 -nodes -subj '/CN=repairServiceOrg' \
+openssl req -new -x509 -sha256 -days 3650 -nodes -subj '/CN=repairservice-org' \
     -key $REPAIRSERVICECAPATH/ca/key.pem \
     | tee $REPAIRSERVICECAPATH/ca/cert.pem \
         $REPAIRSERVICECAPATH/tls/cert.pem \
@@ -148,7 +155,7 @@ openssl ecparam -genkey -name prime256v1 -noout \
     -out $REPAIRSERVICEMSP/keystore/repairServiceOrgSigner.pem
 
 echo "> Generating peer node certificate"
-openssl req -new -subj '/CN=repairServicePeer' \
+openssl req -new -subj '/CN=repairservice-peer' \
     -key $REPAIRSERVICEMSP/keystore/repairServiceOrgSigner.pem \
     -out $REPAIRSERVICEMSP/signcerts/repairServiceOrgSigner.csr
 openssl x509 -req -days 3650 -sha256 -set_serial 1000 \
@@ -172,11 +179,12 @@ eval `echo 'cp '$REPAIRSERVICEMSP/cacerts/*.pem\ {$INSURANCEMSP/,$SHOPMSP/}{admi
 echo
 echo
 
-sh generateCfgTx.sh
+sh generate-cfgtx.sh
 
 ### Copying Certificates to the CLI
-echo "--> Copying cryptographic material to cli container definition..."
+echo "--> Copying cryptographic material to cli and web container definition..."
 CLIPATH=$PROJPATH/cli/peers
+rm -rf CLIPATH
 mkdir -p $CLIPATH/{orderer,insurancePeer,shopPeer,repairServicePeer}
 echo "> Copying orderer certificates"
 cp -r $ORDERERPATH/* $CLIPATH/orderer
@@ -186,3 +194,8 @@ echo "> Copying shop peer certificates"
 cp -r $SHOPPEERPATH/* $CLIPATH/shopPeer
 echo "> Copying repair service peer certificates"
 cp -r $REPAIRSERVICEPEERPATH/* $CLIPATH/repairServicePeer
+echo "> Copying CA certificates to web container"
+cp $ORDERERMSP/admincerts/ordererOrg.pem $PROJPATH/web/certs
+cp $INSURANCEMSP/admincerts/insuranceOrg.pem $PROJPATH/web/certs
+cp $SHOPMSP/admincerts/shopOrg.pem $PROJPATH/web/certs
+cp $REPAIRSERVICEMSP/admincerts/repairServiceOrg.pem $PROJPATH/web/certs
