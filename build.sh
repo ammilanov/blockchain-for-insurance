@@ -1,5 +1,4 @@
 #!/bin/bash
 
-sh ./generateCerts.sh
-sh ./generateCfgTx.sh
-sh ./buildDockerImages.sh
+sh ./generate-certs.sh
+sh ./docker-images.sh
