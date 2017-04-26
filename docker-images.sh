@@ -39,70 +39,68 @@ usage() {
       exit 0
 }
 
-BUILD=1
-PUSH=1
-DOWNLOAD=0
-
-if [ $# -gt 0 ]
-    then
-        for arg in "$@"
-            do
-                if [ $arg == "build" ]
-                    then BUILD=1
-                fi
-                if [ $arg == "push" ]
-                    then PUSH=1
-                fi
-                if [ $arg == "donwload" ]
-                    then DOWNLOAD=1
-                fi
-        done
+BUILD=
+PUSH=
+DOWNLOAD=
+if [ $# -eq 0 ]; then
+    BUILD=true
+    PUSH=true
+    DOWNLOAD=true
+else
+    for arg in "$@"
+        do
+            if [ $arg == "build" ]; then
+                BUILD=true
+            fi
+            if [ $arg == "push" ]; then
+                PUSH=true
+            fi
+            if [ $arg == "download" ]; then
+                DOWNLOAD=true
+            fi
+    done
 fi
 
-if [ $DOWNLOAD ]
-    then
-        : ${CA_TAG:="x86_64-1.0.0-alpha"}
-        : ${FABRIC_TAG:="x86_64-1.0.0-alpha"}
+if [ $DOWNLOAD ]; then
+    : ${CA_TAG:="x86_64-1.0.0-alpha"}
+    : ${FABRIC_TAG:="x86_64-1.0.0-alpha"}
 
-        echo "===> Pulling fabric Images"
-        dockerFabricPull ${FABRIC_TAG}
+    echo "===> Pulling fabric Images"
+    dockerFabricPull ${FABRIC_TAG}
 
-        echo "===> Pulling fabric ca Image"
-        dockerCaPull ${CA_TAG}
-        echo
-        echo "===> List out hyperledger docker images"
-        docker images | grep hyperledger*
-
-        exit 0
+    echo "===> Pulling fabric ca Image"
+    dockerCaPull ${CA_TAG}
+    echo
+    echo "===> List out hyperledger docker images"
+    docker images | grep hyperledger*
 fi
 
-if [ $BUILD ]
+if [ $BUILD ];
     then
-        echo '############################################################'
-        echo '#                 BUILDING CONTAINER IMAGES                #'
-        echo '############################################################'
-        docker build -t registry.ng.bluemix.net/bcins/orderer:latest orderer/
-        docker build -t registry.ng.bluemix.net/bcins/insurance-peer:latest insurancePeer/
-        docker build -t registry.ng.bluemix.net/bcins/shop-peer:latest shopPeer/
-        docker build -t registry.ng.bluemix.net/bcins/repairservice-peer:latest repairServicePeer/
-        docker build -t registry.ng.bluemix.net/bcins/cli:latest cli/
-        # docker build -t registry.ng.bluemix.net/bcins/web:latest web/
-        docker build -t registry.ng.bluemix.net/bcins/insurance-ca:latest insuranceCA/
-        docker build -t registry.ng.bluemix.net/bcins/shop-ca:latest shopCA/
-        docker build -t registry.ng.bluemix.net/bcins/repairservice-ca:latest repairServiceCA/
+    echo '############################################################'
+    echo '#                 BUILDING CONTAINER IMAGES                #'
+    echo '############################################################'
+    docker build -t registry.ng.bluemix.net/bcins/orderer:latest orderer/
+    docker build -t registry.ng.bluemix.net/bcins/insurance-peer:latest insurancePeer/
+    docker build -t registry.ng.bluemix.net/bcins/shop-peer:latest shopPeer/
+    docker build -t registry.ng.bluemix.net/bcins/repairservice-peer:latest repairServicePeer/
+    docker build -t registry.ng.bluemix.net/bcins/cli:latest cli/
+    # docker build -t registry.ng.bluemix.net/bcins/web:latest web/
+    docker build -t registry.ng.bluemix.net/bcins/insurance-ca:latest insuranceCA/
+    docker build -t registry.ng.bluemix.net/bcins/shop-ca:latest shopCA/
+    docker build -t registry.ng.bluemix.net/bcins/repairservice-ca:latest repairServiceCA/
 fi
-if [ $PUSH ]
-    then
-        echo '############################################################'
-        echo '#                UPLOADING CONTAINER IMAGES                #'
-        echo '############################################################'
-        docker push registry.ng.bluemix.net/bcins/orderer:latest
-        docker push registry.ng.bluemix.net/bcins/insurance-peer:latest
-        docker push registry.ng.bluemix.net/bcins/shop-peer:latest
-        docker push registry.ng.bluemix.net/bcins/repairservice-peer:latest
-        docker push registry.ng.bluemix.net/bcins/cli:latest
-        # docker push registry.ng.bluemix.net/bcins/web:latest
-        docker push registry.ng.bluemix.net/bcins/insurance-ca:latest
-        docker push registry.ng.bluemix.net/bcins/shop-ca:latest
-        docker push registry.ng.bluemix.net/bcins/repairservice-ca:latest
+if [ $PUSH ]; then
+    echo '############################################################'
+    echo '#                UPLOADING CONTAINER IMAGES                #'
+    echo '############################################################'
+    docker push registry.ng.bluemix.net/bcins/orderer:latest
+    docker push registry.ng.bluemix.net/bcins/insurance-peer:latest
+    docker push registry.ng.bluemix.net/bcins/shop-peer:latest
+    docker push registry.ng.bluemix.net/bcins/repairservice-peer:latest
+    docker push registry.ng.bluemix.net/bcins/cli:latest
+    # docker push registry.ng.bluemix.net/bcins/web:latest
+    docker push registry.ng.bluemix.net/bcins/insurance-ca:latest
+    docker push registry.ng.bluemix.net/bcins/shop-ca:latest
+    docker push registry.ng.bluemix.net/bcins/repairservice-ca:latest
 fi
