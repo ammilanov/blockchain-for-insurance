@@ -52,7 +52,11 @@ type user struct {
 	ContractIndex []string `json:"contracts"`
 }
 
-const prefixRepairOrder = "repair_order"
+type repairOrder struct {
+	ClaimUUID string `json:"claim_uuid"`
+	Item      item   `json:"item"`
+	Ready     bool   `json:"ready"`
+}
 
 func (u *user) Contacts(stub shim.ChaincodeStubInterface) []contract {
 	return nil
