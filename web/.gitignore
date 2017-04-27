@@ -1,4 +1,4 @@
-kv-store
+kv.store
 node_modules
 .DS_Store
 .vscode
@@ -9,3 +9,7 @@ npm-debug.log
 .jshintrc
 bin
 dist
+!chaincode/
+!chaincode/src
+!chaincode/src/bcins
+
