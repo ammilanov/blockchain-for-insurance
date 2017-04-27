@@ -1,7 +1,11 @@
 package main
 
-import "github.com/hyperledger/fabric/core/chaincode/shim"
-import pb "github.com/hyperledger/fabric/protos/peer"
+import (
+	"encoding/json"
+
+	"github.com/hyperledger/fabric/core/chaincode/shim"
+	pb "github.com/hyperledger/fabric/protos/peer"
+)
 
 func listContractTypes(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	//TODO: listContractType
@@ -9,7 +13,38 @@ func listContractTypes(stub shim.ChaincodeStubInterface, args []string) pb.Respo
 }
 
 func createContractType(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	//TODO: createContractType
+	type contractTypeDTO struct {
+		UUID string `json:"uuid"`
+	}
+	var err error
+
+	dto := &contractTypeDTO{}
+	ct := &contractType{}
+
+	err = json.Unmarshal([]byte(args[0]), dto)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	err = json.Unmarshal([]byte(args[0]), ct)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	key, err := stub.CreateCompositeKey(prefixContractType, []string{dto.UUID})
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	value, err := json.Marshal(ct)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	err = stub.PutState(key, value)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
 
 	return shim.Success(nil)
 }
