@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -57,6 +58,17 @@ type repairOrder struct {
 	ClaimUUID string `json:"claim_uuid"`
 	Item      item   `json:"item"`
 	Ready     bool   `json:"ready"`
+}
+
+func (ct *contractType) MarshalJSON(uuid string) ([]byte, error) {
+	type Alias contractType
+	return json.Marshal(&struct {
+		UUID string `json:"uuid"`
+		*Alias
+	}{
+		UUID:  uuid,
+		Alias: (*Alias)(ct),
+	})
 }
 
 func (u *user) Contacts(stub shim.ChaincodeStubInterface) []contract {

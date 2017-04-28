@@ -1,15 +1,73 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 )
 
 func listContractTypes(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	//TODO: listContractType
-	return shim.Success(nil)
+	// buffer is a JSON array containing Results
+	var buffer bytes.Buffer
+	buffer.WriteString("[")
+	bArrayMemberAlreadyWritten := false
+
+	// Query the prefixContractType index
+	// This will execute a key range query on all keys starting with 'contract_type'
+	contractTypeResultsIterator, err := stub.GetStateByPartialCompositeKey(prefixContractType, []string{"contract_type"})
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	defer contractTypeResultsIterator.Close()
+
+	// Iterate through result set and for each contract_type found
+	var i int
+	for i = 0; contractTypeResultsIterator.HasNext(); i++ {
+		// Note that we don't get the value (2nd return variable), we'll just get the uuid of the contract_type from the composite key
+		responseRange, err := contractTypeResultsIterator.Next()
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+
+		// get the color and name from color~name composite key
+		objectType, compositeKeyParts, err := stub.SplitCompositeKey(responseRange.Key)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+		returnedContractType := compositeKeyParts[0]
+		returnedContractTypeUUID := compositeKeyParts[1]
+		fmt.Printf("- found a contract_type from index:%sindex:%s prefix:%s uuid:%s\n", objectType, returnedContractType, returnedContractTypeUUID)
+
+		contractTypeBytes, err := stub.GetState(responseRange.Key)
+		if err != nil {
+			return shim.Error("Failed to get contractType:" + err.Error())
+		} else if contractTypeBytes == nil {
+			return shim.Error("contractType does not exist")
+		}
+
+		ct := &contractType{}
+		err = json.Unmarshal(contractTypeBytes, &ct)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+		// Use costum MarshalJSON to add uuid (key) to output
+		uuidContractTypeAsBytes, errCt := ct.MarshalJSON(returnedContractTypeUUID)
+		if errCt != nil {
+			return shim.Error(errCt.Error())
+		}
+		// Add a comma before array members, suppress it for the first array member
+		if bArrayMemberAlreadyWritten == true {
+			buffer.WriteString(",")
+		}
+		buffer.WriteString(string(uuidContractTypeAsBytes))
+		bArrayMemberAlreadyWritten = true
+	}
+	buffer.WriteString("]")
+
+	return shim.Success(buffer.Bytes())
 }
 
 func createContractType(stub shim.ChaincodeStubInterface, args []string) pb.Response {
