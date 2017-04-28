@@ -138,7 +138,7 @@ services:
       - CORE_PEER_TLS_KEY_FILE=/peers/insurancePeer/localMspConfig/keystore/insuranceOrgSigner.pem
       - CORE_PEER_TLS_ROOTCERT_FILE=/peers/insurancePeer/localMspConfig/cacerts/insuranceOrg.pem
     working_dir: /peers
-    command: /bin/bash
+    command: /scripts/script.sh
     volumes:
       - /var/run/:/host/var/run/
     depends_on:
