@@ -23,6 +23,7 @@ type contract struct {
 	Item       item      `json:"item"`
 	StartDate  time.Time `json:"start_date"`
 	EndDate    time.Time `json:"end_date"`
+	Void       bool      `json:"void"`
 	ClaimIndex []string  `json:"claims"`
 }
 
