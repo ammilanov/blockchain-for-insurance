@@ -7,8 +7,41 @@ import (
 	pb "github.com/hyperledger/fabric/protos/peer"
 )
 
-func createContrau(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	//TODO: createContrau
+func createContract(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	var err error
+
+	type contractDTO struct {
+		UUID string `json:"uuid"`
+	}
+
+	dto := &contractDTO{}
+	c := &contract{}
+
+	err = json.Unmarshal([]byte(args[0]), dto)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	err = json.Unmarshal([]byte(args[0]), c)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	key, err := stub.CreateCompositeKey(prefixContract, []string{dto.UUID})
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	value, err := json.Marshal(c)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	err = stub.PutState(key, value)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
 	return shim.Success(nil)
 }
 
