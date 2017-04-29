@@ -71,6 +71,17 @@ func (ct *contractType) MarshalJSON(uuid string) ([]byte, error) {
 	})
 }
 
+func (c *contract) MarshalJSON(uuid string) ([]byte, error) {
+	type Alias contract
+	return json.Marshal(&struct {
+		UUID string `json:"uuid"`
+		*Alias
+	}{
+		UUID:  uuid,
+		Alias: (*Alias)(c),
+	})
+}
+
 func (u *user) Contacts(stub shim.ChaincodeStubInterface) []contract {
 	return nil
 }

@@ -152,7 +152,64 @@ func setActiveContractType(stub shim.ChaincodeStubInterface, args []string) pb.R
 }
 
 func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	//TODO: listContracts
+	// buffer is a JSON array containing Results
+	var buffer bytes.Buffer
+	buffer.WriteString("[")
+	bArrayMemberAlreadyWritten := false
+
+	var err error
+
+	u := &user{}
+
+	username := args[0]
+	userAsbytes, err := stub.GetState(username) //get the user from chaincode state
+	if err != nil {
+		res := "Failed to get state for " + username
+		return shim.Error(res)
+	} else if userAsbytes == nil {
+		res := "ContractType does not exist: " + username
+		return shim.Error(res)
+	}
+
+	err = json.Unmarshal(userAsbytes, u)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	for _, contractUUID := range u.ContractIndex {
+		c := &contract{}
+		// get contract
+		contractAsBytes, err := stub.GetState(contractUUID)
+		if err != nil {
+			res := "Failed to get state for " + contractUUID
+			return shim.Error(res)
+		} else if contractAsBytes == nil {
+			res := "ContractType does not exist: " + contractUUID
+			return shim.Error(res)
+		}
+
+		// parse contract_type
+		err = json.Unmarshal(contractAsBytes, c)
+		if err != nil {
+			res := "Failed to decode JSON of: " + contractUUID
+			return shim.Error(res)
+		}
+		// Use costum MarshalJSON to add uuid (key) to output
+		uuidContractAsBytes, errCt := c.MarshalJSON(contractUUID)
+		if errCt != nil {
+			return shim.Error(errCt.Error())
+		}
+
+		// Add a comma before array members, suppress it for the first array member
+		if bArrayMemberAlreadyWritten == true {
+			buffer.WriteString(",")
+		}
+
+		buffer.WriteString(string(uuidContractTypeAsBytes))
+		bArrayMemberAlreadyWritten = true
+	}
+	buffer.WriteString("]")
+
 	return shim.Success(nil)
 }
 
