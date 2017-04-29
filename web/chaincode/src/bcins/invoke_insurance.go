@@ -39,7 +39,7 @@ func listContractTypes(stub shim.ChaincodeStubInterface, args []string) pb.Respo
 		}
 		returnedContractType := compositeKeyParts[0]
 		returnedContractTypeUUID := compositeKeyParts[1]
-		fmt.Printf("- found a contract_type from index:%sindex:%s prefix:%s uuid:%s\n", objectType, returnedContractType, returnedContractTypeUUID)
+		fmt.Printf("- found a contract_type from index:%s prefix:%s uuid:%s\n", objectType, returnedContractType, returnedContractTypeUUID)
 
 		contractTypeBytes, err := stub.GetState(responseRange.Key)
 		if err != nil {
@@ -205,7 +205,7 @@ func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 			buffer.WriteString(",")
 		}
 
-		buffer.WriteString(string(uuidContractTypeAsBytes))
+		buffer.WriteString(string(uuidContractAsBytes))
 		bArrayMemberAlreadyWritten = true
 	}
 	buffer.WriteString("]")
