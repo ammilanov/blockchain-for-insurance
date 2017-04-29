@@ -108,7 +108,46 @@ func createContractType(stub shim.ChaincodeStubInterface, args []string) pb.Resp
 }
 
 func setActiveContractType(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	//TODO: setActiveContractType
+	var err error
+
+	type activationRequest struct {
+		UUID   string `json:"uuid"`
+		Active bool   `json:"active"`
+	}
+
+	req := &activationRequest{}
+	ct := &contractType{}
+
+	err = json.Unmarshal([]byte(args[0]), req)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	valAsbytes, err := stub.GetState(req.UUID)
+	if err != nil {
+		res := "Failed to get state for " + req.UUID
+		return shim.Error(res)
+	} else if valAsbytes == nil {
+		res := "ContractType does not exist: " + req.UUID
+		return shim.Error(res)
+	}
+
+	err = json.Unmarshal(valAsbytes, ct)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	ct.Active = req.Active
+
+	contractTypeBytes, err := json.Marshal(ct)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	err = stub.PutState(req.UUID, contractTypeBytes)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
 	return shim.Success(nil)
 }
 
