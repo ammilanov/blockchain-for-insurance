@@ -1,151 +1,151 @@
-'use strict';
+'use babel';
 
-import fetch from 'isomorphic-fetch';
-import { snakeToCamelCase, camelToSnakeCase } from 'json-style-converter';
+import { wrapError } from './utils';
+import { insuranceClient as client, isReady } from './setup';
 import uuidV4 from 'uuid/v4';
 
-const url = 'https://a4f3e008e065463a905245fe48fcb62f-vp1.us.blockchain.ibm.com:5002/chaincode';
-const bodyMessage = {
-  "jsonrpc": "2.0",
-  "params": {
-    "type": 1,
-    "chaincodeID": {
-      "name": "213b55b2de35e681912904b5eea3e256f087193279ba8e99d541fc4c3f77652e293ff398666cdfde98edd47929dc8f2eb944b726ba3e6136811273f8b43ce254"
-    },
-    "ctorMsg": {
-      "function": null,
-      "args": null
-    },
-    "secureContext": "user_type1_1"
-  },
-  "id": 4
-};
-
-/**
- * Function checks compares the login data to the Blockchain to ensure it is correct.
- *
- * @param {any} { username, password } A user object containing the username and the password
- * @returns {Promise<boolean>} A Promise containing a boolean that specifies whether such user exists.
- */
-export function authenticateUser({ username, password }) {
-  let body = JSON.parse(JSON.stringify(bodyMessage));
-  body.method = 'query';
-  body.params.ctorMsg.function = 'loginConsumer';
-  body.params.ctorMsg.args = [`user_${username}`, password];
-
-  return fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  }).then(async res => {
-    if (res.status >= 400) {
-      throw new Error(res);
-    }
-    let response = await res.json();
-    return !response.error;
-  });
-}
-
-/**
- *  Function gets the contracts associated with the give user.
- *
- * @param {string} username The username of the user.
- * @returns {Promise<Array<any>>} A promise that yields an array with the contracts.
- */
-export function getContractsForUser(username) {
-  let body = JSON.parse(JSON.stringify(bodyMessage));
-  body.method = 'query';
-  body.params.ctorMsg.function = 'getConsumerContracts';
-  body.params.ctorMsg.args = [`user_${username}`];
-
-  return fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  }).then(async res => {
-    if (res.status >= 400) {
-      throw new Error(res);
-    }
-    const responseObject = await res.json();
-    if (typeof responseObject.result.message === 'string') {
-      const contracts = snakeToCamelCase(JSON.parse(responseObject.result.message));
-      return contracts.map(contract => {
-        contract.contractItem.item.itemId = contract.contractItem.item.itemid;
-        delete contract.contractItem.item.itemid;
-        contract.contractItem.item.serialNo = contract.contractItem.item.serialno;
-        delete contract.contractItem.item.serialno;
-        return Object.assign({ id: contract.contractId }, contract.contractItem);
-      });
-    } else {
-      return [];
-    }
-  });
-}
-
-/**
- * Function issues a claim to a given contract.
- * 
- * @param {strin} contractId The contract id.
- * @param {any} claim The claim object containing details about the claim.
- */
-export function submitClaim(contractId, claim) {
-  let body = JSON.parse(JSON.stringify(bodyMessage));
-  body.method = 'invoke';
-  body.params.ctorMsg.function = 'newClaim';
-  claim.claimid = `claim_${uuidV4()}`;
-  body.params.ctorMsg.args = [contractId, JSON.stringify(camelToSnakeCase(claim))];
-
-  return fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  }).then(async res => {
-    if (res.status >= 400) {
-      throw new Error(res);
-    }
+export async function getContractTypes() {
+  if (!isReady()) {
     return;
-  });
+  }
+  try {
+    const contractTypes = await client.invoke('contract_type_ls');
+    return contractTypes;
+  } catch (e) {
+    throw wrapError(`Error getting contract types: ${e.message}`, e);
+  }
 }
 
-/**
- * Internal function returns the user.
- *
- * @param {string} username The username of the user.
- * @returns {Promise<any>} A promise that yields an object containing the user data.
- */
-function getUser(username) {
-  let body = JSON.parse(JSON.stringify(bodyMessage));
-  body.method = 'query';
-  body.params.ctorMsg.function = 'read';
-  body.params.ctorMsg.args = [`user_${username}`];
-  return fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  }).then(async res => {
-    if (res.status >= 400) {
-      throw new Error(res);
+export async function createContractType(contractType) {
+  if (!isReady()) {
+    return;
+  }
+  try {
+    let uuid = uuidV4();
+    let ct = Object.assign({}, contractType, { uuid });
+    const successResult = await client.invoke('contract_type_create', ct);
+    if (successResult) {
+      throw new Error(successResult);
     }
-    let responseObject = await res.json();
-    if (responseObject.result && responseObject.result.message) {
-      let user = JSON.parse(responseObject.result.message);
-      return {
-        username: user.username,
-        email: user.username,
-        password: user.password,
-        firstName: user.firstname,
-        lastName: user.lastname
-      };
+    return uuid;
+  } catch (e) {
+    throw wrapError(`Error creating contract type: ${e.message}`, e);
+  }
+}
+
+export async function setActiveContractType(uuid, active) {
+  if (!isReady()) {
+    return;
+  }
+  try {
+    const successResult = await client.invoke('contract_type_set_active',
+      { uuid, active });
+    if (successResult) {
+      throw new Error(successResult);
+    }
+    return successResult;
+  } catch (e) {
+    throw wrapError(`Error setting active contract type: ${e.message}`, e);
+  }
+}
+
+export async function getContracts(username) {
+  if (!isReady()) {
+    return;
+  }
+  try {
+    if (typeof username !== 'string') {
+      username = undefined;
+    }
+    const contracts = await client.invoke('contract_ls', { username });
+    return contracts;
+  } catch (e) {
+    let errMessage;
+    if (username) {
+      errMessage = `Error getting contracts for user ${username}: ${e.message}`;
     } else {
-      return null;
+      errMessage = `Error getting all contracts: ${e.message}`;
     }
-  });
+    throw wrapError(errMessage, e);
+  }
+}
+
+export async function getClaims() {
+  if (!isReady()) {
+    return;
+  }
+  try {
+    if (typeof status !== 'string') {
+      status = undefined;
+    }
+    const claims = await client.invoke('claim_ls', { status });
+    return claims;
+  } catch (e) {
+    let errMessage;
+    if (status) {
+      errMessage = `Error getting claims with status ${status}: ${e.message}`;
+    } else {
+      errMessage = `Error getting all claims: ${e.message}`;
+    }
+    throw wrapError(errMessage, e);
+  }
+}
+
+export async function fileClaim(claim) {
+  if (!isReady()) {
+    return;
+  }
+  try {
+    let uuid = uuidV4();
+    let c = Object.assign({}, claim, { uuid });
+    const successResult = await client.invoke('claim_file', c);
+    if (successResult) {
+      throw new Error(successResult);
+    }
+    return uuid;
+  } catch (e) {
+    throw wrapError(`Error filing a new claim: ${e.message}`, e);
+  }
+}
+
+export async function processClaim(uuid, status, refundable) {
+  if (!isReady()) {
+    return;
+  }
+  try {
+    const successResult = await client.invoke('claim_process', { uuid, status, refundable });
+    if (successResult) {
+      throw new Error(successResult);
+    }
+    return successResult;
+  } catch (e) {
+    throw wrapError(`Error processing claim: ${e.message}`, e);
+  }
+}
+
+export async function authenticateUser(username, password) {
+  if (!isReady()) {
+    return;
+  }
+  try {
+    let authenticated = await client.invoke('user_authenticate', { username, password });
+    if (authenticated === undefined || authenticated === null) {
+      throw new Error('Unknown error, invalid response!');
+    }
+    return authenticated;
+  } catch (e) {
+    throw wrapError(`Error authenticating user: ${e.message}`, e);
+  }
+}
+
+export async function getUserInfo(username) {
+  if (!isReady()) {
+    return;
+  }
+  try {
+    const user = await client.invoke('user_get_info', { username });
+    return user;
+  } catch (e) {
+    throw wrapError(`Error getting user info: ${e.message}`, e);
+  }
 }
