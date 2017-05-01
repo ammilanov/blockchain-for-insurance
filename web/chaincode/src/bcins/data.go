@@ -20,12 +20,13 @@ type contractType struct {
 }
 
 type contract struct {
-	Username   string    `json:"username"`
-	Item       item      `json:"item"`
-	StartDate  time.Time `json:"start_date"`
-	EndDate    time.Time `json:"end_date"`
-	Void       bool      `json:"void"`
-	ClaimIndex []string  `json:"claims"`
+	Username         string    `json:"username"`
+	Item             item      `json:"item"`
+	StartDate        time.Time `json:"start_date"`
+	EndDate          time.Time `json:"end_date"`
+	Void             bool      `json:"void"`
+	ContractTypeUUID string    `json:"contract_type_uuid"`
+	ClaimIndex       []string  `json:"claims"`
 }
 
 type item struct {
