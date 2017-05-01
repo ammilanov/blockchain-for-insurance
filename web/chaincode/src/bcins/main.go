@@ -19,7 +19,7 @@ var logger = shim.NewLogger("main")
 type SimpleChaincode struct {
 }
 
-var functions = map[string]func(shim.ChaincodeStubInterface, []string) pb.Response{
+var bcFunctions = map[string]func(shim.ChaincodeStubInterface, []string) pb.Response{
 	//InsurancePeer
 	"contract_type_ls":         listContractTypes,
 	"contract_type_create":     createContractType,
@@ -47,7 +47,13 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
 // Invoke Function accept blockchain code invocations.
 func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 
-	//function, args := stub.GetFunctionAndParameters()
+	function, args := stub.GetFunctionAndParameters()
+
+	if function == "init" {
+		return t.Init(stub)
+	} else {
+		return bcFunctions[function](stub, args)
+	}
 
 	return shim.Error("Invalid invoke function.")
 }
