@@ -51,11 +51,12 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 
 	if function == "init" {
 		return t.Init(stub)
-	} else {
-		return bcFunctions[function](stub, args)
 	}
-
-	return shim.Error("Invalid invoke function.")
+	bcFunc := bcFunctions[function]
+	if bcFunc == nil {
+		return shim.Error("Invalid invoke function.")
+	}
+	return bcFunc(stub, args)
 }
 
 func main() {
