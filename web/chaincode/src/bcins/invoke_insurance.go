@@ -1,18 +1,20 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
+
+	"strings"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
-	"strings"
 )
 
 func listContractTypes(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	var shopType string
+	callingAsMerchant := false
 	if len(args) > 0 {
 		shopType = args[0]
+		callingAsMerchant = true
 	}
 
 	type contractTypeDTO struct {
@@ -40,7 +42,9 @@ func listContractTypes(stub shim.ChaincodeStubInterface, args []string) pb.Respo
 			return shim.Error(err.Error())
 		}
 		ct.UUID = key
-		if shopType == "" || strings.Contains(ct.ShopType, shopType) {
+
+		// Apply proper filtering, merchants should only see active contracts
+		if !callingAsMerchant || (strings.Contains(ct.ShopType, shopType) && ct.Active) {
 			results = append(results, ct)
 		}
 	}
@@ -50,15 +54,18 @@ func listContractTypes(stub shim.ChaincodeStubInterface, args []string) pb.Respo
 }
 
 func createContractType(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	type contractTypeDTO struct {
+	if len(args) != 1 {
+		return shim.Error("Invalid argument count.")
+	}
+
+	type contractTypePartial struct {
 		UUID string `json:"uuid"`
 	}
-	var err error
 
-	dto := &contractTypeDTO{}
+	partial := &contractTypePartial{}
 	ct := &contractType{}
 
-	err = json.Unmarshal([]byte(args[0]), dto)
+	err := json.Unmarshal([]byte(args[0]), partial)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
@@ -68,7 +75,7 @@ func createContractType(stub shim.ChaincodeStubInterface, args []string) pb.Resp
 		return shim.Error(err.Error())
 	}
 
-	key, err := stub.CreateCompositeKey(prefixContractType, []string{dto.UUID})
+	key, err := stub.CreateCompositeKey(prefixContractType, []string{partial.UUID})
 	if err != nil {
 		return shim.Error(err.Error())
 	}
@@ -87,42 +94,45 @@ func createContractType(stub shim.ChaincodeStubInterface, args []string) pb.Resp
 }
 
 func setActiveContractType(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	var err error
+	if len(args) != 1 {
+		return shim.Error("Invalid argument count.")
+	}
 
 	type activationRequest struct {
 		UUID   string `json:"uuid"`
 		Active bool   `json:"active"`
 	}
 
-	req := &activationRequest{}
-	ct := &contractType{}
+	req := activationRequest{}
+	ct := contractType{}
 
-	err = json.Unmarshal([]byte(args[0]), req)
+	err := json.Unmarshal([]byte(args[0]), req)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
 
-	valAsbytes, err := stub.GetState(req.UUID)
+	searchKey, err := stub.CreateCompositeKey(prefixContractType, []string{req.UUID})
 	if err != nil {
-		res := "Failed to get state for " + req.UUID
-		return shim.Error(res)
-	} else if valAsbytes == nil {
-		res := "ContractType does not exist: " + req.UUID
-		return shim.Error(res)
+		return shim.Error(err.Error())
 	}
 
-	err = json.Unmarshal(valAsbytes, ct)
+	valAsBytes, err := stub.GetState(searchKey)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	err = json.Unmarshal(valAsBytes, &ct)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
 
 	ct.Active = req.Active
 
-	contractTypeBytes, err := json.Marshal(ct)
+	valAsBytes, err = json.Marshal(ct)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-	err = stub.PutState(req.UUID, contractTypeBytes)
+	err = stub.PutState(req.UUID, valAsBytes)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
@@ -131,63 +141,6 @@ func setActiveContractType(stub shim.ChaincodeStubInterface, args []string) pb.R
 }
 
 func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	// buffer is a JSON array containing Results
-	var buffer bytes.Buffer
-	buffer.WriteString("[")
-	bArrayMemberAlreadyWritten := false
-
-	var err error
-
-	u := &user{}
-
-	username := args[0]
-	userAsbytes, err := stub.GetState(username) //get the user from chaincode state
-	if err != nil {
-		res := "Failed to get state for " + username
-		return shim.Error(res)
-	} else if userAsbytes == nil {
-		res := "ContractType does not exist: " + username
-		return shim.Error(res)
-	}
-
-	err = json.Unmarshal(userAsbytes, u)
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	for _, contractUUID := range u.ContractIndex {
-		c := &contract{}
-		// get contract
-		contractAsBytes, err := stub.GetState(contractUUID)
-		if err != nil {
-			res := "Failed to get state for " + contractUUID
-			return shim.Error(res)
-		} else if contractAsBytes == nil {
-			res := "ContractType does not exist: " + contractUUID
-			return shim.Error(res)
-		}
-
-		// parse contract_type
-		err = json.Unmarshal(contractAsBytes, c)
-		if err != nil {
-			res := "Failed to decode JSON of: " + contractUUID
-			return shim.Error(res)
-		}
-		// Use costum MarshalJSON to add uuid (key) to output
-		uuidContractAsBytes, errCt := c.MarshalJSON(contractUUID)
-		if errCt != nil {
-			return shim.Error(errCt.Error())
-		}
-
-		// Add a comma before array members, suppress it for the first array member
-		if bArrayMemberAlreadyWritten == true {
-			buffer.WriteString(",")
-		}
-
-		buffer.WriteString(string(uuidContractAsBytes))
-		bArrayMemberAlreadyWritten = true
-	}
-	buffer.WriteString("]")
 
 	return shim.Success(nil)
 }

@@ -61,28 +61,6 @@ type repairOrder struct {
 	Ready     bool   `json:"ready"`
 }
 
-func (ct *contractType) MarshalJSON(uuid string) ([]byte, error) {
-	type Alias contractType
-	return json.Marshal(&struct {
-		UUID string `json:"uuid"`
-		*Alias
-	}{
-		UUID:  uuid,
-		Alias: (*Alias)(ct),
-	})
-}
-
-func (c *contract) MarshalJSON(uuid string) ([]byte, error) {
-	type Alias contract
-	return json.Marshal(&struct {
-		UUID string `json:"uuid"`
-		*Alias
-	}{
-		UUID:  uuid,
-		Alias: (*Alias)(c),
-	})
-}
-
 func (u *user) Contacts(stub shim.ChaincodeStubInterface) []contract {
 	contracts := make([]contract, 0)
 
