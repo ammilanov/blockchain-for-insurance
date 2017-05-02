@@ -214,8 +214,33 @@ func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 }
 
 func listClaims(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	//TODO: listClaims
-	return shim.Success(nil)
+	c := &contract{}
+
+	contractAsBytes, err := stub.GetState(args[0])
+	if err != nil {
+		res := "Failed to get state for " + args[0]
+		return shim.Error(res)
+	} else if contractAsBytes == nil {
+		res := "Contract does not exist: " + args[0]
+		return shim.Error(res)
+	}
+
+	// parse contract
+	json.Unmarshal(contractAsBytes, &c)
+
+	claims := c.Claims(stub)
+
+	if claims == nil {
+		res := "Failed to get claims for " + args[0]
+		return shim.Error(res)
+	}
+
+	claimsAsBytes, errCt := json.Marshal(claims)
+	if errCt != nil {
+		return shim.Error(errCt.Error())
+	}
+
+	return shim.Success(claimsAsBytes)
 }
 
 func fileClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
