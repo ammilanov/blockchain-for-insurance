@@ -84,9 +84,59 @@ func (c *contract) MarshalJSON(uuid string) ([]byte, error) {
 }
 
 func (u *user) Contacts(stub shim.ChaincodeStubInterface) []contract {
-	return nil
+	contracts := make([]contract, 0)
+
+	// for each contractID in user.ContractIndex
+	for _, contractID := range u.ContractIndex {
+
+		c := &contract{}
+
+		// get contract
+		contractAsBytes, err := stub.GetState(contractID)
+		if err != nil {
+			//res := "Failed to get state for " + contractID
+			return nil
+		}
+
+		// parse contract
+		err = json.Unmarshal(contractAsBytes, c)
+		if err != nil {
+			//res := "Failed to parse contract"
+			return nil
+		}
+
+		// append to the contracts array
+		contracts = append(contracts, *c)
+	}
+
+	return contracts
 }
 
 func (c *contract) Claims(stub shim.ChaincodeStubInterface) []claim {
-	return nil
+	claims := make([]claim, 0)
+
+	// for each claimId in consumer.Contracts
+	for _, claimID := range c.ClaimIndex {
+
+		claim := &claim{}
+
+		// get claim
+		claimAsBytes, err := stub.GetState(claimID)
+		if err != nil {
+			//res := "Failed to get state for " + claimID
+			return nil
+		}
+
+		// parse claim
+		err = json.Unmarshal(claimAsBytes, claim)
+		if err != nil {
+			//res := "Failed to parse claim"
+			return nil
+		}
+
+		// append to the claims array
+		claims = append(claims, *claim)
+	}
+
+	return claims
 }
