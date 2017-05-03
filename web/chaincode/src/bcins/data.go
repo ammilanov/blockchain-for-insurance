@@ -7,6 +7,7 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
 
+// Key consists of prefix + UUID of the contract type
 type contractType struct {
 	ShopType        string  `json:"shop_type"`
 	FormulaPerDay   string  `json:"formula_per_day"`
@@ -19,6 +20,7 @@ type contractType struct {
 	MaxDurationDays int32   `json:"max_duration_days"`
 }
 
+// Key consists of prefix + username + UUID of the contract
 type contract struct {
 	Username         string    `json:"username"`
 	Item             item      `json:"item"`
@@ -29,6 +31,7 @@ type contract struct {
 	ClaimIndex       []string  `json:"claims"`
 }
 
+// Entity not persisted on its own
 type item struct {
 	ID          int32   `json:"id"`
 	Brand       string  `json:"brand"`
@@ -37,6 +40,7 @@ type item struct {
 	Description string  `json:"description"`
 }
 
+// Key consists of prefix + UUID of the contract + UUID of the claim
 type claim struct {
 	ContractUUID string    `json:"contract_uuid"`
 	Date         time.Time `json:"date"`
@@ -47,6 +51,7 @@ type claim struct {
 	Repaired     bool      `json:"repaired"`
 }
 
+// Key consists of prefix + username
 type user struct {
 	Username      string   `json:"username"`
 	Password      string   `json:"password"`
@@ -55,10 +60,12 @@ type user struct {
 	ContractIndex []string `json:"contracts"`
 }
 
+// Key consists of prefix + UUID fo the repair order
 type repairOrder struct {
-	ClaimUUID string `json:"claim_uuid"`
-	Item      item   `json:"item"`
-	Ready     bool   `json:"ready"`
+	ClaimUUID    string `json:"claim_uuid"`
+	ContractUUID string `json:"contract_uuid"`
+	Item         item   `json:"item"`
+	Ready        bool   `json:"ready"`
 }
 
 func (u *user) Contacts(stub shim.ChaincodeStubInterface) []contract {
@@ -90,7 +97,7 @@ func (u *user) Contacts(stub shim.ChaincodeStubInterface) []contract {
 	return contracts
 }
 
-func (c *contract) Claims(stub shim.ChaincodeStubInterface) []claim {
+func (c *contract) Claims(stub shim.ChaincodeStubInterface) ([]claim, error) {
 	claims := make([]claim, 0)
 
 	// for each claimId in consumer.Contracts
@@ -102,19 +109,53 @@ func (c *contract) Claims(stub shim.ChaincodeStubInterface) []claim {
 		claimAsBytes, err := stub.GetState(claimID)
 		if err != nil {
 			//res := "Failed to get state for " + claimID
-			return nil
+			return nil, err
 		}
 
 		// parse claim
 		err = json.Unmarshal(claimAsBytes, claim)
 		if err != nil {
 			//res := "Failed to parse claim"
-			return nil
+			return nil, err
 		}
 
 		// append to the claims array
 		claims = append(claims, *claim)
 	}
 
-	return claims
+	return claims, nil
+}
+
+func (c *claim) Contract(stub shim.ChaincodeStubInterface) (*contract, error) {
+	if len(c.ContractUUID) == 0 {
+		return nil, nil
+	}
+
+	resultsIterator, err := stub.GetStateByPartialCompositeKey(prefixContract, []string{})
+	if err != nil {
+		return nil, err
+	}
+
+	defer resultsIterator.Close()
+	for resultsIterator.HasNext() {
+		key, value, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		_, keyParams, err := stub.SplitCompositeKey(key)
+		if len(keyParams) != 2 {
+			continue
+		}
+
+		if keyParams[1] == c.ContractUUID {
+			contract := &contract{}
+			err := json.Unmarshal(value, contract)
+			if err != nil {
+				return nil, err
+			}
+			return contract, nil
+		}
+	}
+	return nil, nil
 }
