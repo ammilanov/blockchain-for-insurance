@@ -135,8 +135,8 @@ func (c *claim) Contract(stub shim.ChaincodeStubInterface) (*contract, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	defer resultsIterator.Close()
+
 	for resultsIterator.HasNext() {
 		key, value, err := resultsIterator.Next()
 		if err != nil {

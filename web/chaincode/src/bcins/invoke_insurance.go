@@ -148,9 +148,9 @@ func setActiveContractType(stub shim.ChaincodeStubInterface, args []string) pb.R
 }
 
 func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	var input struct {
+	input := struct {
 		Username string `json:"username"`
-	}
+	}{}
 	if len(args) > 0 {
 		err := json.Unmarshal([]byte(args[0]), &input)
 		if err != nil {
@@ -307,7 +307,8 @@ func fileClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 		IsTheft:      claimDTO.IsTheft,
 		Status:       "N", // N - new claim
 	}
-	claimKey, err := stub.CreateCompositeKey(prefixClaim, []string{claimDTO.ContractUUID, claimDTO.UUID})
+	claimKey, err := stub.CreateCompositeKey(prefixClaim,
+		[]string{claimDTO.ContractUUID, claimDTO.UUID})
 	if err != nil {
 		return shim.Error(err.Error())
 	}

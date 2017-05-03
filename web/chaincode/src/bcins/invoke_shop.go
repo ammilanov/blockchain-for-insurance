@@ -13,7 +13,7 @@ func createContract(stub shim.ChaincodeStubInterface, args []string) pb.Response
 		return shim.Error("Invalid argument count.")
 	}
 
-	type contractDTO struct {
+	dto := struct {
 		UUID             string    `json:"uuid"`
 		ContractTypeUUID string    `json:"contract_type_uuid"`
 		Username         string    `json:"username"`
@@ -23,10 +23,7 @@ func createContract(stub shim.ChaincodeStubInterface, args []string) pb.Response
 		Item             item      `json:"item"`
 		StartDate        time.Time `json:"start_date"`
 		EndDate          time.Time `json:"end_date"`
-	}
-
-	var u user
-	dto := contractDTO{}
+	}{}
 
 	err := json.Unmarshal([]byte(args[0]), &dto)
 	if err != nil {
@@ -34,6 +31,7 @@ func createContract(stub shim.ChaincodeStubInterface, args []string) pb.Response
 	}
 
 	// Create new user if necessary
+	var u user
 	requestUserCreate := len(dto.Username) > 0 && len(dto.Password) > 0
 	userKey, err := stub.CreateCompositeKey(prefixUser, []string{dto.Username})
 	if requestUserCreate {
@@ -43,23 +41,34 @@ func createContract(stub shim.ChaincodeStubInterface, args []string) pb.Response
 		}
 		userAsBytes, _ := stub.GetState(userKey)
 		if userAsBytes == nil {
+			// Create new user
 			u = user{
 				Username:  dto.Username,
 				Password:  dto.Password,
 				FirstName: dto.FirstName,
 				LastName:  dto.LastName,
 			}
+			// Persist the new user
+			userAsBytes, err := json.Marshal(u)
+			if err != nil {
+				return shim.Error(err.Error())
+			}
+			err = stub.PutState(userKey, userAsBytes)
+			if err != nil {
+				return shim.Error(err.Error())
+			}
 		} else {
+			// Parse the existing user
 			err := json.Unmarshal(userAsBytes, &u)
 			if err != nil {
 				return shim.Error(err.Error())
 			}
 		}
 	} else {
-		// Validate if the user exists
+		// Validate if the user with the provided username exists
 		userAsBytes, _ := stub.GetState(userKey)
 		if userAsBytes == nil {
-			return shim.Error("User with this username does not exist!")
+			return shim.Error("User with this username does not exist.")
 		}
 	}
 
@@ -73,11 +82,11 @@ func createContract(stub shim.ChaincodeStubInterface, args []string) pb.Response
 		ClaimIndex:       []string{},
 	}
 
-	contractAsBytes, err := json.Marshal(contract)
+	contractKey, err := stub.CreateCompositeKey(prefixContract, []string{dto.Username, dto.UUID})
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-	contractKey, err := stub.CreateCompositeKey(prefixContract, []string{dto.Username, dto.UUID})
+	contractAsBytes, err := json.Marshal(contract)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
@@ -96,8 +105,8 @@ func createContract(stub shim.ChaincodeStubInterface, args []string) pb.Response
 		Username string `json:"username"`
 		Password string `json:"password"`
 	}{
-		u.Username,
-		u.Password,
+		Username: u.Username,
+		Password: u.Password,
 	}
 	responseAsBytes, err := json.Marshal(response)
 	if err != nil {
@@ -107,29 +116,48 @@ func createContract(stub shim.ChaincodeStubInterface, args []string) pb.Response
 }
 
 func createUser(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	var err error
+	if len(args) != 1 {
+		return shim.Error("Invalid argument count.")
+	}
 
-	u := &user{}
-
-	err = json.Unmarshal([]byte(args[0]), u)
+	user := user{}
+	err := json.Unmarshal([]byte(args[0]), user)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
 
-	key, err := stub.CreateCompositeKey(prefixUser, []string{u.Username})
+	key, err := stub.CreateCompositeKey(prefixUser, []string{user.Username})
 	if err != nil {
 		return shim.Error(err.Error())
 	}
 
-	value, err := json.Marshal(u)
+	// Check if the user already exists
+	userAsBytes, _ := stub.GetState(key)
+	// User does not exist, attempting creation
+	if len(userAsBytes) == 0 {
+		userAsBytes, err = json.Marshal(user)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+
+		err = stub.PutState(key, userAsBytes)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+
+		// Return nil, if user is newly created
+		return shim.Success(nil)
+	}
+
+	userResponse := struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}{}
+
+	userResponseAsBytes, err := json.Marshal(userResponse)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-
-	err = stub.PutState(key, value)
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	return shim.Success(nil)
+	// Return the username and the password of the already existing user
+	return shim.Success(userResponseAsBytes)
 }
