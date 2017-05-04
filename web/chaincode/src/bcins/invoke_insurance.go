@@ -155,17 +155,18 @@ func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	input := struct {
 		Username string `json:"username"`
 	}{}
-	if len(args) > 0 {
+	if len(args) == 1 {
 		err := json.Unmarshal([]byte(args[0]), &input)
 		if err != nil {
 			return shim.Error(err.Error())
 		}
 	}
+	filterByUsername := len(input.Username) > 0
 
 	var resultsIterator shim.StateQueryIteratorInterface
 	var err error
 	// Filtering by username if required
-	if len(input.Username) > 0 {
+	if filterByUsername {
 		resultsIterator, err = stub.GetStateByPartialCompositeKey(prefixContract, []string{input.Username})
 	} else {
 		resultsIterator, err = stub.GetStateByPartialCompositeKey(prefixContract, []string{})
@@ -184,34 +185,33 @@ func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		}
 
 		// Construct response struct
-		contract := struct {
+		result := struct {
 			UUID string `json:"uuid"`
 			*contract
 			Claims []claim `json:"claims,omitempty"`
 		}{}
 
-		// Fetch key
-		prefix, keyParts, err := stub.SplitCompositeKey(key)
-		if len(keyParts) > 0 {
-			contract.UUID = keyParts[0]
-		} else {
-			contract.UUID = prefix
-		}
-
-		// Fetch the claims, if the the username parameter is specified
-		if len(input.Username) > 0 {
-			contract.Claims, err = contract.contract.Claims(stub)
-			if err != nil {
-				return shim.Error(err.Error())
-			}
-		}
-
-		err = json.Unmarshal(value, &contract)
+		err = json.Unmarshal(value, &result)
 		if err != nil {
 			return shim.Error(err.Error())
 		}
 
-		results = append(results, contract)
+		// Fetch key
+		prefix, keyParts, err := stub.SplitCompositeKey(key)
+		if len(keyParts) > 0 {
+			result.UUID = keyParts[0]
+		} else {
+			result.UUID = prefix
+		}
+
+		// Fetch the claims, if the the username parameter is specified
+		if len(input.Username) > 0 {
+			result.Claims, err = result.contract.Claims(stub)
+			if err != nil {
+				return shim.Error(err.Error())
+			}
+		}
+		results = append(results, result)
 	}
 
 	resultsAsBytes, err := json.Marshal(results)
@@ -325,6 +325,19 @@ func fileClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	if err != nil {
 		return shim.Error(err.Error())
 	}
+
+	// Update the claim index in the contract
+	contract := contract{}
+	err = json.Unmarshal(contractBytes, &contract)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	contract.ClaimIndex = append(contract.ClaimIndex, claimKey)
+	contractBytes, err = json.Marshal(contract)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
 	return shim.Success(nil)
 }
 

@@ -97,7 +97,7 @@ func createContract(stub shim.ChaincodeStubInterface, args []string) pb.Response
 	}
 
 	// Return success, if the new user has been created
-	// (the user variable should be blank)
+	// (the user variable "u" should be blank)
 	if !requestUserCreate {
 		return shim.Success(nil)
 	}

@@ -38,6 +38,7 @@ type item struct {
 	Model       string  `json:"model"`
 	Price       float32 `json:"price"`
 	Description string  `json:"description"`
+	SerialNo    string  `json:"serial_no"`
 }
 
 // Key consists of prefix + UUID of the contract + UUID of the claim
@@ -98,29 +99,22 @@ func (u *user) Contacts(stub shim.ChaincodeStubInterface) []contract {
 }
 
 func (c *contract) Claims(stub shim.ChaincodeStubInterface) ([]claim, error) {
-	claims := make([]claim, 0)
+	claims := []claim{}
 
-	// for each claimId in consumer.Contracts
-	for _, claimID := range c.ClaimIndex {
+	for _, claimKey := range c.ClaimIndex {
+		claim := claim{}
 
-		claim := &claim{}
-
-		// get claim
-		claimAsBytes, err := stub.GetState(claimID)
+		claimAsBytes, err := stub.GetState(claimKey)
 		if err != nil {
-			//res := "Failed to get state for " + claimID
 			return nil, err
 		}
 
-		// parse claim
-		err = json.Unmarshal(claimAsBytes, claim)
+		err = json.Unmarshal(claimAsBytes, &claim)
 		if err != nil {
-			//res := "Failed to parse claim"
 			return nil, err
 		}
 
-		// append to the claims array
-		claims = append(claims, *claim)
+		claims = append(claims, claim)
 	}
 
 	return claims, nil
