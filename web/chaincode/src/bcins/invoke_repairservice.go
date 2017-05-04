@@ -82,7 +82,7 @@ func completeRepairOrder(stub shim.ChaincodeStubInterface, args []string) pb.Res
 	}
 
 	repairOrder := repairOrder{}
-	err = json.Unmarshal(repairOrderBytes, repairOrder)
+	err = json.Unmarshal(repairOrderBytes, &repairOrder)
 	if err != nil {
 		return shim.Error(err.Error())
 	}

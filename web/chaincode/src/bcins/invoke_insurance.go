@@ -18,25 +18,23 @@ func listContractTypes(stub shim.ChaincodeStubInterface, args []string) pb.Respo
 		callingAsMerchant = true
 	}
 
-	type contractTypeDTO struct {
-		UUID string `json:"uuid"`
-		*contractType
-	}
-
 	resultsIterator, err := stub.GetStateByPartialCompositeKey(prefixContractType, []string{})
 	if err != nil {
 		return shim.Error(err.Error())
 	}
 	defer resultsIterator.Close()
 
-	results := []contractTypeDTO{}
+	results := []interface{}{}
 	for resultsIterator.HasNext() {
 		key, value, err := resultsIterator.Next()
 		if err != nil {
 			return shim.Error(err.Error())
 		}
 
-		ct := contractTypeDTO{}
+		ct := struct {
+			UUID string `json:"uuid"`
+			*contractType
+		}{}
 		err = json.Unmarshal(value, &ct)
 		if err != nil {
 			return shim.Error(err.Error())
@@ -69,14 +67,14 @@ func createContractType(stub shim.ChaincodeStubInterface, args []string) pb.Resp
 	partial := struct {
 		UUID string `json:"uuid"`
 	}{}
-	ct := &contractType{}
+	ct := contractType{}
 
-	err := json.Unmarshal([]byte(args[0]), partial)
+	err := json.Unmarshal([]byte(args[0]), &partial)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
 
-	err = json.Unmarshal([]byte(args[0]), ct)
+	err = json.Unmarshal([]byte(args[0]), &ct)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
@@ -110,7 +108,7 @@ func setActiveContractType(stub shim.ChaincodeStubInterface, args []string) pb.R
 	}{}
 	ct := contractType{}
 
-	err := json.Unmarshal([]byte(args[0]), req)
+	err := json.Unmarshal([]byte(args[0]), &req)
 	if err != nil {
 		return shim.Error(err.Error())
 	}

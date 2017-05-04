@@ -121,7 +121,7 @@ func createUser(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	}
 
 	user := user{}
-	err := json.Unmarshal([]byte(args[0]), user)
+	err := json.Unmarshal([]byte(args[0]), &user)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
