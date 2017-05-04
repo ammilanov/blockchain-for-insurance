@@ -211,6 +211,7 @@ func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 				return shim.Error(err.Error())
 			}
 		}
+		result.ClaimIndex = []string{} // Remove internal data
 		results = append(results, result)
 	}
 
@@ -283,36 +284,38 @@ func fileClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 		return shim.Error("Invalid argument count.")
 	}
 
-	claimDTO := struct {
+	dto := struct {
 		UUID         string    `json:"uuid"`
 		ContractUUID string    `json:"contract_uuid"`
 		Date         time.Time `json:"date"`
 		Description  string    `json:"description"`
 		IsTheft      bool      `json:"is_theft"`
 	}{}
-	err := json.Unmarshal([]byte(args[0]), &claimDTO)
+	err := json.Unmarshal([]byte(args[0]), &dto)
 	if err != nil {
 		return shim.Error(err.Error())
-	}
-
-	contractKey, err := stub.CreateCompositeKey(prefixContract, []string{claimDTO.ContractUUID})
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-	contractBytes, _ := stub.GetState(contractKey)
-	if contractBytes == nil {
-		return shim.Error("Contract could not be found.")
 	}
 
 	claim := claim{
-		ContractUUID: claimDTO.ContractUUID,
-		Date:         claimDTO.Date,
-		Description:  claimDTO.Description,
-		IsTheft:      claimDTO.IsTheft,
+		ContractUUID: dto.ContractUUID,
+		Date:         dto.Date,
+		Description:  dto.Description,
+		IsTheft:      dto.IsTheft,
 		Status:       "N", // N - new claim
 	}
+
+	// Check if the contract exists
+	contract, err := claim.Contract(stub)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	if contract == nil {
+		return shim.Error("Contract could not be found.")
+	}
+
+	// Persist the claim
 	claimKey, err := stub.CreateCompositeKey(prefixClaim,
-		[]string{claimDTO.ContractUUID, claimDTO.UUID})
+		[]string{dto.ContractUUID, dto.UUID})
 	if err != nil {
 		return shim.Error(err.Error())
 	}
@@ -327,13 +330,16 @@ func fileClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	}
 
 	// Update the claim index in the contract
-	contract := contract{}
-	err = json.Unmarshal(contractBytes, &contract)
+	contract.ClaimIndex = append(contract.ClaimIndex, claimKey)
+	contractKey, err := stub.CreateCompositeKey(prefixContract, []string{contract.Username, claim.ContractUUID})
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-	contract.ClaimIndex = append(contract.ClaimIndex, claimKey)
-	contractBytes, err = json.Marshal(contract)
+	contractBytes, err := json.Marshal(contract)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	stub.PutState(contractKey, contractBytes)
 	if err != nil {
 		return shim.Error(err.Error())
 	}

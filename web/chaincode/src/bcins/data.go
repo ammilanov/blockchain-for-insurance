@@ -28,7 +28,7 @@ type contract struct {
 	EndDate          time.Time `json:"end_date"`
 	Void             bool      `json:"void"`
 	ContractTypeUUID string    `json:"contract_type_uuid"`
-	ClaimIndex       []string  `json:"claims"`
+	ClaimIndex       []string  `json:"claim_index,omitempty"`
 }
 
 // Entity not persisted on its own
