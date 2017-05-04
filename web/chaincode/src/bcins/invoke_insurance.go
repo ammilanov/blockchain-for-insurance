@@ -198,8 +198,8 @@ func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 
 		// Fetch key
 		prefix, keyParts, err := stub.SplitCompositeKey(key)
-		if len(keyParts) > 0 {
-			result.UUID = keyParts[0]
+		if len(keyParts) == 2 {
+			result.UUID = keyParts[1]
 		} else {
 			result.UUID = prefix
 		}
