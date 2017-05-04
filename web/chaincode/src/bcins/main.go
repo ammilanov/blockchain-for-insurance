@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"encoding/json"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 )
@@ -40,13 +41,37 @@ var bcFunctions = map[string]func(shim.ChaincodeStubInterface, []string) pb.Resp
 
 // Init callback representing the invocation of a chaincode
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
+	_, args := stub.GetFunctionAndParameters()
 
+	if len(args) == 1 {
+		var contractTypes []struct {
+			UUID string `json:"uuid"`
+			*contractType
+		}
+		err := json.Unmarshal([]byte(args[0]), &contractTypes)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+		for _, ct := range contractTypes {
+			contractTypeKey, err := stub.CreateCompositeKey(prefixContractType, []string{ct.UUID})
+			if err != nil {
+				return shim.Error(err.Error())
+			}
+			contractTypeAsBytes, err := json.Marshal(ct.contractType)
+			if err != nil {
+				return shim.Error(err.Error())
+			}
+			err = stub.PutState(contractTypeKey, contractTypeAsBytes)
+			if err != nil {
+				return shim.Error(err.Error())
+			}
+		}
+	}
 	return shim.Success(nil)
 }
 
 // Invoke Function accept blockchain code invocations.
 func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
-
 	function, args := stub.GetFunctionAndParameters()
 
 	if function == "init" {
