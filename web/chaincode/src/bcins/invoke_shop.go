@@ -3,9 +3,10 @@ package main
 import (
 	"encoding/json"
 
+	"time"
+
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
-	"time"
 )
 
 func createContract(stub shim.ChaincodeStubInterface, args []string) pb.Response {
@@ -149,10 +150,18 @@ func createUser(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 		return shim.Success(nil)
 	}
 
+	err = json.Unmarshal(userAsBytes, &user)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
 	userResponse := struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
-	}{}
+	}{
+		Username: user.Username,
+		Password: user.Password,
+	}
 
 	userResponseAsBytes, err := json.Marshal(userResponse)
 	if err != nil {
