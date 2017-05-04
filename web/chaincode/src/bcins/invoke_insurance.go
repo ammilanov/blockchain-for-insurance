@@ -5,17 +5,22 @@ import (
 
 	"strings"
 
+	"time"
+
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
-	"time"
 )
 
 func listContractTypes(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	var shopType string
-	callingAsMerchant := false
-	if len(args) > 0 {
-		shopType = args[0]
-		callingAsMerchant = true
+	callingAsMerchant := len(args) == 1
+	input := struct {
+		ShopType string `json:"shop_type"`
+	}{}
+	if callingAsMerchant {
+		err := json.Unmarshal([]byte(args[0]), &input)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
 	}
 
 	resultsIterator, err := stub.GetStateByPartialCompositeKey(prefixContractType, []string{})
@@ -50,7 +55,8 @@ func listContractTypes(stub shim.ChaincodeStubInterface, args []string) pb.Respo
 		}
 
 		// Apply proper filtering, merchants should only see active contracts
-		if !callingAsMerchant || (strings.Contains(ct.ShopType, shopType) && ct.Active) {
+		if !callingAsMerchant ||
+			(strings.Contains(strings.ToTitle(ct.ShopType), strings.ToTitle(input.ShopType)) && ct.Active) {
 			results = append(results, ct)
 		}
 	}
