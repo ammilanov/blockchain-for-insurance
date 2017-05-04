@@ -38,10 +38,10 @@ services:
       - ORDERER_GENERAL_GENESISFILE=/peer/crypto/orderer.block
       - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
       - ORDERER_GENERAL_LOCALMSPDIR=/peer/crypto/localMspConfig
-      - ORDERER_GENERAL_TLS_ENABLED=true
-      - ORDERER_GENERAL_TLS_PRIVATEKEY=/peer/crypto/localMspConfig/keystore/ordererSigner.pem
-      - ORDERER_GENERAL_TLS_CERTIFICATE=/peer/crypto/localMspConfig/signcerts/orderer0Signer.pem
-      - ORDERER_GENERAL_TLS_ROOTCAS=[/peer/crypto/localMspConfig/cacerts/ordererOrg.pem]
+      # - ORDERER_GENERAL_TLS_ENABLED=true
+      # - ORDERER_GENERAL_TLS_PRIVATEKEY=/peer/crypto/localMspConfig/keystore/ordererSigner.pem
+      # - ORDERER_GENERAL_TLS_CERTIFICATE=/peer/crypto/localMspConfig/signcerts/orderer0Signer.pem
+      # - ORDERER_GENERAL_TLS_ROOTCAS=[/peer/crypto/localMspConfig/cacerts/ordererOrg.pem]
     working_dir: /peer
     command: orderer
     ports:
@@ -59,9 +59,9 @@ services:
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=insurance-peer:7051
       - CORE_PEER_LOCALMSPID=InsuranceOrgMSP
       - CORE_PEER_MSPCONFIGPATH=/peer/crypto/localMspConfig
-      - CORE_PEER_TLS_CERT_FILE=/peer/crypto/localMspConfig/signcerts/insuranceOrgSigner.pem
-      - CORE_PEER_TLS_KEY_FILE=/peer/crypto/localMspConfig/keystore/insuranceOrgSigner.pem
-      - CORE_PEER_TLS_ROOTCERT_FILE=/peer/crypto/localMspConfig/cacerts/insuranceOrg.pem
+      # - CORE_PEER_TLS_CERT_FILE=/peer/crypto/localMspConfig/signcerts/insuranceOrgSigner.pem
+      # - CORE_PEER_TLS_KEY_FILE=/peer/crypto/localMspConfig/keystore/insuranceOrgSigner.pem
+      # - CORE_PEER_TLS_ROOTCERT_FILE=/peer/crypto/localMspConfig/cacerts/insuranceOrg.pem
     volumes:
       - /var/run/:/host/var/run/
     ports:
@@ -82,9 +82,9 @@ services:
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=shop-peer:7051
       - CORE_PEER_LOCALMSPID=ShopOrgMSP
       - CORE_PEER_MSPCONFIGPATH=/peer/crypto/localMspConfig
-      - CORE_PEER_TLS_CERT_FILE=/peer/crypto/localMspConfig/signcerts/shopOrgSigner.pem
-      - CORE_PEER_TLS_KEY_FILE=/peer/crypto/localMspConfig/keystore/shopOrgSigner.pem
-      - CORE_PEER_TLS_ROOTCERT_FILE=/peer/crypto/localMspConfig/cacerts/shopOrg.pem
+      # - CORE_PEER_TLS_CERT_FILE=/peer/crypto/localMspConfig/signcerts/shopOrgSigner.pem
+      # - CORE_PEER_TLS_KEY_FILE=/peer/crypto/localMspConfig/keystore/shopOrgSigner.pem
+      # - CORE_PEER_TLS_ROOTCERT_FILE=/peer/crypto/localMspConfig/cacerts/shopOrg.pem
     volumes:
       - /var/run/:/host/var/run/
     ports:
@@ -106,9 +106,9 @@ services:
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=repairservice-peer:7051
       - CORE_PEER_LOCALMSPID=RepairServiceOrgMSP
       - CORE_PEER_MSPCONFIGPATH=/peer/crypto/localMspConfig
-      - CORE_PEER_TLS_CERT_FILE=/peer/crypto/localMspConfig/signcerts/repairServiceOrgSigner.pem
-      - CORE_PEER_TLS_KEY_FILE=/peer/crypto/localMspConfig/keystore/repairServiceOrgSigner.pem
-      - CORE_PEER_TLS_ROOTCERT_FILE=/peer/crypto/localMspConfig/cacerts/repairServiceOrg.pem
+      # - CORE_PEER_TLS_CERT_FILE=/peer/crypto/localMspConfig/signcerts/repairServiceOrgSigner.pem
+      # - CORE_PEER_TLS_KEY_FILE=/peer/crypto/localMspConfig/keystore/repairServiceOrgSigner.pem
+      # - CORE_PEER_TLS_ROOTCERT_FILE=/peer/crypto/localMspConfig/cacerts/repairServiceOrg.pem
     volumes:
       - /var/run/:/host/var/run/
     ports:
@@ -132,11 +132,11 @@ services:
       - CORE_PEER_ADDRESS=insurance-peer:7051
       - CORE_PEER_ADDRESSAUTODETECT=true
       - CORE_PEER_LOCALMSPID=InsuranceOrgMSP
-      - CORE_PEER_TLS_ENABLED=true
       - CORE_PEER_MSPCONFIGPATH=/peers/insurancePeer/localMspConfig
-      - CORE_PEER_TLS_CERT_FILE=/peers/insurancePeer/localMspConfig/signcerts/insuranceOrgSigner.pem
-      - CORE_PEER_TLS_KEY_FILE=/peers/insurancePeer/localMspConfig/keystore/insuranceOrgSigner.pem
-      - CORE_PEER_TLS_ROOTCERT_FILE=/peers/insurancePeer/localMspConfig/cacerts/insuranceOrg.pem
+      # - CORE_PEER_TLS_ENABLED=true
+      # - CORE_PEER_TLS_CERT_FILE=/peers/insurancePeer/localMspConfig/signcerts/insuranceOrgSigner.pem
+      # - CORE_PEER_TLS_KEY_FILE=/peers/insurancePeer/localMspConfig/keystore/insuranceOrgSigner.pem
+      # - CORE_PEER_TLS_ROOTCERT_FILE=/peers/insurancePeer/localMspConfig/cacerts/insuranceOrg.pem
     working_dir: /peers
     command: /scripts/script.sh
     volumes:
