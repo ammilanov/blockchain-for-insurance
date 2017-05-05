@@ -14,7 +14,7 @@ router.get('/login', (req, res) => {
   res.render('login', { shopActive: true });
 });
 
-router.post('/api/contractTypes', async (req, res) => {
+router.post('/api/contract-types', async (req, res) => {
   if (typeof req.body !== 'object') {
     res.json(null);
   }
@@ -36,7 +36,7 @@ router.post('/api/contractTypes', async (req, res) => {
 
   let contractTypes;
   try {
-    contractTypes = await ShopPeer.getContractTypes();
+    contractTypes = await ShopPeer.getContractTypes(letter);
   } catch (e) {
     console.log(e);
     res.json({ error: "Could not retrieve contract types!" });
@@ -44,9 +44,6 @@ router.post('/api/contractTypes', async (req, res) => {
 
   if (!Array.isArray(contractTypes)) {
     res.json({ error: "Could not retrieve contract types!" });
-  }
-  if (letter) {
-    contractTypes = contractTypes.filter(contractType => contractType.shopType.toUpperCase().includes(letter));
   }
   res.json(
     contractTypes.map(contractType => {
@@ -56,7 +53,7 @@ router.post('/api/contractTypes', async (req, res) => {
     }));
 });
 
-router.post('/api/requestUser', async (req, res) => {
+router.post('/api/request-user', async (req, res) => {
   let { user } = req.body;
   let { firstName, lastName, email } = user || {};
   if (typeof user === 'object' &&
@@ -64,14 +61,15 @@ router.post('/api/requestUser', async (req, res) => {
     typeof lastName === 'string' &&
     typeof email === 'string') {
 
+    let passwordProposal = generatePassword();
     try {
-      let reponseUser = await ShopPeer.createUser({
+      let responseUser = await ShopPeer.createUser({
         username: email,
         firstName: firstName,
         lastName: lastName,
-        password: generatePassword()
+        password: passwordProposal
       });
-      res.json(reponseUser);
+      res.json(responseUser || { username: email, password: passwordProposal });
     } catch (e) {
       console.log(e);
       res.json({ error: 'Could not create new user!' });
@@ -81,15 +79,21 @@ router.post('/api/requestUser', async (req, res) => {
   }
 });
 
-router.post('/api/enterContract', async (req, res) => {
-  let { user, contractId, additionalInfo } = req.body;
+router.post('/api/enter-contract', async (req, res) => {
+  let { user, contractTypeUuid, additionalInfo } = req.body;
   if (typeof user === 'object' &&
-    typeof contractId === 'string' &&
+    typeof contractTypeUuid === 'string' &&
     typeof additionalInfo === 'object') {
       try {
         let { username, password } = user;
-        if (await ShopPeer.authenticateUser({ username, password })) {
-          await ShopPeer.enterContract(username, contractId, additionalInfo);
+        if (await ShopPeer.authenticateUser(username, password)) {
+          let loginInfo = await ShopPeer.createContract({
+            contractTypeUuid,
+            username,
+            item: additionalInfo.item,
+            startDate: additionalInfo.startDate,
+            endDate: additionalInfo.endDate
+          });
           res.json({ success: 'Contract signed.' });
         } else {
           res.json({ error: 'Unknown user!' });

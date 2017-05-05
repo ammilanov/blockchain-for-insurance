@@ -8,7 +8,7 @@ const router = express.Router();
 //   res.render('login', { selfServiceActive: true });
 // });
 
-router.post('/api/getContracts', async (req, res) => {
+router.post('/api/contracts', async (req, res) => {
   if (typeof req.body.user !== 'object') {
     res.json({ error: 'Invalid request!' });
     return;
@@ -16,8 +16,8 @@ router.post('/api/getContracts', async (req, res) => {
 
   try {
     const { username, password } = req.body.user;
-    if (await InsurancePeer.authenticateUser({ username, password })) {
-      const contracts = await InsurancePeer.getContractsForUser(username);
+    if (await InsurancePeer.authenticateUser(username, password)) {
+      const contracts = await InsurancePeer.getContracts(username);
       res.json({ success: true, contracts });
       return;
     } else {
@@ -31,19 +31,24 @@ router.post('/api/getContracts', async (req, res) => {
   }
 });
 
-router.post('/api/submitClaim', async (req, res) => {
+router.post('/api/file-claim', async (req, res) => {
   if (typeof req.body.user !== 'object' ||
-    typeof req.body.contractId !== 'string' ||
+    typeof req.body.contractUuid !== 'string' ||
     typeof req.body.claim != 'object') {
     res.json({ error: 'Invalid request!' });
     return;
   }
 
   try {
-    const { user, contractId, claim } = req.body;
+    const { user, contractUuid, claim } = req.body;
     const { username, password } = user;
-    if (await InsurancePeer.authenticateUser({ username, password })) {
-      await InsurancePeer.submitClaim(contractId, claim);
+    if (await InsurancePeer.authenticateUser(username, password)) {
+      await InsurancePeer.fileClaim({
+        contractUuid,
+        date: new Date(),
+        description: claim.description,
+        isTheft: claim.isTheft
+       });
       res.json({ success: true });
       return;
     } else {
@@ -57,7 +62,7 @@ router.post('/api/submitClaim', async (req, res) => {
   }
 });
 
-router.post('/api/authenticateUser', async (req, res) => {
+router.post('/api/authenticate-user', async (req, res) => {
   if (!typeof req.body.user === 'object') {
     res.json({ error: 'Invalid request!' });
     return
@@ -65,7 +70,7 @@ router.post('/api/authenticateUser', async (req, res) => {
 
   try {
     const { username, password } = req.body.user;
-    const success = await InsurancePeer.authenticateUser({ username, password });
+    const success = await InsurancePeer.authenticateUser(username, password);
     res.json({ success });
     return;
   } catch (e) {
