@@ -22,7 +22,7 @@ function loadContractsTypesSuccess(contractTypes) {
     type: InsuranceActionType.LOAD_CONTRACT_TYPES_SUCCESS,
     contractTypes
   };
-};
+}
 
 export function submitContract(contractInfo) {
   return {

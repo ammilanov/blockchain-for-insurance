@@ -29,5 +29,13 @@
   "Payment": "Zahlungsvorgang",
   "Product": "Produkt",
   "Services": "Dienstleistungen",
-  "Theft Protection": "Diebstahlschutz"
+  "Theft Protection": "Diebstahlschutz",
+  "Total": "Summe",
+  "Order": "Bestellen",
+  "Insurance": "Versicherung",
+  "Processing Transaction...": "Transaktion bearbeiten...",
+  "Transaction Completed.": "Transaktion abgeschlossen.",
+  "Username": "Benutzername",
+  "Password": "Passwort",
+  "Summary": "Überblick"
 }

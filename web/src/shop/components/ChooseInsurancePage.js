@@ -33,9 +33,9 @@ class ChooseInsurancePage extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.contractsLoaded && !this.state.contractType.id) {
+    if (nextProps.contractsLoaded && !this.state.contractType.uuid) {
       const contractType = nextProps.contractInfo ?
-        nextProps.contractTypes.find(ct => ct.id === nextProps.contractInfo.id) :
+        nextProps.contractTypes.find(ct => ct.id === nextProps.contractInfo.uuid) :
         nextProps.contractTypes[0];  // Fallback to the first one, if none is defined.
 
       this.setContractType(contractType);
@@ -43,9 +43,9 @@ class ChooseInsurancePage extends React.Component {
   }
 
   componentWillMount() {
-    if (this.props.contractsLoaded && !this.state.contractType.id) {
+    if (this.props.contractsLoaded && !this.state.contractType.uuid) {
       const contractType = this.props.contractInfo ?
-        this.props.contractTypes.find(ct => ct.id === this.props.contractInfo.id) :
+        this.props.contractTypes.find(ct => ct.id === this.props.contractInfo.uuid) :
         this.props.contractTypes[0]; // Fallback to the first one, if none is defined.
 
       this.setContractType(contractType);
@@ -157,7 +157,7 @@ class ChooseInsurancePage extends React.Component {
               <p>
                 <label><FormattedMessage id='Contract Terms' />:</label>
                 <span>
-                  <textarea value={contractType.terms} readOnly={true} disabled />
+                  <textarea value={contractType.conditions} readOnly={true} disabled />
                 </span>
               </p>
               <p>

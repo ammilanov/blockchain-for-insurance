@@ -19,7 +19,6 @@ class PaymentPage extends React.Component {
       browserHistory.push(`/shop/${this.props.shopType}`);
     }
     this.state = { loading: false, inTransaction: false };
-
     this.order = this.order.bind(this);
   }
 
@@ -28,16 +27,16 @@ class PaymentPage extends React.Component {
       this.setState({ loading: true, inTransaction: true });
       setTimeout(async () => {
         // Sign insurance contract
-        await enterContract(nextProps.user, nextProps.contractInfo.id, {
+        await enterContract(nextProps.user, nextProps.contractInfo.uuid, {
           item: {
-            itemId: nextProps.productInfo.index,
+            id: parseInt(nextProps.productInfo.index),
             brand: nextProps.productInfo.brand,
             model: nextProps.productInfo.model,
             price: nextProps.productInfo.price,
             serialNo: nextProps.productInfo.serialNo
           },
-          startDate: nextProps.contractInfo.startDate,
-          endDate: nextProps.contractInfo.endDate
+          startDate: new Date(nextProps.contractInfo.startDate),
+          endDate: new Date(nextProps.contractInfo.endDate)
         });
         browserHistory.push(`/shop/${this.props.shopType}/summary`);
         this.setState({ loading: false, inTransaction: false });

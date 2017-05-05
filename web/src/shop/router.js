@@ -1,5 +1,4 @@
 import React, { PropTypes, Props } from 'react';
-import { connect } from 'react-redux';
 import { Router, browserHistory, Route, IndexRoute } from 'react-router';
 
 import App from './components/App';

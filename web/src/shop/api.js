@@ -3,7 +3,7 @@
 import fetch from 'isomorphic-fetch';
 
 export function getContractTypes(shopType) {
-  return fetch('/shop/api/contractTypes', {
+  return fetch('/shop/api/contract-types', {
     method: 'POST',
     headers: new Headers({
       'Content-Type': 'application/json'
@@ -12,14 +12,14 @@ export function getContractTypes(shopType) {
   }).then(async res => {
     let contractTypes = (await res.json())
       .map(c => Object.assign({}, c, {
-        formulaPerDay: new Function('price', 'return ' + preventXSSforFormula(c.formulaPerDay))
-    }));
+        formulaPerDay: new Function('price', 'return ' + preventXssForFormula(c.formulaPerDay))
+      }));
     return contractTypes;
   });
 };
 
 export function requestNewUser(user) {
-  return fetch('/shop/api/requestUser', {
+  return fetch('/shop/api/request-user', {
     method: 'POST',
     headers: new Headers({
       'Content-Type': 'application/json'
@@ -30,13 +30,13 @@ export function requestNewUser(user) {
   });
 };
 
-export function enterContract(user, contractId, additionalInfo) {
-  return fetch('/shop/api/enterContract', {
+export function enterContract(user, contractTypeUuid, additionalInfo) {
+  return fetch('/shop/api/enter-contract', {
     method: 'POST',
     headers: new Headers({
       'Content-Type': 'application/json'
     }),
-    body: JSON.stringify({ user, contractId, additionalInfo })
+    body: JSON.stringify({ user, contractTypeUuid, additionalInfo })
   }).then(async res => {
     return await res.json();
   });
@@ -48,7 +48,7 @@ export function enterContract(user, contractId, additionalInfo) {
  * @param {string} formula The formula as a string.
  * @returns {string} A parsed and filtered fomula as a string.
  */
-function preventXSSforFormula(formula) {
+function preventXssForFormula(formula) {
   if (typeof formula !== 'string') {
     return null;
   }
