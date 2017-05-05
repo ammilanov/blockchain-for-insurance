@@ -1,5 +1,6 @@
-'use babel';
+'use strict';
 
+import config from './config';
 import { wrapError } from './utils';
 import { insuranceClient as client, isReady } from './setup';
 import uuidV4 from 'uuid/v4';
@@ -9,7 +10,7 @@ export async function getContractTypes() {
     return;
   }
   try {
-    const contractTypes = await client.invoke('contract_type_ls');
+    const contractTypes = await query('contract_type_ls');
     return contractTypes;
   } catch (e) {
     throw wrapError(`Error getting contract types: ${e.message}`, e);
@@ -21,13 +22,13 @@ export async function createContractType(contractType) {
     return;
   }
   try {
-    let uuid = uuidV4();
-    let ct = Object.assign({}, contractType, { uuid });
-    const successResult = await client.invoke('contract_type_create', ct);
+    let ct = contractType.uuid ? contractType :
+      Object.assign({ uuid: uuidV4() }, contractType);
+    const successResult = await invoke('contract_type_create', ct);
     if (successResult) {
       throw new Error(successResult);
     }
-    return uuid;
+    return ct.uuid;
   } catch (e) {
     throw wrapError(`Error creating contract type: ${e.message}`, e);
   }
@@ -38,7 +39,7 @@ export async function setActiveContractType(uuid, active) {
     return;
   }
   try {
-    const successResult = await client.invoke('contract_type_set_active',
+    const successResult = await invoke('contract_type_set_active',
       { uuid, active });
     if (successResult) {
       throw new Error(successResult);
@@ -57,7 +58,7 @@ export async function getContracts(username) {
     if (typeof username !== 'string') {
       username = undefined;
     }
-    const contracts = await client.invoke('contract_ls', { username });
+    const contracts = await query('contract_ls', { username });
     return contracts;
   } catch (e) {
     let errMessage;
@@ -70,7 +71,7 @@ export async function getContracts(username) {
   }
 }
 
-export async function getClaims() {
+export async function getClaims(status) {
   if (!isReady()) {
     return;
   }
@@ -78,7 +79,7 @@ export async function getClaims() {
     if (typeof status !== 'string') {
       status = undefined;
     }
-    const claims = await client.invoke('claim_ls', { status });
+    const claims = await query('claim_ls', { status });
     return claims;
   } catch (e) {
     let errMessage;
@@ -96,24 +97,23 @@ export async function fileClaim(claim) {
     return;
   }
   try {
-    let uuid = uuidV4();
-    let c = Object.assign({}, claim, { uuid });
-    const successResult = await client.invoke('claim_file', c);
+    const c = Object.assign({}, claim, { uuid: uuidV4() });
+    const successResult = await invoke('claim_file', c);
     if (successResult) {
       throw new Error(successResult);
     }
-    return uuid;
+    return c.uuid;
   } catch (e) {
     throw wrapError(`Error filing a new claim: ${e.message}`, e);
   }
 }
 
-export async function processClaim(uuid, status, refundable) {
+export async function processClaim(contractUuid, uuid, status, refundable) {
   if (!isReady()) {
     return;
   }
   try {
-    const successResult = await client.invoke('claim_process', { uuid, status, refundable });
+    const successResult = await invoke('claim_process', { contractUuid, uuid, status, refundable });
     if (successResult) {
       throw new Error(successResult);
     }
@@ -128,7 +128,7 @@ export async function authenticateUser(username, password) {
     return;
   }
   try {
-    let authenticated = await client.invoke('user_authenticate', { username, password });
+    let authenticated = await query('user_authenticate', { username, password });
     if (authenticated === undefined || authenticated === null) {
       throw new Error('Unknown error, invalid response!');
     }
@@ -143,9 +143,17 @@ export async function getUserInfo(username) {
     return;
   }
   try {
-    const user = await client.invoke('user_get_info', { username });
+    const user = await query('user_get_info', { username });
     return user;
   } catch (e) {
     throw wrapError(`Error getting user info: ${e.message}`, e);
   }
+}
+
+function invoke(fcn, ...args) {
+  return client.invoke(config.chaincodeId, config.chaincodeVersion, config.chaincodePath, fcn, ...args);
+}
+
+function query(fcn, ...args) {
+ return client.query(config.chaincodeId, config.chaincodeVersion, config.chaincodePath, fcn, ...args);
 }

@@ -1,5 +1,6 @@
-'use babel';
+'use strict';
 
+import config from './config';
 import { wrapError } from './utils';
 import { shopClient as client, isReady } from './setup';
 import uuidV4 from 'uuid/v4';
@@ -9,8 +10,7 @@ export async function getContractTypes(shopType) {
     return;
   }
   try {
-    const contractTypes = await client.invoke('contract_type_ls', camelToSnakeCase({ shopType }));
-    return snakeToCamelCase(contractTypes);
+    return await query('contract_type_ls', { shopType });
   } catch (e) {
     throw wrapError(`Error getting contract types for shop type ${shopType} : ${e.message}`, e);
   }
@@ -21,12 +21,10 @@ export async function createContract(contract) {
     return;
   }
   try {
-    let uuid = new uuidV4();
-    let c = Object.assign({}, contract, { uuid });
-    const loginInfo = await client.invoke('contract_create', c);
-    if (!loginInfo ^ (loginInfo.username && loginInfo.password)) {
-      loginInfo.uuid = uuid;
-      return loginInfo;
+    let c = Object.assign({}, contract, { uuid: uuidV4() });
+    const loginInfo = await invoke('contract_create', c);
+    if (!loginInfo ^ !!(loginInfo && loginInfo.username && loginInfo.password)) {
+      return Object.assign(loginInfo || {}, { uuid: c.uuid });
     } else {
       throw new Error(loginInfo);
     }
@@ -40,8 +38,8 @@ export async function createUser(user) {
     return;
   }
   try {
-    const loginInfo = await client.invoke('user_create', user);
-    if (!loginInfo ^ (loginInfo.username && loginInfo.password)) {
+    const loginInfo = await invoke('user_create', user);
+    if (!loginInfo ^ !!(loginInfo && loginInfo.username && loginInfo.password)) {
       return loginInfo;
     } else {
       throw new Error(loginInfo);
@@ -56,7 +54,7 @@ export async function authenticateUser(username, password) {
     return;
   }
   try {
-    let authenticated = await client.invoke('user_authenticate', { username, password });
+    let authenticated = await query('user_authenticate', { username, password });
     if (authenticated === undefined || authenticated === null) {
       throw new Error('Unknown error, invalid response!');
     }
@@ -71,9 +69,17 @@ export async function getUserInfo(username) {
     return;
   }
   try {
-    const user = await client.invoke('user_get_info', { username });
+    const user = await query('user_get_info', { username });
     return user;
   } catch (e) {
     throw wrapError(`Error getting user info: ${e.message}`, e);
   }
+}
+
+function invoke(fcn, ...args) {
+  return client.invoke(config.chaincodeId, config.chaincodeVersion, config.chaincodePath, fcn, ...args);
+}
+
+function query(fcn, ...args) {
+  return client.query(config.chaincodeId, config.chaincodeVersion, config.chaincodePath, fcn, ...args);
 }

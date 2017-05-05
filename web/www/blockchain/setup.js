@@ -1,6 +1,6 @@
-'use babel';
+'use strict';
 
-import config from './config';
+import config, { DEFAULT_CONTRACT_TYPES } from './config';
 import { OrganizationClient } from './utils';
 
 var status = 'down';
@@ -33,7 +33,7 @@ function setStatus(s) {
     statusChangedCallbacks
       .filter(f => typeof f === 'function')
       .forEach(f => f(s));
-  });
+  }, 1000);
 }
 
 export function subscribeStatus(cb) {
@@ -54,9 +54,9 @@ export function isReady() {
   // Initialize clients
   try {
     await Promise.all([
-      // insuranceClient.initialize(),
-      // shopClient.initialize(),
-      // repairServiceClient.initialize()
+      insuranceClient.initialize(),
+      shopClient.initialize(),
+      repairServiceClient.initialize()
     ]);
   } catch (e) {
     console.log('Fatal Error initializing blockchain organization clients!');
@@ -67,24 +67,28 @@ export function isReady() {
   // Install chaincode on all peers
   let installedOnInsuranceOrg, installedOnShopOrg, installedOnRepairServiceOrg;
   try {
-    // installedOnInsuranceOrg = await insuranceOrg.checkInstalled();
-    // installedOnShopOrg = await shopOrg.checkInstalled();
-    // installedOnRepairServiceOrg = await repairServiceOrg.checkInstalled();
+    installedOnInsuranceOrg = await insuranceClient.checkInstalled(
+      config.chaincodeId, config.chaincodeVersion, config.chaincodePath);
+    installedOnShopOrg = await shopClient.checkInstalled(
+      config.chaincodeId, config.chaincodeVersion, config.chaincodePath);
+    installedOnRepairServiceOrg = await repairServiceClient.checkInstalled(
+      config.chaincodeId, config.chaincodeVersion, config.chaincodePath);
   } catch (e) {
     console.log('Fatal error getting installation status of the chaincode!');
     console.log(e);
     process.exit(-1);
   }
-  // let installed = installedOnInsuranceOrg && installedOnShopOrg && installedOnRepairServiceOrg;
-  let installed = false;
+
+  let installed = installedOnInsuranceOrg && installedOnShopOrg && installedOnRepairServiceOrg;
   if (!installed) {
     let installationPromises = [
-      // insuranceClient.install(config.chaincodeId, config.chaincodeVersion, config.chaincodePath),
-      // shopClient.install(config.chaincodeId, config.chaincodeVersion, config.chaincodePath),
-      // repairServiceClient.install(config.chaincodeId, config.chaincodeVersion, config.chaincodePath)
+      insuranceClient.install(config.chaincodeId, config.chaincodeVersion, config.chaincodePath),
+      shopClient.install(config.chaincodeId, config.chaincodeVersion, config.chaincodePath),
+      repairServiceClient.install(config.chaincodeId, config.chaincodeVersion, config.chaincodePath)
     ];
     try {
       await Promise.all(installationPromises);
+      console.log('Successfully installed chaincode on the blockchain network.');
     } catch (e) {
       console.log('Fatal error installing chaincode on the blockchain network!');
       console.log(e);
@@ -94,12 +98,18 @@ export function isReady() {
     // Instantiate chaincode on all peers
     // Instantiating the chaincode on a single peer should be enough (for now)
     try {
-      //await insuranceClient.instantiate(config.chaincodeId, config.chaincodeVersion, config.chaincodePath);
+      // Initial contract types
+      await insuranceClient.instantiate(config.chaincodeId, config.chaincodeVersion, config.chaincodePath, DEFAULT_CONTRACT_TYPES);
+      console.log('Successfully instantiated chaincode on the blockchain network.');
+      setStatus('ready');
     } catch (e) {
-      console.log('Fatal error instantiating chaincode on the blockchain network');
+      console.log('Fatal error instantiating chaincode on the blockchain network!');
       console.log(e);
       process.exit(-1);
     }
+  } else {
+    console.log('Chaincode already installed on the blockchain network.');
+    setStatus('ready');
   }
 })();
 

@@ -76,3 +76,90 @@ if (process.env.LOCALCONFIG) {
 // config.repairServiceOrg.peer.pem = readFileSync(resolve(basePath, 'repairServiceOrg.pem')).toString();
 
 export default config;
+
+export const DEFAULT_CONTRACT_TYPES = [
+  {
+    uuid: '63ef076a-33a1-41d2-a9bc-2777505b014f',
+    shopType: 'B',
+    formulaPerDay: 'price * 0.01 + 0.05',
+    maxSumInsured: 4300.00,
+    theftInsured: true,
+    description: 'Contract for Mountain Bikers',
+    conditions: 'Contract Terms here',
+    minDurationDays: 1,
+    maxDurationDays: 7,
+    active: true
+  },
+  {
+    uuid: '1d640cf7-9808-4c78-b7f0-55aaad02e9e5',
+    shopType: 'B',
+    formulaPerDay: 'price * 0.02',
+    maxSumInsured: 3500.00,
+    theftInsured: false,
+    description: 'Insure Your Bike',
+    conditions: 'Simple contract terms.',
+    minDurationDays: 3,
+    maxDurationDays: 10,
+    active: true
+  },
+  {
+    uuid: '17210a72-f505-42bf-a238-65c8898477e1',
+    shopType: 'P',
+    formulaPerDay: 'price * 0.001 + 5.00',
+    maxSumInsured: 1500.00,
+    theftInsured: true,
+    description: 'Phone Insurance Contract',
+    conditions: 'Exemplary contract terms here.',
+    minDurationDays: 5,
+    maxDurationDays: 10,
+    active: true
+  },
+  {
+    uuid: '17d773dc-2624-4c22-a478-87544dd0a17f',
+    shopType: 'P',
+    formulaPerDay: 'price * 0.005 + 10.00',
+    maxSumInsured: 2500.00,
+    theftInsured: true,
+    description: 'Premium SmartPhone Insurance',
+    conditions: 'Only for premium phone owners.',
+    minDurationDays: 10,
+    maxDurationDays: 20,
+    active: true
+  },
+  {
+    uuid: 'd804f730-8c77-4583-9247-ec9e753643db',
+    shopType: 'S',
+    formulaPerDay: '25.00',
+    maxSumInsured: 5000.00,
+    theftInsured: false,
+    description: 'Short-Term Ski Insurance',
+    conditions: 'Simple contract terms here.',
+    minDurationDays: 3,
+    maxDurationDays: 25,
+    active: true
+  },
+  {
+    uuid: 'dcee27d7-bf3c-4995-a272-8a306a35e51f',
+    shopType: 'S',
+    formulaPerDay: 'price * 0.001 + 10.00',
+    maxSumInsured: 3000.00,
+    theftInsured: true,
+    description: 'Insure Ur Ski',
+    conditions: 'Just do it.',
+    minDurationDays: 1,
+    maxDurationDays: 15,
+    active: true
+  },
+  {
+    uuid: 'c06f95d6-9b90-4d24-b8cb-f347d1b33ddf',
+    shopType: 'BPS',
+    formulaPerDay: '50',
+    maxSumInsured: 3000.00,
+    theftInsured: false,
+    description: 'Universal Insurance Contract',
+    conditions: 'Universal Contract Terms here. For all types of goods.',
+    minDurationDays: 1,
+    maxDurationDays: 10,
+    active: true
+  }
+];
