@@ -1,4 +1,4 @@
-'use babel';
+'use strict';
 
 import { resolve } from 'path';
 
@@ -47,11 +47,9 @@ export class OrganizationClient {
     let defaultEventHub = new EventHub();
     defaultEventHub.setPeerAddr(peerConfig.eventHubUrl, {
       pem: peerConfig.pem,
-      'ssl-target-name-override': peerConfig.hostname,
-      "grpc.initial_reconnect_backoff_ms": 5000
+      'ssl-target-name-override': peerConfig.hostname
     });
     this._eventHubs.push(defaultEventHub);
-    defaultEventHub.connect();
   }
 
   async initialize() {
@@ -74,9 +72,15 @@ export class OrganizationClient {
     }
   }
 
-  async checkInstalled(chaincodeName) {
-    let chaincodes = await this._chain.queryInstantiatedChaincode();
-    return chaincodes;
+  async checkInstalled(chaincodeId, chaincodeVersion, chaincodePath) {
+    let { chaincodes } = await this._chain.queryInstantiatedChaincodes();
+    if (!Array.isArray(chaincodes)) {
+      return false;
+    }
+    return chaincodes.some(cc =>
+      cc.name === chaincodeId &&
+      cc.path === chaincodePath &&
+      cc.version === chaincodeVersion);
   }
 
   async install(chaincodeId, chaincodeVersion, chaincodePath) {
@@ -130,10 +134,17 @@ export class OrganizationClient {
       && pr.response.status == 200);
 
     if (!allGood) {
-      throw new Error(`Proposal rejected by some of the peers: ${proposalResponses}`);
+      throw new Error(`Proposal rejected by some (all) of the peers: ${proposalResponses}`);
     }
 
-    let transactionCompletePromise = this._eventHubs.map(eh => {
+    request = {
+      proposalResponses,
+      proposal: results[1],
+      header: results[2]
+    };
+
+    let transactionCompletePromises = this._eventHubs.map(eh => {
+      eh.connect();
       return new Promise((resolve, reject) => {
         let responseTimeout = setTimeout(() => {
           reject(new Error('Peer did not respond in a timely fashion!'));
@@ -142,9 +153,7 @@ export class OrganizationClient {
         let deployId = txId.toString();
         eh.registerTxEvent(deployId, (tx, code) => {
           clearTimeout(responseTimeout);
-
           eh.unregisterTxEvent(deployId);
-
           if (code != 'VALID') {
             reject(new Error(`Peer has rejected transaction with code: ${code}`));
           } else {
@@ -154,18 +163,84 @@ export class OrganizationClient {
       });
     });
 
-    transactionCompletePromise.push(this._chain.sendTransaction(request));
-    await transactionCompletePromise;
+    transactionCompletePromises.push(this._chain.sendTransaction(request));
+    await transactionCompletePromises;
   }
 
-  async invoke(func, ...args) {
+  async invoke(chaincodeId, chaincodeVersion, chaincodePath, fcn, ...args) {
+    let nonce = utils.getNonce();
+    let txId = this._chain.buildTransactionID(nonce, this._adminUser);
 
+    let request = {
+      chaincodePath,
+      chaincodeId,
+      chaincodeVersion,
+      fcn,
+      args: marshalArgs(args),
+      chainId: this._channelName,
+      txId,
+      nonce
+    };
+
+    let results = await this._chain.sendTransactionProposal(request);
+    let proposalResponses = results[0];
+    let proposal = results[1];
+    let header = results[2];
+
+    let allGood = proposalResponses.every(pr => pr.response
+      && pr.response.status == 200);
+
+    if (!allGood) {
+      throw new Error(`Proposal rejected by some (all) of the peers: ${proposalResponses}`);
+    }
+
+    request = {
+      proposalResponses,
+      proposal: results[1],
+      header: results[2]
+    };
+    let deployId = txId.toString();
+
+    let transactionCompletePromises = this._eventHubs.map(eh => {
+      eh.connect();
+      return new Promise((resolve, reject) => {
+        let responseTimeout = setTimeout(() => {
+          reject(new Error('Peer did not respond in a timely fashion!'));
+        }, INSTALL_TIMEOUT);
+
+        eh.registerTxEvent(deployId, (tx, code) => {
+          clearTimeout(responseTimeout);
+          eh.unregisterTxEvent(deployId);
+          if (code != 'VALID') {
+            reject(new Error(`Peer has rejected transaction with code: ${code}`));
+          } else {
+            resolve();
+          }
+        });
+      });
+    });
+
+    transactionCompletePromises.push(this._chain.sendTransaction(request));
+    let payload = proposalResponses[0].response.payload;
+    return unmarshalResult([proposalResponses[0].response.payload]);
   }
 
-  async query(func, ...args) {
+  async query(chaincodeId, chaincodeVersion, chaincodePath, fcn, ...args) {
+    let nonce = utils.getNonce();
+    let txId = this._chain.buildTransactionID(nonce, this._adminUser);
 
+    let request = {
+      chaincodePath,
+      chaincodeId,
+      chaincodeVersion,
+      fcn,
+      args: marshalArgs(args),
+      chainId: this._channelName,
+      txId,
+      nonce
+    };
+    return unmarshalResult(await this._chain.queryByChaincode(request));
   }
-
 }
 
 /**
@@ -232,5 +307,17 @@ function marshalArgs(args) {
 }
 
 function unmarshalResult(result) {
-
+  if (!Array.isArray(result)) {
+    return result;
+  }
+  let buff = Buffer.concat(result);
+  if (!Buffer.isBuffer(buff)) {
+    return result;
+  }
+  let json = buff.toString('utf8');
+  if (!json) {
+    return null;
+  }
+  let obj = JSON.parse(json);
+  return snakeToCamelCase(obj);
 }
