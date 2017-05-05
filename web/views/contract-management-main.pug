@@ -1,0 +1,22 @@
+extends _layout
+
+block content
+  .ibm-columns
+    .ibm-col-6-3
+      .ibm-card
+        .ibm-card__image
+          img(src='http://placehold.it/350x350')
+        .ibm-card__content
+            h3.ibm-h3 #{ __('Claim Processing') }
+            p #{ __('Claim Processing Description') }
+            p.ibm-ind-link
+              a.ibm-forward-link(href='/contract-management/claim-processing') #{ __('Process New Claims') }
+    .ibm-col-6-3
+      .ibm-card
+          .ibm-card__image
+            img(src='http://placehold.it/350x350')
+          .ibm-card__content
+              h3.ibm-h3 #{ __('Contract Templates') }
+              p #{ __('Contract Templates Description') }
+              p.ibm-ind-link
+                a.ibm-forward-link(href='/contract-management/contract-templates') #{ __('Manage Available Contract Templates') }
