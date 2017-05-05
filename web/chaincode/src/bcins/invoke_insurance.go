@@ -427,16 +427,15 @@ func processClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 			contract.Void = true
 			// Persist contract
 			contractKey, err := stub.CreateCompositeKey(
-				prefixContract,
-				[]string{contract.Username, claim.ContractUUID})
+				prefixContract, []string{contract.Username, claim.ContractUUID})
 			if err != nil {
 				return shim.Error(err.Error())
 			}
-			contractAsBytes, err := json.Marshal(contract)
+			contractBytes, err := json.Marshal(contract)
 			if err != nil {
 				return shim.Error(err.Error())
 			}
-			err = stub.PutState(contractKey, contractAsBytes)
+			err = stub.PutState(contractKey, contractBytes)
 			if err != nil {
 				return shim.Error(err.Error())
 			}
