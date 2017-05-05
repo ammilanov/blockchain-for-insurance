@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { browserHistory } from 'react-router';
 
 import Loading from '../../shared/Loading';
-import { submitClaim } from '../api'
+import { fileClaim } from '../api';
 
 class ClaimPage extends React.Component {
   constructor(props) {
@@ -22,9 +22,12 @@ class ClaimPage extends React.Component {
   submit() {
     const { theft, description } = this.state;
     this.setState(Object.assign({}, this.state, { loading: true }))
-    submitClaim(this.props.user, this.props.routeParams.contractId, { theft, description })
+    fileClaim(this.props.user, this.props.routeParams.contractUuid, { theft, description })
       .then(() => {
         browserHistory.push('/self-service/contracts');
+      }).catch(() => {
+        this.setState(Object.assign({}, this.state, { loading: false }));
+        alert('Error occurred!');
       });
   }
 

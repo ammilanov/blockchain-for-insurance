@@ -7,7 +7,6 @@ import { connect } from 'react-redux';
 import { browserHistory, Link } from 'react-router';
 
 import Loading from '../../shared/Loading';
-import * as userMgmtActions from '../actions/userMgmtActions';
 import * as contractsActions from '../actions/contractsActions';
 
 class ContractsPage extends React.Component {
@@ -30,23 +29,54 @@ class ContractsPage extends React.Component {
     const { loading } = this.state;
     const { contracts, intl } = this.props;
 
+    function showExpirationInfo(contract) {
+      if (contract.void) {
+        return (
+          <FormattedMessage style={{ color: 'red' }} id='Contract void' />
+        );
+      }
+      return (
+        <div>
+          <FormattedMessage id='Valid From' />: <FormattedDate value={contract.startDate} /> <br />
+          <FormattedMessage id='Valid To' />: <FormattedDate value={contract.endDate} /> <br />
+        </div>
+      );
+    }
+    function claimButtons(contract) {
+      let fileClaim = !contract.void ?
+        (
+          <p className='ibm-ind-link'>
+            <Link className='ibm-forward-link' to={`/self-service/claim/${contract.uuid}`}>
+              <FormattedMessage id='File a New Claim' />
+            </Link>
+          </p>
+        ) : <FormattedMessage style={{ color: 'red' }} id='Contract void' />;
+
+      return (
+        <div>
+          {fileClaim}
+          <p className='ibm-ind-link'>
+            <Link className='ibm-forward-link' to={`/self-service/contract/${contract.uuid}/claims`}>
+              <FormattedMessage id='View Claims' /> ({(contract.claims || []).length})
+              </Link>
+          </p>
+        </div>
+      );
+    }
+
     const cards = Array.isArray(contracts) ? contracts.map((contract, index) => (
       <div key={index} className='ibm-col-5-1 ibm-col-medium-6-2'>
         <div className='ibm-card ibm-border-gray-50'>
           <div className='ibm-card__content'>
-            <h4 className='ibm-bold ibm-h4'>{contract.contract.description}</h4>
-            <p style={{ wordWrap: 'break-word' }}>
-              {contract.item.brand}<br />
-              {contract.item.model}<br />
-              {contract.item.serialNo} <br />
-              <FormattedMessage id='Valid From' />: <FormattedDate value={contract.startDate} /> <br />
-              <FormattedMessage id='Valid To' />: <FormattedDate value={contract.endDate} /> <br />
-            </p>
-            <p className='ibm-ind-link'>
-              <Link className='ibm-forward-link' to={`/self-service/claim/${contract.id}`}>
-                <FormattedMessage id='File a Claim' /> ({contract.claims.length})
-              </Link>
-            </p>
+            <h4 className='ibm-bold ibm-h4'>{contract.description}</h4>
+            <div style={{ wordWrap: 'break-word' }}>
+              <FormattedMessage id='Brand' />: {contract.item.brand}<br />
+              <FormattedMessage id='Model' />: {contract.item.model}<br />
+              <FormattedMessage id='Serial No.' />: {contract.item.serialNo} <br />
+              {showExpirationInfo(contract)}
+            </div>
+            <br />
+            {claimButtons(contract)}
           </div>
         </div>
       </div>
@@ -82,7 +112,6 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    userMgmtActions: bindActionCreators(userMgmtActions, dispatch),
     contractsActions: bindActionCreators(contractsActions, dispatch)
   };
 }

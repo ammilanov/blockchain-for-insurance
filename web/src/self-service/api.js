@@ -3,7 +3,7 @@
 import fetch from 'isomorphic-fetch';
 
 export function authenticateUser(user) {
-  return fetch('/self-service/api/authenticateUser', {
+  return fetch('/self-service/api/authenticate-user', {
     method: 'POST',
     headers: new Headers({
       'Content-Type': 'application/json'
@@ -20,7 +20,7 @@ export function authenticateUser(user) {
 }
 
 export function getContracts(user) {
-  return fetch('/self-service/api/getContracts', {
+  return fetch('/self-service/api/contracts', {
     method: 'POST',
     headers: new Headers({
       'Content-Type': 'application/json'
@@ -35,13 +35,13 @@ export function getContracts(user) {
   });
 }
 
-export function submitClaim(user, contractId, claim) {
-  return fetch('/self-service/api/submitClaim', {
+export function fileClaim(user, contractUuid, claim) {
+  return fetch('/self-service/api/file-claim', {
     method: 'POST',
     headers: new Headers({
       'Content-Type': 'application/json'
     }),
-    body: JSON.stringify({ user, contractId, claim })
+    body: JSON.stringify({ user, contractUuid, claim })
   }).then(async res => {
     let result = await res.json();
     if (result.error) {
