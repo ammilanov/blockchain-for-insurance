@@ -1,6 +1,7 @@
 import './common.scss';
 import './northstar.css';
 import './northstar-forms.css';
+import './northstar-tables.css';
 
 // Apply Internationalization Polyfill
 if (!window.Intl) {
