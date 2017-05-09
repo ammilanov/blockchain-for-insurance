@@ -38,9 +38,14 @@ export function enterContract(user, contractTypeUuid, additionalInfo) {
     }),
     body: JSON.stringify({ user, contractTypeUuid, additionalInfo })
   }).then(async res => {
-    return await res.json();
+    const response = await res.json();
+    if (response.success) {
+      return response.loginInfo;
+    } else {
+      throw new Error(response.error);
+    }
   });
-}
+};
 
 /**
  * Function parses formula, to prevent cross site scripting attacks.
