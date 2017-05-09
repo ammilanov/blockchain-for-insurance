@@ -23,11 +23,12 @@ class PaymentPage extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.payed && nextProps.user && !this.state.inTransaction) {
-      this.setState({ loading: true, inTransaction: true });
-      setTimeout(async () => {
-        // Sign insurance contract
-        await enterContract(nextProps.user, nextProps.contractInfo.uuid, {
+    if (nextProps.payed && !this.state.inTransaction) {
+      this.setState({ loading: true, inTransaction: true }, async () => {
+        const { email, firstName, lastName } = nextProps.contractInfo;
+        const user = { username: email, firstName, lastName };
+        // Sign the insurance contract, the login info should be returned
+        let loginInfo = await enterContract(user, nextProps.contractInfo.uuid, {
           item: {
             id: parseInt(nextProps.productInfo.index),
             brand: nextProps.productInfo.brand,
@@ -38,16 +39,19 @@ class PaymentPage extends React.Component {
           startDate: new Date(nextProps.contractInfo.startDate),
           endDate: new Date(nextProps.contractInfo.endDate)
         });
-        browserHistory.push(`/shop/${this.props.shopType}/summary`);
-        this.setState({ loading: false, inTransaction: false });
-      })
+        this.setState({ loading: false, inTransaction: false }, () => {
+          this.props.userMgmtActions.setUser({
+            firstName, lastName,
+            username: email, password: loginInfo.password
+          });
+          browserHistory.push(`/shop/${this.props.shopType}/summary`);
+        });
+      });
     }
   }
 
   order() {
-    this.setState(Object.assign({}, this.state, { loading: true }));
-    const { email, firstName, lastName } = this.props.contractInfo;
-    this.props.userMgmtActions.requestNewUser({ email, firstName, lastName });
+    this.setState({ loading: true });
     this.props.paymentActions.pay();
   }
 

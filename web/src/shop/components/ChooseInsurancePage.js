@@ -120,7 +120,7 @@ class ChooseInsurancePage extends React.Component {
     return (
       <Loading hidden={contractsLoaded} text={intl.formatMessage({ id: 'Loading Contracts...' })}>
         <div className='ibm-columns'>
-          <div className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1'>
+          <div className='ibm-col-1-1'>
             <h3 className='ibm-h3'>{messageAtTop}</h3>
           </div>
         </div>
@@ -139,7 +139,7 @@ class ChooseInsurancePage extends React.Component {
               <p>
                 <label><FormattedMessage id='Daily Price' />:</label>
                 <span>
-                  <input type='text' readOnly={true} value={
+                  <input type='text' readOnly={true} disabled={true} value={
                     intl.formatNumber(dailyPrice,
                       {
                         style: 'currency', currency: intl.formatMessage({ id: 'currency code' }),
@@ -150,7 +150,9 @@ class ChooseInsurancePage extends React.Component {
               <p className='ibm-form-elem-grp'>
                 <label><FormattedMessage className='ibm-field-label' id='Theft Protection' />:</label>
                 <span className='ibm-input-group'>
-                  <input type="checkbox" ref='theftInsuredField' className='ibm-styled-checkbox' checked={contractType.theftInsured} readOnly={true} />
+                  <input type='checkbox' className='ibm-styled-checkbox'
+                    ref='theftInsuredField'
+                    checked={contractType.theftInsured} disabled={true} readOnly={true} />
                   <label className='ibm-field-label' htmlFor='theftInsuredField'></label>
                 </span>
               </p>

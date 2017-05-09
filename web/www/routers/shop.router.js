@@ -84,24 +84,24 @@ router.post('/api/enter-contract', async (req, res) => {
   if (typeof user === 'object' &&
     typeof contractTypeUuid === 'string' &&
     typeof additionalInfo === 'object') {
-      try {
-        let { username, password } = user;
-        if (await ShopPeer.authenticateUser(username, password)) {
-          let loginInfo = await ShopPeer.createContract({
-            contractTypeUuid,
-            username,
-            item: additionalInfo.item,
-            startDate: additionalInfo.startDate,
-            endDate: additionalInfo.endDate
-          });
-          res.json({ success: 'Contract signed.' });
-        } else {
-          res.json({ error: 'Unknown user!' });
-        }
-      } catch (e) {
-        console.log(e);
-        res.json({ error: 'Could not create new contract!' });
-      }
+    try {
+      let { username, firstName, lastName } = user;
+      const passwordProposal = generatePassword();
+      let loginInfo = await ShopPeer.createContract({
+        contractTypeUuid,
+        username,
+        password: passwordProposal,
+        firstName,
+        lastName,
+        item: additionalInfo.item,
+        startDate: additionalInfo.startDate,
+        endDate: additionalInfo.endDate
+      });
+      res.json({ success: 'Contract signed.', loginInfo });
+    } catch (e) {
+      console.log(e);
+      res.json({ error: 'Could not create new contract!' });
+    }
   } else {
     res.json({ error: 'Invalid request!' });
   }
