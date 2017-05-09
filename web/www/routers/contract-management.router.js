@@ -59,7 +59,8 @@ router.post('/api/create-contract-type', async (req, res) => {
     description,
     conditions,
     minDurationDays,
-    maxDurationDays
+    maxDurationDays,
+    active
   } = req.body;
   if (!(typeof shopType === 'string' && shopType[0])
   || typeof formulaPerDay !== 'string'
@@ -68,14 +69,15 @@ router.post('/api/create-contract-type', async (req, res) => {
   || typeof description !== 'string'
   || typeof conditions !== 'string'
   || typeof minDurationDays !== 'number'
-  || typeof maxDurationDays !== 'number') {
+  || typeof maxDurationDays !== 'number'
+  || typeof active !== 'boolean') {
     res.json({ error: "Invalid request." });
     return;
   }
-  shopType = shopType[0].toUpperCase();
+  shopType = shopType.toUpperCase();
 
   try {
-    let success = await InsurancePeer.createContractType({
+    const uuid = await InsurancePeer.createContractType({
       shopType,
       formulaPerDay,
       maxSumInsured,
@@ -83,9 +85,10 @@ router.post('/api/create-contract-type', async (req, res) => {
       description,
       conditions,
       minDurationDays,
-      maxDurationDays
+      maxDurationDays,
+      active
     });
-    res.json({ success });
+    res.json({ success: true, uuid });
   } catch (e) {
     res.json({ error: "Error accessing blockchain." });
   }
