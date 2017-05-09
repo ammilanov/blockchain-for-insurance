@@ -44,33 +44,38 @@ class ContractClaimsPage extends React.Component {
         message = <FormattedMessage id={messageId} />
       }
       return (
-        <span>
-          {message}
-          {refundable}
-        </span>
+        <span>{message} {refundable}</span>
       );
     }
     const cards = Array.isArray(claims) ? claims.map((claim, index) => (
-      <div key={index} className='ibm-card ibm-border-gray-50'>
-        <div className='ibm-card__content'>
-          <h4 className='ibm-bold ibm-h4'>{claim.description}</h4>
-          <div style={{ wordWrap: 'break-word' }}>
-            <FormattedMessage id='Creation Date' />: <FormattedDate value={claim.date} /> <br />
-            <FormattedMessage id='Theft' />: <input type='checkbox' ref='theftField'
-              className='ibm-styled-checkbox'
-              checked={claim.isTheft} />
-            <label className='ibm-field-label' htmlFor='theftField'></label><br />
-            <FormattedMessage id='Description' />: {claim.description}<br />
-            <FormattedMessage id='Status' />: {formatStatus(claim)}
+      <div key={index} className='ibm-col-5-2 ibm-col-medium-6-2'>
+        <div className='ibm-card ibm-border-gray-50'>
+          <div className='ibm-card__content'>
+            <h4 className='ibm-bold ibm-h4'>{claim.description}</h4>
+            <div style={{ wordWrap: 'break-word' }}>
+              <FormattedMessage id='Creation Date' />: <FormattedDate value={claim.date} /> <br />
+              <FormattedMessage id='Theft' />: <input type='checkbox' ref='theftField'
+                className='ibm-styled-checkbox'
+                checked={claim.isTheft} />
+              <label className='ibm-field-label' htmlFor='theftField'></label><br />
+              <FormattedMessage id='Description' />: {claim.description}<br />
+              <FormattedMessage id='Status' />: {formatStatus(claim)}
+            </div>
+            <br />
           </div>
-          <br />
         </div>
       </div>
-    )) : null;
+    )) : (
+        <div className='ibm-col-5-5 ibm-col-medium-6-6'>
+          <FormattedMessage id={`You haven't filed any claims yet.`} />
+        </div>
+      );
     return (
-      <div className='ibm-columns' style={{ minHeight: '6em' }}>
-        <div className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1'>
-          <h3 className='ibm-h3'><FormattedMessage id='Claims to Selected Contract' /></h3>
+      <div style={{ minHeight: '30vh' }}>
+        <div className='ibm-columns'>
+          <div className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1'>
+            <h3 className='ibm-h3'><FormattedMessage id='Claims to Selected Contract' /></h3>
+          </div>
         </div>
         <div className='ibm-columns ibm-cards' data-widget='masonry' data-items='.ibm-col-5-1'>
           {cards}
