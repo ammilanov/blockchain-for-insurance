@@ -6,7 +6,7 @@ const router = express.Router();
 router.post('/api/repair-orders', async (req, res) => {
   try {
     let repairOrders = await RepairServicePeer.getRepairOrders();
-    res.json(repairOrderer);
+    res.json(repairOrders);
   } catch (e) {
     console.log(e);
     res.json({ error: "Error accessing blockchain."});
@@ -22,6 +22,7 @@ router.post('/api/complete-repair-order', async (req, res) => {
 
   try {
     await RepairServicePeer.completeRepairOrder(uuid);
+    json.res({ success: true });
   } catch (e) {
     console.log(e);
     res.json({ error: "Error accessing blockchain." });
