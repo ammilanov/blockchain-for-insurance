@@ -21,7 +21,7 @@ export default function contractTemplateReducer(state = initialState.contractTem
           ...contractTypesWithout,
           Object.assign({}, newContractType, { active: action.active })
         ]
-      })
+      });
     default:
       return state;
   }

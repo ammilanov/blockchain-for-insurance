@@ -15,7 +15,7 @@ export function loadContractTypes() {
       dispatch(loadContractTypesSuccess(contractTypes));
     }
   };
-}
+};
 
 function loadContractTypesSuccess(contractTypes) {
   return {
@@ -27,16 +27,16 @@ function loadContractTypesSuccess(contractTypes) {
 export function createContractType(contractType) {
   return async dispatch => {
     try {
-      let uuid = await Api.createContractType(contractType);
+      const uuid = await Api.createContractType(contractType);
       if (uuid) {
-        let newContractType = Object.assign({}, contractType, { uuid });
+        const newContractType = Object.assign({}, contractType, { uuid });
         dispatch(createContractTypeSuccess(newContractType));
       }
     } catch (e) {
       console.log(e);
     }
   };
-}
+};
 
 function createContractTypeSuccess(contractType) {
   return {
@@ -54,7 +54,7 @@ export function setContractTypeActive(uuid, active) {
       console.log(e);
     }
   };
-}
+};
 
 function setContractTypeActiveSuccess(uuid, active) {
   return {

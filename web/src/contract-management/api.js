@@ -46,7 +46,12 @@ export function createContractType(contractType) {
     }),
     body: JSON.stringify(contractType)
   }).then(async res => {
-    return await res.json();
+    const response = await res.json();
+    if (response.success) {
+      return response.uuid;
+    } else {
+      throw new error(response.error);
+    }
   });
 }
 

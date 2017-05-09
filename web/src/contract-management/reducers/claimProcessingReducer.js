@@ -10,11 +10,15 @@ export default function claimProcessingReducer(state = initialState.claimProcess
         claims: [...action.claims]
       });
     case ClaimProcessingActionType.PROCESS_CLAIM_SUCCESS:
-      let { contractUuid, uuid } = action;
-      return Object({}, state, {
-        claims: [...state.claims.filter(c => !(c.contractUuid === contractUuid && c.uuid === uuid))]
-      })
+      // Just filter out the claim
+      {
+        const { contractUuid, uuid } = action;
+        return Object.assign({}, state, {
+          claims: [...state.claims.filter(
+            c => !(c.contractUuid === contractUuid && c.uuid === uuid))]
+        });
+      }
     default:
       return state;
   }
-}
+};
