@@ -39,7 +39,7 @@ let config = {
   },
   repairServiceOrg: {
     peer: {
-      hostname: 'repairserivce-peer',
+      hostname: 'repairservice-peer',
       url: 'grpc://repairservice-peer:7051',
       pem: '',
       eventHubUrl: 'grpc://repairservice-peer:7053',
