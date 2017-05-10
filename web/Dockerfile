@@ -1,4 +1,4 @@
-FROM docker.io/library/node:6.10.2-alpine
+FROM docker.io/library/node:6.10.3-alpine
 
 ENV NODE_ENV production
 ENV PORT 3000
@@ -6,9 +6,11 @@ ENV PORT 3000
 RUN mkdir /app
 COPY . /app
 WORKDIR /app
-RUN npm i && npm i --only=dev \
+RUN apk update && apk add --update git alpine-sdk python \
+      && npm i && npm i --only=dev \
       && npm run build \
-      && npm prune
+      && npm prune \
+      && apk del git alpine-sdk python
 
 EXPOSE 3000
 CMD ["npm", "run", "serve"]

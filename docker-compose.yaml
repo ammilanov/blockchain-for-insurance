@@ -147,15 +147,19 @@ services:
       - shop-peer
       - repairservice-peer
 
-  # web:
-  #   container_name: registry.ng.bluemix.net/bcins/web
-  #   image: registry.ng.bluemix.net/bcins/web
-  #   environment:
-  #     - PORT=3000
-  #   ports:
-  #     - 3000:3000
-  #   depends_on:
-  #     - orderer0
-  #     - insurance-peer
-  #     - shop-peer
-  #     - repairservice-peer
+  web:
+    container_name: web
+    image: registry.ng.bluemix.net/bcins/web
+    environment:
+      - PORT=3000
+    ports:
+      - 3000:3000
+    depends_on:
+      - orderer0
+      - insurance-ca
+      - insurance-peer
+      - shop-ca
+      - shop-peer
+      - repairservice-ca
+      - repairservice-peer
+      - cli
