@@ -10,3 +10,6 @@ npm-debug.log
 .npmrc
 bin
 dist
+insurance-peer
+shop-peer
+repairservice-peer
