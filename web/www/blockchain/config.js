@@ -3,6 +3,7 @@ import { resolve } from 'path';
 
 let config = {
   channelName: 'default',
+  channelConfig: '../../channel.tx',
   chaincodeId: 'bcins',
   chaincodeVersion: 'v1',
   chaincodePath: 'bcins',
@@ -75,6 +76,7 @@ if (process.env.LOCALCONFIG) {
 // config.shopOrg.peer.pem = readFileSync(resolve(basePath, 'shopOrg.pem')).toString();
 // config.repairServiceOrg.peer.pem = readFileSync(resolve(basePath, 'repairServiceOrg.pem')).toString();
 
+config.channelConfig = readFileSync(resolve(__dirname, config.channelConfig));
 export default config;
 
 export const DEFAULT_CONTRACT_TYPES = [

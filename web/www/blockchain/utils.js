@@ -2,6 +2,7 @@
 
 import { resolve } from 'path';
 
+import grpc from 'grpc';
 import hfc from 'fabric-client';
 import utils from 'fabric-client/lib/utils';
 import Orderer from 'fabric-client/lib/Orderer';
@@ -13,6 +14,7 @@ import { snakeToCamelCase, camelToSnakeCase } from 'json-style-converter';
 
 process.env.GOPATH = resolve(__dirname, '../../chaincode');
 const INSTALL_TIMEOUT = 120000;
+const _commonProto = grpc.load(resolve(__dirname, '../../node_modules/fabric-client/lib/protos/common/common.proto')).common;
 
 export class OrganizationClient {
 
@@ -52,7 +54,7 @@ export class OrganizationClient {
     this._eventHubs.push(defaultEventHub);
   }
 
-  async initialize() {
+  async login() {
     try {
       this._client.setStateStore(
         await hfc.newDefaultKeyValueStore({ path: `./${this._peerConfig.hostname}` }));
@@ -60,15 +62,75 @@ export class OrganizationClient {
     } catch (e) {
       console.log(`Failed to enroll user. Error: ${e.message}`);
       throw e;
-      return;
     }
+  }
 
+  async initialize() {
     try {
       await this._chain.initialize();
     } catch (e) {
       console.log(`Failed to initialize chain. Error: ${e.message}`);
       throw e;
-      return;
+    }
+  }
+
+  async createChannel(configTxBuffer) {
+    let request = {
+      envelope: configTxBuffer
+    };
+    let response = await this._chain.createChannel(request);
+    // Wait for 5sec to create channel
+    await new Promise(resolve => { setTimeout(resolve, 5000); });
+    return response;
+  }
+
+  async joinChannel() {
+    const nonce = utils.getNonce();
+    const txId = this._chain.buildTransactionID(nonce, this._adminUser);
+    const request = {
+      targets: this._peers,
+      txId,
+      nonce
+    };
+
+    try {
+      const blockRegisteredPromises = this._eventHubs.map(eh => {
+        eh.connect();
+        return new Promise((resolve, reject) => {
+          let responseTimeout = setTimeout(() => {
+            reject(new Error('Peer did not respond in a timely fashion!'));
+          }, INSTALL_TIMEOUT);
+
+          eh.registerBlockEvent(block => {
+            clearTimeout(responseTimeout);
+            debugger;
+            if (block.data.data.length === 1) {
+              const envelope = _commonProto.Envelope.decode(block.data.data[0]);
+              const payload = _commonProto.Payload.decode(envelope.payload);
+              const channelHeader = _commonProto.ChannelHeader.decode(payload.header.channel_header);
+
+              if (channelHeader.channel_id === this._channelName) {
+                resolve();
+              }
+            }
+          });
+        });
+      });
+
+      const sendPromise = this._chain.joinChannel(request);
+      await Promise.all([blockRegisteredPromises, sendPromise]);
+    } catch (e) {
+      console.log('Error joining peer to channel.');
+      throw e;
+    }
+  }
+
+  async checkChannelMembership() {
+    try {
+      const channelConfig = await this._chain.getChannelConfig();
+      return true;
+    } catch(e) {
+      return false;
     }
   }
 

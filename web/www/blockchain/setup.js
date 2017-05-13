@@ -51,7 +51,41 @@ export function isReady() {
 }
 
 (async () => {
-  // Initialize clients
+  // Login
+  try {
+    await Promise.all([
+      insuranceClient.login(),
+      shopClient.login(),
+      repairServiceClient.login()
+    ]);
+  } catch (e) {
+    console.log('Fatal error logging into blockchain organization clients!');
+    console.log(e);
+    process.exit(-1);
+  }
+
+  // Bootstrap blockchain network
+  try {
+    if (!(await insuranceClient.checkChannelMembership())) {
+      const createChannelResponse =
+        await insuranceClient.createChannel(config.channelConfig);
+      if (createChannelResponse.status === 'SUCCESS') {
+        console.log('Successfully created a new channel.');
+        await Promise.all([
+          insuranceClient.joinChannel(),
+          shopClient.joinChannel(),
+          repairServiceClient.joinChannel()
+        ]);
+        await new Promise(resolve => { setTimeout(resolve, 10000); });
+      }
+    }
+  } catch (e) {
+    console.log('Fatal error bootstrapping the blockchain network!');
+    console.log(e);
+    process.exit(-1);
+  }
+
+  // Initialize network
   try {
     await Promise.all([
       insuranceClient.initialize(),
@@ -59,7 +93,7 @@ export function isReady() {
       repairServiceClient.initialize()
     ]);
   } catch (e) {
-    console.log('Fatal Error initializing blockchain organization clients!');
+    console.log('Fatal error initializing blockchain organization clients!');
     console.log(e);
     process.exit(-1);
   }
@@ -88,6 +122,7 @@ export function isReady() {
     ];
     try {
       await Promise.all(installationPromises);
+      await new Promise(resolve => { setTimeout(resolve, 10000); });
       console.log('Successfully installed chaincode on the blockchain network.');
     } catch (e) {
       console.log('Fatal error installing chaincode on the blockchain network!');
