@@ -117,6 +117,7 @@ export function isReady() {
   let installed = installedOnInsuranceOrg && installedOnShopOrg && installedOnRepairServiceOrg;
   if (!installed) {
     // Pull chaincode environment base image
+    console.log('Chaincode is not installed, attempting installation...')
     try {
       const socketPath = process.env.DOCKER_SOCKET_PATH
         || '/var/run/docker.sock';
@@ -124,10 +125,27 @@ export function isReady() {
         || 'hyperledger/fabric-ccenv:x86_64-1.0.0-alpha';
       const docker = new Docker({ socketPath });
       const images = await docker.listImages();
-      const imageExists = images.find(
-        i => i.RepoTags && i.RepoTags.some(rt => rt === ccenvImage));
+      const imageExists = images.some(
+        i => i.RepoTags && i.RepoTags.some(tag => tag === ccenvImage));
       if (!imageExists) {
-        await docker.pull(ccenvImage);
+        console.log('Base container image not present, pulling from Docker Hub...');
+
+        await new Promise((resolve, reject) => {
+          docker.pull(ccenvImage, (err, stream) => {
+            if (err) {
+              reject(err); return;
+            }
+            docker.modem.followProgress(stream, (err, output) => {
+              if (err) {
+                reject(err); return;
+              }
+              resolve();
+            }, ()=>{});
+          });
+        });
+
+      } else {
+        console.log('Base container image present.')
       }
     } catch (e) {
       console.log('Fatal error pulling docker images.');
