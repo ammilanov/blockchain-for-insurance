@@ -39,6 +39,7 @@
     "cookies": "0.6.2",
     "cross-env": "3.2.3",
     "csurf": "1.9.0",
+    "dockerode": "2.4.3",
     "dotenv": "4.0.0",
     "express": "4.14.1",
     "express-rate-limit": "2.6.0",

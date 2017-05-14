@@ -2,6 +2,7 @@
 
 import config, { DEFAULT_CONTRACT_TYPES } from './config';
 import { OrganizationClient } from './utils';
+import Docker from 'dockerode';
 
 var status = 'down';
 var statusChangedCallbacks = [];
@@ -115,6 +116,24 @@ export function isReady() {
 
   let installed = installedOnInsuranceOrg && installedOnShopOrg && installedOnRepairServiceOrg;
   if (!installed) {
+    // Pull chaincode environment base image
+    try {
+      const socketPath = process.env.DOCKER_SOCKET_PATH
+        || '/var/run/docker.sock';
+      const ccenvImage = process.env.DOCKER_CCENV_IMAGE
+        || 'hyperledger/fabric-ccenv:x86_64-1.0.0-alpha';
+      const docker = new Docker({ socketPath });
+      const images = await docker.listImages();
+      const imageExists = images.find(
+        i => i.RepoTags && i.RepoTags.some(rt => rt === ccenvImage));
+      if (!imageExists) {
+        await docker.pull(ccenvImage);
+      }
+    } catch (e) {
+      console.log('Fatal error pulling docker images.');
+      console.log(e);
+      process.exit(-1);
+    }
     let installationPromises = [
       insuranceClient.install(config.chaincodeId, config.chaincodeVersion, config.chaincodePath),
       shopClient.install(config.chaincodeId, config.chaincodeVersion, config.chaincodePath),

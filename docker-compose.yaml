@@ -124,8 +124,12 @@ services:
     image: registry.ng.bluemix.net/bcins/web
     environment:
       - PORT=3000
+      - DOCKER_SOCKET_PATH=/host/var/run/docker.sock
+      - DOCKER_CCENV_IMAGE=hyperledger/fabric-ccenv:x86_64-1.0.0-alpha
     ports:
       - 3000:3000
+    volumes:
+      - /var/run/:/host/var/run/
     depends_on:
       - orderer0
       - insurance-ca
