@@ -18,26 +18,6 @@ dockerCaPull() {
       docker pull hyperledger/fabric-ca:$CA_TAG
       docker tag hyperledger/fabric-ca:$CA_TAG hyperledger/fabric-ca
 }
-usage() {
-      echo "Description "
-      echo
-      echo "Pulls docker images from hyperledger dockerhub repository"
-      echo "tag as hyperledger/fabric-<image>:latest"
-      echo
-      echo "USAGE: "
-      echo
-      echo "./download-dockerimages.sh [-c <fabric-ca tag>] [-f <fabric tag>]"
-      echo "      -c fabric-ca docker image tag"
-      echo "      -f fabric docker image tag"
-      echo
-      echo
-      echo "EXAMPLE:"
-      echo "./download-dockerimages.sh -c x86_64-1.0.0-alpha -f x86_64-1.0.0-alpha"
-      echo
-      echo "By default, pulls fabric-ca and fabric 1.0.0-alpha docker images"
-      echo "from hyperledger dockerhub"
-      exit 0
-}
 
 BUILD=
 PUSH=
