@@ -64,7 +64,7 @@ if [ $BUILD ];
     docker build -t registry.ng.bluemix.net/bcins/insurance-peer:latest insurancePeer/
     docker build -t registry.ng.bluemix.net/bcins/shop-peer:latest shopPeer/
     docker build -t registry.ng.bluemix.net/bcins/repairservice-peer:latest repairServicePeer/
-    docker build -t registry.ng.bluemix.net/bcins/cli:latest cli/
+    # docker build -t registry.ng.bluemix.net/bcins/cli:latest cli/
     docker build -t registry.ng.bluemix.net/bcins/web:latest web/
     docker build -t registry.ng.bluemix.net/bcins/insurance-ca:latest insuranceCA/
     docker build -t registry.ng.bluemix.net/bcins/shop-ca:latest shopCA/
@@ -78,7 +78,7 @@ if [ $PUSH ]; then
     docker push registry.ng.bluemix.net/bcins/insurance-peer:latest
     docker push registry.ng.bluemix.net/bcins/shop-peer:latest
     docker push registry.ng.bluemix.net/bcins/repairservice-peer:latest
-    docker push registry.ng.bluemix.net/bcins/cli:latest
+    # docker push registry.ng.bluemix.net/bcins/cli:latest
     docker push registry.ng.bluemix.net/bcins/web:latest
     docker push registry.ng.bluemix.net/bcins/insurance-ca:latest
     docker push registry.ng.bluemix.net/bcins/shop-ca:latest
