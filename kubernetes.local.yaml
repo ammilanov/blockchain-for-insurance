@@ -1,0 +1,469 @@
+### Deployments and Jobs
+
+# Insurance CA
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: insurance-ca
+spec:
+  template:
+    metadata:
+      labels:
+        app: insurance-ca
+        type: ca
+    spec:
+      containers:
+      - name: insurance-ca
+        image: registry.ng.bluemix.net/bcins/insurance-ca:latest
+        imagePullPolicy: IfNotPresent
+        command: ["fabric-ca-server"]
+        args: ["start"]
+        ports:
+        - containerPort: 7054
+        env:
+        - name: FABRIC_CA_HOME
+          value: /ca
+
+# Shop CA
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: shop-ca
+spec:
+  template:
+    metadata:
+      labels:
+        app: shop-ca
+        type: ca
+    spec:
+      containers:
+      - name: shop-ca
+        image: registry.ng.bluemix.net/bcins/shop-ca:latest
+        imagePullPolicy: IfNotPresent
+        command: ["fabric-ca-server"]
+        args: ["start"]
+        ports:
+        - containerPort: 7054
+        env:
+        - name: FABRIC_CA_HOME
+          value: /ca
+
+# Repair Serivce CA
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: repairservice-ca
+spec:
+  template:
+    metadata:
+      labels:
+        app: repairservice-ca
+        type: ca
+    spec:
+      containers:
+      - name: repairservice-ca
+        image: registry.ng.bluemix.net/bcins/repairservice-ca:latest
+        imagePullPolicy: IfNotPresent
+        command: ["fabric-ca-server"]
+        args: ["start"]
+        ports:
+        - containerPort: 7054
+        env:
+        - name: FABRIC_CA_HOME
+          value: /ca
+
+# Orderer
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: orderer0
+spec:
+  template:
+    metadata:
+      labels:
+        app: orderer0
+        type: orderer
+    spec:
+      containers:
+      - name: orderer0
+        image: registry.ng.bluemix.net/bcins/orderer:latest
+        imagePullPolicy: IfNotPresent
+        command: ["orderer"]
+        ports:
+        - containerPort: 7050
+        workingDir: /peer
+        env:
+        - name: ORDERER_GENERAL_LOGLEVEL
+          value: debug
+        - name: ORDERER_GENERAL_LISTENADDRESS
+          value: 0.0.0.0
+        - name: ORDERER_GENERAL_GENESISMETHOD
+          value: file
+        - name: ORDERER_GENERAL_GENESISFILE
+          value: /peer/crypto/orderer.block
+        - name: ORDERER_GENERAL_LOCALMSPID
+          value: OrdererMSP
+        - name: ORDERER_GENERAL_LOCALMSPDIR
+          value: /peer/crypto/localMspConfig
+
+# Insurace Peer
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: insurance-peer
+spec:
+  template:
+    metadata:
+      labels:
+        app: insurance-peer
+        type: peer
+    spec:
+      volumes:
+      - name: docker-internals
+        hostPath:
+          path: /var/run/
+      containers:
+      - name: insurance-peer
+        image: registry.ng.bluemix.net/bcins/insurance-peer:latest
+        imagePullPolicy: IfNotPresent
+        command: ["peer"]
+        args: ["node", "start", "--peer-defaultchain=false"]
+        ports:
+        - containerPort: 7051
+        - containerPort: 7053
+        workingDir: /peer
+        volumeMounts:
+        - name: docker-internals
+          mountPath: /host/var/run/
+        env:
+        - name: CORE_VM_ENDPOINT
+          value: unix:///host/var/run/docker.sock
+        - name: CORE_VM_DOCKER_HOSTCONFIG_DNS
+          value: 10.0.0.10
+        - name: CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE
+          value: bridge
+        - name: CORE_VM_DOCKER_HOSTCONFIG_DNSSEARCH
+          value: default.svc.cluster.local
+        - name: CORE_LOGGING_LEVEL
+          value: DEBUG
+        - name: CORE_NEXT
+          value: "true"
+        - name: CORE_PEER_ENDORSER_ENABLED
+          value: "true"
+        - name: CORE_PEER_GOSSIP_USELEADERELECTION
+          value: "true"
+        - name: CORE_PEER_GOSSIP_ORGLEADER
+          value: "false"
+        - name: CORE_PEER_GOSSIP_SKIPHANDSHAKE
+          value: "true"
+        - name: CORE_PEER_PROFILE_ENABLED
+          value: "true"
+        - name: CORE_PEER_ID
+          value: insurance-peer
+        - name: CORE_PEER_ADDRESS
+          value: insurance-peer:7051
+        - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
+          value: insurance-peer:7051
+        - name: CORE_PEER_LOCALMSPID
+          value: InsuranceOrgMSP
+        - name: CORE_PEER_MSPCONFIGPATH
+          value: /peer/crypto/localMspConfig
+
+# Shop Peer
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: shop-peer
+spec:
+  template:
+    metadata:
+      labels:
+        app: shop-peer
+        type: peer
+    spec:
+      volumes:
+      - name: docker-internals
+        hostPath:
+          path: /var/run/
+      containers:
+      - name: shop-peer
+        image: registry.ng.bluemix.net/bcins/shop-peer:latest
+        imagePullPolicy: IfNotPresent
+        command: ["peer"]
+        args: ["node", "start", "--peer-defaultchain=false"]
+        ports:
+        - containerPort: 7051
+        - containerPort: 7053
+        workingDir: /peer
+        volumeMounts:
+        - name: docker-internals
+          mountPath: /host/var/run/
+        env:
+        - name: CORE_VM_ENDPOINT
+          value: unix:///host/var/run/docker.sock
+        - name: CORE_VM_DOCKER_HOSTCONFIG_DNS
+          value: 10.0.0.10
+        - name: CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE
+          value: bridge
+        - name: CORE_VM_DOCKER_HOSTCONFIG_DNSSEARCH
+          value: default.svc.cluster.local
+        - name: CORE_LOGGING_LEVEL
+          value: DEBUG
+        - name: CORE_NEXT
+          value: "true"
+        - name: CORE_PEER_ENDORSER_ENABLED
+          value: "true"
+        - name: CORE_PEER_GOSSIP_USELEADERELECTION
+          value: "true"
+        - name: CORE_PEER_GOSSIP_ORGLEADER
+          value: "false"
+        - name: CORE_PEER_GOSSIP_SKIPHANDSHAKE
+          value: "true"
+        - name: CORE_PEER_PROFILE_ENABLED
+          value: "true"
+        - name: CORE_PEER_ID
+          value: shop-peer
+        - name: CORE_PEER_ADDRESS
+          value: shop-peer:7051
+        - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
+          value: shop-peer:7051
+        - name: CORE_PEER_LOCALMSPID
+          value: ShopOrgMSP
+        - name: CORE_PEER_MSPCONFIGPATH
+          value: /peer/crypto/localMspConfig
+
+# Repair Service Peer
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: repairservice-peer
+spec:
+  template:
+    metadata:
+      labels:
+        app: repairservice-peer
+        type: peer
+    spec:
+      volumes:
+      - name: docker-internals
+        hostPath:
+          path: /var/run/
+      containers:
+      - name: repairservice-peer
+        image: registry.ng.bluemix.net/bcins/repairservice-peer:latest
+        imagePullPolicy: IfNotPresent
+        command: ["peer"]
+        args: ["node", "start", "--peer-defaultchain=false"]
+        ports:
+        - containerPort: 7051
+        - containerPort: 7053
+        workingDir: /peer
+        volumeMounts:
+        - name: docker-internals
+          mountPath: /host/var/run/
+        env:
+        - name: CORE_VM_ENDPOINT
+          value: unix:///host/var/run/docker.sock
+        - name: CORE_VM_DOCKER_HOSTCONFIG_DNS
+          value: 10.0.0.10
+        - name: CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE
+          value: bridge
+        - name: CORE_VM_DOCKER_HOSTCONFIG_DNSSEARCH
+          value: default.svc.cluster.local
+        - name: CORE_LOGGING_LEVEL
+          value: DEBUG
+        - name: CORE_NEXT
+          value: "true"
+        - name: CORE_PEER_ENDORSER_ENABLED
+          value: "true"
+        - name: CORE_PEER_GOSSIP_USELEADERELECTION
+          value: "true"
+        - name: CORE_PEER_GOSSIP_ORGLEADER
+          value: "false"
+        - name: CORE_PEER_GOSSIP_SKIPHANDSHAKE
+          value: "true"
+        - name: CORE_PEER_PROFILE_ENABLED
+          value: "true"
+        - name: CORE_PEER_ID
+          value: repairservice-peer
+        - name: CORE_PEER_ADDRESS
+          value: repairservice-peer:7051
+        - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
+          value: repairservice-peer:7051
+        - name: CORE_PEER_LOCALMSPID
+          value: RepairServiceOrgMSP
+        - name: CORE_PEER_MSPCONFIGPATH
+          value: /peer/crypto/localMspConfig
+
+# Web Frontend
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: web-frontend
+spec:
+  template:
+    metadata:
+      labels:
+        app: web-frontend
+        type: frontend
+    spec:
+      volumes:
+      - name: docker-internals
+        hostPath:
+          path: /var/run/
+      containers:
+      - name: web-frontend
+        image: registry.ng.bluemix.net/bcins/web:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: PORT
+          value: "3000"
+        - name: DOCKER_SOCKET_PATH
+          value: /host/var/run/docker.sock
+        - name: DOCKER_CCENV_IMAGE
+          value: hyperledger/fabric-ccenv:x86_64-1.0.0-alpha
+        volumeMounts:
+        - name: docker-internals
+          mountPath: /host/var/run/
+        ports:
+        - containerPort: 3000
+
+### Services
+
+# Insurance CA
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: insurance-ca
+spec:
+  selector:
+    app: insurance-ca
+  ports:
+  - protocol: TCP
+    port: 7054
+    targetPort: 7054
+
+# Shop CA
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shop-ca
+spec:
+  selector:
+    app: shop-ca
+  ports:
+  - protocol: TCP
+    port: 7054
+    targetPort: 7054
+
+
+# Repair Service CA
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: repairservice-ca
+spec:
+  selector:
+    app: repairservice-ca
+  ports:
+  - protocol: TCP
+    port: 7054
+    targetPort: 7054
+
+# Orderer0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orderer0
+spec:
+  selector:
+    app: orderer0
+  ports:
+  - protocol: TCP
+    port: 7050
+    targetPort: 7050
+
+# Insurance Peer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: insurance-peer
+spec:
+  selector:
+    app: insurance-peer
+  ports:
+  - name: requests
+    protocol: TCP
+    port: 7051
+    targetPort: 7051
+  - name: events
+    protocol: TCP
+    port: 7053
+    targetPort: 7053
+
+# Shop Peer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shop-peer
+spec:
+  selector:
+    app: shop-peer
+  ports:
+  - name: requests
+    protocol: TCP
+    port: 7051
+    targetPort: 7051
+  - name: events
+    protocol: TCP
+    port: 7053
+    targetPort: 7053
+
+# Repair Service Peer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: repairservice-peer
+spec:
+  selector:
+    app: repairservice-peer
+  ports:
+  - name: requests
+    protocol: TCP
+    port: 7051
+    targetPort: 7051
+  - name: events
+    protocol: TCP
+    port: 7053
+    targetPort: 7053
+
+# Web Frontend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-frontend
+spec:
+  type: NodePort
+  selector:
+    app: web-frontend
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000
+    nodePort: 30001
