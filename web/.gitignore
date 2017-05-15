@@ -12,4 +12,6 @@ dist
 !chaincode/
 !chaincode/src
 !chaincode/src/bcins
-
+insurance-peer
+shop-peer
+repairservice-peer
