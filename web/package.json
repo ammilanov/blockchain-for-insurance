@@ -64,6 +64,7 @@
     "react-router-redux": "4.0.7",
     "redux": "3.6.0",
     "redux-thunk": "2.2.0",
+    "socket.io": "2.0.1",
     "uuid": "3.0.1"
   },
   "devDependencies": {
@@ -82,6 +83,10 @@
     "babel-register": "6.22.0",
     "colors": "1.1.2",
     "css-loader": "0.26.1",
+    "eslint": "3.19.0",
+    "eslint-plugin-async-await": "0.0.0",
+    "eslint-plugin-import": "2.3.0",
+    "eslint-plugin-react": "7.0.1",
     "event-source-polyfill": "0.0.9",
     "exports-loader": "0.6.4",
     "file-loader": "0.10.0",
