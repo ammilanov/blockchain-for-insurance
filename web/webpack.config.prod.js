@@ -1,5 +1,5 @@
 import webpack from 'webpack';
-import { resolve } from 'path'
+import { resolve } from 'path';
 
 const GLOBALS = {
   'process.env.NODE_ENV': JSON.stringify('production')
@@ -16,7 +16,8 @@ export default {
     'shop': resolve(__dirname, 'src/shop/index'),
     'self-service': resolve(__dirname, 'src/self-service/index'),
     'repair-service': resolve(__dirname, 'src/repair-service/index'),
-    'contract-management': resolve(__dirname, 'src/contract-management/index')
+    'contract-management': resolve(__dirname, 'src/contract-management/index'),
+    'block-explorer': resolve(__dirname, 'src/block-explorer/index')
   },
   target: 'web',
   output: {
