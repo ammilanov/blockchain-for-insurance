@@ -10,9 +10,8 @@ import i18nConfig from './i18n';
 export default function (app) {
   const isDev = app.get('env') === 'development';
 
-  //Configure Express
+  // Configure Express
   app.set('view engine', 'pug');
-  app.use(require('express-status-monitor')());
   app.use(compression({
     filter: (req, res) => {
       if (req.headers['x-no-compression']) {
