@@ -15,7 +15,7 @@ export function loadContractTypes() {
       dispatch(loadContractTypesSuccess(contractTypes));
     }
   };
-};
+}
 
 function loadContractTypesSuccess(contractTypes) {
   return {
@@ -36,7 +36,7 @@ export function createContractType(contractType) {
       console.log(e);
     }
   };
-};
+}
 
 function createContractTypeSuccess(contractType) {
   return {
@@ -54,7 +54,7 @@ export function setContractTypeActive(uuid, active) {
       console.log(e);
     }
   };
-};
+}
 
 function setContractTypeActiveSuccess(uuid, active) {
   return {

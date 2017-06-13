@@ -15,7 +15,7 @@ export function loadClaims() {
       dispatch(loadClaimsSuccess(claims));
     }
   };
-};
+}
 
 function loadClaimsSuccess(claims) {
   return {
@@ -33,7 +33,7 @@ export function processClaim(contractUuid, uuid, status, refundable) {
       console.log(e);
     }
   };
-};
+}
 
 function processClaimSuccess(contractUuid, uuid) {
   return {
