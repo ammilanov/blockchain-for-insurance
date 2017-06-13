@@ -1,4 +1,5 @@
-import React, { Props, PropTypes } from 'react';
+import React, { Props } from 'react';
+import PropTypes from 'prop-types';
 import { FormattedDate, FormattedMessage } from 'react-intl';
 
 class ClaimComponent extends React.Component {
@@ -7,6 +8,9 @@ class ClaimComponent extends React.Component {
 
     this.state = { refundable: 0 };
     this.setRefundable = this.setRefundable.bind(this);
+    this.repair = this.repair.bind(this);
+    this.refund = this.refund.bind(this);
+    this.reject = this.reject.bind(this);
   }
 
   setRefundable(e) {
@@ -17,29 +21,48 @@ class ClaimComponent extends React.Component {
     this.setState({ refundable: value });
   }
 
+  repair() {
+    const { onRepair } = this.props;
+    onRepair();
+  }
+
+  refund() {
+    const { onRefund } = this.props;
+    const { refundable } = this.state;
+    onRefund(Number(refundable));
+  }
+
+  reject() {
+    const { onReject } = this.props;
+    onReject();
+  }
+
   render() {
-    const { claim, onRepair, onRefund, onReject } = this.props;
+    const { claim } = this.props;
     const { refundable } = this.state;
 
     function claimButtons(c) {
       const repairButton = c.isTheft ? null : (
-        <button key='repairButton' type='button' className='ibm-btn-sec ibm-btn-small ibm-btn-blue-50'
+        <button key='repairButton' type='button'
+        className='ibm-btn-sec ibm-btn-small ibm-btn-blue-50'
           style={{ marginLeft: '15px', marginRight: '15px' }}
-          onClick={() => { onRepair(); }}>
+          onClick={this.repair}>
           <FormattedMessage id='Repair' />
         </button>
       );
       const refundButton = (
-        <button key='refundButton' type='button' className='ibm-btn-sec ibm-btn-small ibm-btn-teal-50'
+        <button key='refundButton' type='button'
+        className='ibm-btn-sec ibm-btn-small ibm-btn-teal-50'
           style={{ marginLeft: '15px', marginRight: '15px' }}
-          onClick={() => { onRefund(Number(refundable)); }}>
+          onClick={this.refund}>
           <FormattedMessage id='Refund' />
         </button>
       );
       const rejectButton = (
-        <button key='rejectButton' type='button' className='ibm-btn-sec ibm-btn-small ibm-btn-red-50'
+        <button key='rejectButton' type='button'
+        className='ibm-btn-sec ibm-btn-small ibm-btn-red-50'
           style={{ marginLeft: '15px', marginRight: '15px' }}
-          onClick={() => { onReject(); }}>
+          onClick={this.reject}>
           <FormattedMessage id='Reject' />
         </button>
       );
@@ -69,8 +92,8 @@ class ClaimComponent extends React.Component {
                 <span className='ibm-input-group'>
                   <input type='checkbox' className='ibm-styled-checkbox'
                     ref='theftField' checked={claim.isTheft}
-                    readOnly={true} disabled={true} />
-                  <label className='ibm-field-label' htmlFor='theftField'></label>
+                    readOnly disabled />
+                  <label className='ibm-field-label' htmlFor='theftField' />
                 </span>
               </p>
               <p>
@@ -88,7 +111,6 @@ class ClaimComponent extends React.Component {
     );
   }
 }
-
 
 ClaimComponent.propTypes = {
   claim: PropTypes.object.isRequired,

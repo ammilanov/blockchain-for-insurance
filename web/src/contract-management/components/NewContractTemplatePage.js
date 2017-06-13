@@ -1,10 +1,11 @@
 'use strict';
 
-import React, { PropTypes, Props } from 'react';
+import React, { Props } from 'react';
+import PropTypes from 'prop-types';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { browserHistory } from 'react-router';
+import { withRouter } from 'react-router-dom';
 
 import * as contractTemplateActions from '../actions/contractTemplateActions';
 
@@ -66,7 +67,8 @@ class NewContractTemplatePage extends React.Component {
     } = this.state;
     this.props.contractTemplateActions.createContractType({
       description,
-      shopType: `${bikeShop ? 'B' : ''}${phoneShop ? 'P' : ''}${skiShop ? 'S' : ''}`,
+      shopType:
+      `${bikeShop ? 'B' : ''}${phoneShop ? 'P' : ''}${skiShop ? 'S' : ''}`,
       formulaPerDay,
       maxSumInsured,
       theftInsured,
@@ -75,7 +77,7 @@ class NewContractTemplatePage extends React.Component {
       maxDurationDays,
       active: true
     });
-    browserHistory.push('/contract-management/contract-templates');
+    this.props.history.push('/contract-management/contract-templates');
   }
 
   render() {
@@ -88,12 +90,14 @@ class NewContractTemplatePage extends React.Component {
       <div>
         <div className='ibm-columns'>
           <div className='ibm-col-1-1'>
-            <h3 className='ibm-h3'><FormattedMessage id='New Contract Template' /></h3>
+            <h3 className='ibm-h3'>
+              <FormattedMessage id='New Contract Template' />
+            </h3>
           </div>
         </div>
         <div className='ibm-columns'>
           <div className='ibm-col-2-1  ibm-col-medium-5-3 ibm-col-small-1-1'>
-            <div className="ibm-column-form">
+            <div className='ibm-column-form'>
               <p>
                 <label><FormattedMessage id='Description' />:</label>
                 <span>
@@ -103,7 +107,9 @@ class NewContractTemplatePage extends React.Component {
                 </span>
               </p>
               <p className='ibm-form-elem-grp'>
-                <label><FormattedMessage id='Availability to Merchants' />:</label>
+                <label>
+                  <FormattedMessage id='Availability to Merchants' />:
+                </label>
                 <span className='ibm-input-group'>
                   <span>
                     <input type='checkbox' className='ibm-styled-checkbox'
@@ -161,9 +167,11 @@ class NewContractTemplatePage extends React.Component {
                 <label><FormattedMessage id='Theft Insured' />:</label>
                 <span className='ibm-input-group'>
                   <input type='checkbox' className='ibm-styled-checkbox'
-                    id='theftInsuredField' ref='theftInsuredField' name='theftInsured'
+                    id='theftInsuredField' ref='theftInsuredField'
+                    name='theftInsured'
                     checked={theftInsured} onChange={this.setField} />
-                  <label className='ibm-field-label' htmlFor='theftInsuredField'></label>
+                  <label className='ibm-field-label'
+                    htmlFor='theftInsuredField' />
                 </span>
               </p>
               <p>
@@ -199,7 +207,9 @@ class NewContractTemplatePage extends React.Component {
 }
 
 NewContractTemplatePage.propTypes = {
-  intl: intlShape.isRequired
+  intl: intlShape.isRequired,
+  contractTemplateActions: PropTypes.object.isRequired,
+  history: PropTypes.object.isRequired
 };
 
 function mapStateToProps(state, ownProps) {
@@ -208,8 +218,10 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    contractTemplateActions: bindActionCreators(contractTemplateActions, dispatch)
+    contractTemplateActions: bindActionCreators(
+      contractTemplateActions, dispatch)
   };
 }
 
-export default injectIntl(connect(mapStateToProps, mapDispatchToProps)(NewContractTemplatePage));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(
+  injectIntl(NewContractTemplatePage)));

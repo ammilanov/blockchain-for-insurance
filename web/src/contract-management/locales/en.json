@@ -1,5 +1,8 @@
 {
   "Loading contract types...": "Loading contract types...",
+  "Contract Management": "Insurance Company",
+  "Unprocessed Claims": "Unprocessed Claims",
+  "No outstanding claims.": "No outstanding claims.",
   "Contract Templates": "Contract Templates",
   "Create Contract Template": "Create Contract Template",
   "Status": "Status",
@@ -14,5 +17,17 @@
   "Bike Shops": "Bike Shops",
   "Ski Shops": "Ski Shops",
   "Present": "Present",
-  "Not Included": "Not Included"
+  "Not Included": "Not Included",
+  "Creation Date": "Creation Date",
+  "Theft Involved": "Theft Involved",
+  "Refundable": "Refundable",
+  "Repair": "Repair",
+  "Refund": "Refund",
+  "Reject": "Reject",
+  "Loading Claims...": "Loading Claims...",
+  "New Contract Template": "New Contract Template",
+  "Formula Per Day": "Formula Per Day",
+  "Max. Sum Insured": "Max. Sum Insured",
+  "Terms and Conditions": "Terms and Conditions",
+  "Create": "Create"
 }

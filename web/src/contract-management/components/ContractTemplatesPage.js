@@ -1,40 +1,55 @@
 'use strict';
 
-import React, { PropTypes, Props } from 'react';
+import React, { Props } from 'react';
+import PropTypes from 'prop-types';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Link } from 'react-router';
+import { withRouter, Link } from 'react-router-dom';
 
 import Loading from '../../shared/Loading';
 import * as contractTemplateActions from '../actions/contractTemplateActions';
 
-const ContractTemplatesPage = ({ loading, contractTypes, intl, contractTemplateActions }) => {
+const ContractTemplatesPage = ({
+  loading, contractTypes, intl, contractTemplateActions }) => {
   const contractTemplateRows = Array.isArray(contractTypes) ? contractTypes
     .sort((a, b) => a.description.localeCompare(b.description))
     .map((contractType, index) => (
       <tr key={index}
-        ref={row => { jQuery(row).tooltip({ content: `<b>Contract Terms:</b> <br />${contractType.conditions}` }); }}>
+        ref={row => {
+          jQuery(row).tooltip({
+            content: `<b>Contract Terms:</b> <br />${contractType.conditions}`
+          });
+        }}>
         <td>{activateIcon(contractType)}</td>
         <td>{contractType.description}</td>
         <td>{formatShopTypes(contractType)}</td>
-        <td><FormattedMessage id={contractType.theftInsured ? 'Present' : 'Not Included'} /></td>
+        <td><FormattedMessage id={
+          contractType.theftInsured ? 'Present' : 'Not Included'} /></td>
         <td>{contractType.minDurationDays}</td>
         <td>{contractType.maxDurationDays}</td>
       </tr>
     )) : null;
   function activateIcon(contractType) {
+    const activate = () => {
+      contractTemplateActions.setContractTypeActive(contractType.uuid, true);
+    };
+    const deactivate = () => {
+      contractTemplateActions.setContractTypeActive(
+        contractType.uuid, false);
+    };
     let activateButton = (
-      <button type='button' className='ibm-btn-sec ibm-btn-small ibm-btn-green-50'
+      <button type='button'
+        className='ibm-btn-sec ibm-btn-small ibm-btn-green-50'
         style={{ marginLeft: '5px', marginRight: '5px' }}
-        onClick={() => { contractTemplateActions.setContractTypeActive(contractType.uuid, true); }}>
+        onClick={activate}>
         <FormattedMessage id='Activate' />
       </button>
     );
     let deactivateButton = (
       <button type='button' className='ibm-btn-sec ibm-btn-small ibm-btn-red-50'
         style={{ marginLeft: '5px', marginRight: '5px' }}
-        onClick={() => { contractTemplateActions.setContractTypeActive(contractType.uuid, false); }}>
+        onClick={deactivate}>
         <FormattedMessage id='Deactivate' />
       </button>
     );
@@ -57,14 +72,18 @@ const ContractTemplatesPage = ({ loading, contractTypes, intl, contractTemplateA
   }
 
   return (
-    <Loading hidden={!loading} text={intl.formatMessage({ id: 'Loading contract types...' })}>
+    <Loading hidden={!loading}
+      text={intl.formatMessage({ id: 'Loading contract types...' })}>
       <div className='ibm-columns' style={{ minHeight: '30vh' }}>
         <div className='ibm-col-1-1'>
-          <h3 className='ibm-h3'><FormattedMessage id='Contract Templates' /></h3>
+          <h3 className='ibm-h3'>
+            <FormattedMessage id='Contract Templates' />
+          </h3>
         </div>
-        <div style={{ marginTop: '10px', marginBottom: '20px' }} className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1'>
+        <div style={{ marginTop: '10px', marginBottom: '20px' }}
+          className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1'>
           <Link type='button' className='ibm-btn-sec ibm-btn-blue-50'
-            to='/contract-management/new-contract-template'>
+            to='/new-contract-template'>
             <FormattedMessage id='Create Contract Template' />
           </Link>
         </div>
@@ -88,13 +107,14 @@ const ContractTemplatesPage = ({ loading, contractTypes, intl, contractTemplateA
       </div>
     </Loading>
   );
-}
+};
 
 ContractTemplatesPage.propTypes = {
   intl: intlShape.isRequired,
   contractTypes: PropTypes.array,
-  loading: PropTypes.bool.isRequired
-}
+  loading: PropTypes.bool.isRequired,
+  contractTemplateActions: PropTypes.object.isRequired
+};
 
 function mapStateToProps(state, ownProps) {
   return {
@@ -105,8 +125,10 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    contractTemplateActions: bindActionCreators(contractTemplateActions, dispatch)
+    contractTemplateActions: bindActionCreators(
+      contractTemplateActions, dispatch)
   };
 }
 
-export default injectIntl(connect(mapStateToProps, mapDispatchToProps)(ContractTemplatesPage));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(
+  injectIntl(ContractTemplatesPage)));

@@ -1,5 +1,8 @@
 {
   "Loading contract types...": "Vertragsvorlagen werden geladen...",
+  "Contract Management": "Versicherer",
+  "Unprocessed Claims": "Neue Schadensmeldungen",
+  "No outstanding claims.": "Keine ausstehenden Schadensmeldungen.",
   "Contract Templates": "Vertragsvorlagen",
   "Create Contract Template": "Neue Vertragsvorlage erstellen",
   "Status": "Status",
@@ -14,5 +17,17 @@
   "Bike Shops": "Fahrrad-Shops",
   "Ski Shops": "Ski-Shops",
   "Present": "Vorhanden",
-  "Not Included": "Nicht verfügbar"
+  "Not Included": "Nicht verfügbar",
+  "Creation Date": "Erstellungsdatum",
+  "Theft Involved": "Ist Diebstahl",
+  "Refundable": "Erstattungsbetrag",
+  "Repair": "Reparatur anstoßen",
+  "Refund": "Auszahlung veranlassen",
+  "Reject": "Ablehnen",
+  "Loading Claims...": "Schadensmeldungen werden geladen...",
+  "New Contract Template": "Neue Vertragsvorlage",
+  "Formula Per Day": "Preisbildung Formel",
+  "Max. Sum Insured": "Maximale Deckungssumme",
+  "Terms and Conditions": "Vertragskonditionen",
+  "Create": "Erstellen"
 }
