@@ -9,6 +9,7 @@ import { withRouter } from 'react-router-dom';
 
 import Loading from '../../shared/Loading';
 import * as repairServiceActions from '../actions/repairServiceActions';
+import RepairOrderComponent from './RepairOrderComponent';
 
 class RepairOrdersPage extends React.Component {
   constructor(props) {
@@ -19,36 +20,10 @@ class RepairOrdersPage extends React.Component {
     const { repairOrders, loading, intl, repairServiceActions } = this.props;
 
     const cards = Array.isArray(repairOrders) ? repairOrders.map(
-      (repairOrder, index) => (
-        <div key={index} className='ibm-col-5-1 ibm-col-medium-6-2'>
-          <div className='ibm-card ibm-border-gray-50'>
-            <div className='ibm-card__content'>
-              <h4 className='ibm-bold ibm-h4'>
-                <FormattedMessage id='Repair Order' />
-              </h4>
-              <div style={{ wordWrap: 'break-word' }}>
-                <p>
-                  <FormattedMessage id='Brand' />:
-                  {repairOrder.item.brand} <br />
-                  <FormattedMessage id='Model' />:
-                  {repairOrder.item.model} <br />
-                  <FormattedMessage id='Description' />:
-                {repairOrder.item.description} <br />
-                </p>
-                <p>
-                  <button type='button'
-                    className='ibm-btn-sec ibm-btn-small ibm-btn-blue-50'
-                    onClick={repairServiceActions.completeRepairOrder(
-                      repairOrder.uuid)}>
-                    <FormattedMessage id='Mark Completed' />
-                  </button>
-                </p>
-              </div>
-              <br />
-            </div>
-          </div>
-        </div>
-      )) : null;
+      (repairOrder, index) =>
+        <RepairOrderComponent key={index} repairOrder={repairOrder}
+          onMarkedComplete={repairServiceActions.completeRepairOrder} />)
+      : null;
     const orders = ((Array.isArray(cards) && cards.length > 0) ||
       cards === null) ? cards :
       (

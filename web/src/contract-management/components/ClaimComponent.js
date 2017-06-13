@@ -41,7 +41,7 @@ class ClaimComponent extends React.Component {
     const { claim } = this.props;
     const { refundable } = this.state;
 
-    function claimButtons(c) {
+    const claimButtons = (c) => {
       const repairButton = c.isTheft ? null : (
         <button key='repairButton' type='button'
         className='ibm-btn-sec ibm-btn-small ibm-btn-blue-50'
@@ -71,7 +71,7 @@ class ClaimComponent extends React.Component {
           {[repairButton, refundButton, rejectButton]}
         </div>
       );
-    }
+    };
 
     return (
       <div className='ibm-col-3-1 ibm-col-medium-6-3'>
