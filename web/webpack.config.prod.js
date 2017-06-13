@@ -9,6 +9,7 @@ export default {
   devtool: 'source-map',
   entry: {
     'common': [
+      'event-source-polyfill',
       'babel-polyfill',
       'isomorphic-fetch',
       resolve(__dirname, 'src/common')
@@ -32,12 +33,18 @@ export default {
   module: {
     rules: [
       { test: /\.js$/, use: ['babel-loader'] },
-      { test: /(\.css)$/, use: ['style-loader', 'css-loader', 'autoprefixer-loader'] },
+      { test: /(\.css)$/, use: ['style-loader', 'css-loader', 'postcss-loader'] },
       {
         test: /(\.scss)$/, use: [
-          'style-loader', 'css-loader', 'autoprefixer-loader',
-          `sass-loader?includePaths=${resolve(__dirname, 'node_modules/normalize-scss/sass')}`
-        ]
+          'style-loader', 'css-loader', 'postcss-loader',
+          {
+            loader: 'sass-loader',
+            options: {
+              includePaths: [
+                resolve(__dirname, 'node_modules/normalize-scss/sass')
+              ]
+            }
+          }]
       },
       { test: /\.eot(\?v=\d+\.\d+\.\d+)?$/, use: 'file-loader' },
       { test: /\.(woff|woff2)$/, use: 'url?prefix=font/&limit=5000' },

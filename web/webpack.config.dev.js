@@ -27,6 +27,7 @@ export default {
     contentBase: resolve(__dirname, 'src')
   },
   plugins: [
+    new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.HotModuleReplacementPlugin({
       debug: true
     }),
@@ -37,11 +38,18 @@ export default {
   module: {
     rules: [
       { test: /\.js$/, use: ['babel-loader'] },
-      { test: /(\.css)$/, use: ['style-loader', 'css-loader', 'autoprefixer-loader'] },
+      { test: /(\.css)$/, use: ['style-loader', 'css-loader', 'postcss-loader'] },
       {
         test: /(\.scss)$/, use: [
-          'style-loader', 'css-loader', 'autoprefixer-loader',
-          `sass-loader?includePaths=${resolve(__dirname, 'node_modules/normalize-scss/sass')}`
+          'style-loader', 'css-loader', 'postcss-loader',
+          {
+            loader: 'sass-loader',
+            options: {
+              includePaths: [
+                resolve(__dirname, 'node_modules/normalize-scss/sass')
+              ]
+            }
+          }
         ]
       },
       { test: /\.eot(\?v=\d+\.\d+\.\d+)?$/, use: 'file-loader' },
