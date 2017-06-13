@@ -51,7 +51,7 @@ let config = {
       mspId: 'RepairServiceOrgMSP'
     }
   }
-}
+};
 
 if (process.env.LOCALCONFIG) {
   config.orderer0.url = 'grpc://localhost:7050';
