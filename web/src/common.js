@@ -1,3 +1,4 @@
+/*global IBMCore*/
 import './common.scss';
 import './northstar.css';
 import './northstar-forms.css';
