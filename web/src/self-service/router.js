@@ -1,6 +1,10 @@
-import React, { PropTypes, Props } from 'react';
+import React, { Props } from 'react';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Router, browserHistory, Route, IndexRoute } from 'react-router';
+import {
+  BrowserRouter as Router,
+  Route, Switch, withRouter
+} from 'react-router-dom';
 
 import App from './components/App';
 import LoginPage from './components/LoginPage';
@@ -11,15 +15,17 @@ import NotFoundPage from '../shared/NotFoundPage';
 
 export default function router() {
   return (
-    <Router history={browserHistory}>
-      <Route path='self-service' component={App}>
-        <IndexRoute component={LoginPage} />
-        <Route path='contracts' component={ContractsPage} />
-        <Route path='contract/:contractUuid/claims' component={ContractClaimsPage} />
-        <Route path='claim/:contractUuid' component={ClaimPage} />
-        <Route path='*' component={NotFoundPage} />
-      </Route>
-      <Route path='*' component={NotFoundPage} />
+    <Router basename='/self-service'>
+      <App>
+        <Switch>
+          <Route exact path='/' component={LoginPage} />
+          <Route path='/contracts' component={ContractsPage} />
+          <Route path='/contract/:contractUuid/claims'
+            component={ContractClaimsPage} />
+          <Route path='/claim/:contractUuid' component={ClaimPage} />
+          <Route component={NotFoundPage} />
+        </Switch>
+      </App>
     </Router>
   );
-};
+}

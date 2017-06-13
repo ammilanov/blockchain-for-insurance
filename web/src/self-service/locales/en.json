@@ -24,9 +24,10 @@
   "Creation Date": "Creation Date",
   "Status": "Status",
   "Not processes yet": "Not processes yet",
-  "Repaired":"Repaired",
-  "To be repaired":"To be repaired",
+  "Repaired": "Repaired",
+  "To be repaired": "To be repaired",
   "Rejected": "Rejected",
   "Unknown": "Unknown",
-  "Refund": "Refund"
+  "Refund": "Refund",
+  "You haven't filed any claims yet.": "You haven't filed any claims yet."
 }

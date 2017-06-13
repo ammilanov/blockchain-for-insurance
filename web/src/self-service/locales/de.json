@@ -6,7 +6,7 @@
   "Signing In...": "Einloggen...",
   "Login": "Anmelden",
   "Invalid login. Please try again.": "Ungültige Anmeldedaten. Bitten versuchen Sie es erneut.",
-  "Loading Contracts...": "Lade Verträge...",
+  "Loading Contracts...": "Verträge werden geladen...",
   "Your Contracts": "Abgeschlossene Verträge",
   "File a Claim": "Schaden melden",
   "Valid From": "Gültig Von",
@@ -19,7 +19,7 @@
   "Model": "Modell",
   "Serial No.": "Seriennr.",
   "File a New Claim": "Neue Schadensmeldung",
-  "View Claims": "Schadensmeldungen öffnen",
+  "View Claims": "Schadensmeldungen anzeigen",
   "Claims to Selected Contract": "Schadensmeldungen zum Vertrag",
   "Creation Date": "Erstellungsdatum",
   "Status": "Status",
@@ -28,5 +28,6 @@
   "To be repaired": "Wird repariert",
   "Rejected": "Abgelehnt",
   "Unknown": "Nicht bekannt",
-  "Refund": "Auszahlung"
+  "Refund": "Auszahlung",
+  "You haven't filed any claims yet.": "Sie haben noch keine Schäden gemeldet."
 }

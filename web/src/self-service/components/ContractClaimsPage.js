@@ -1,8 +1,13 @@
 'use strict';
 
-import React, { Props, PropTypes } from 'react';
-import { FormattedMessage, FormattedDate, FormattedNumber, injectIntl, intlShape } from 'react-intl';
+import React, { Props } from 'react';
+import PropTypes from 'prop-types';
+import {
+  FormattedMessage, FormattedDate, FormattedNumber,
+  injectIntl, intlShape
+} from 'react-intl';
 import { connect } from 'react-redux';
+import { withRouter, Redirect } from 'react-router-dom';
 
 class ContractClaimsPage extends React.Component {
   constructor(props) {
@@ -10,11 +15,17 @@ class ContractClaimsPage extends React.Component {
   }
 
   render() {
-    const { contracts, intl } = this.props;
-    const { contractUuid } = this.props.routeParams;
+    const { contracts, intl, user } = this.props;
+    const { contractUuid } = this.props.match.params;
 
     const { claims } = Array.isArray(contracts) ?
       contracts.find(c => c.uuid == contractUuid) || {} : {};
+
+    if (!user) {
+      return (
+        <Redirect to='/' />
+      );
+    }
 
     function formatStatus(claim) {
       if (!claim) {
@@ -32,16 +43,16 @@ class ContractClaimsPage extends React.Component {
           messageId = 'Refund';
           refundable = <FormattedNumber style='currency'
             currency={intl.formatMessage({ id: 'currency code' })}
-            value={claim.refundable} minimumFractionDigits={2} />
+            value={claim.refundable} minimumFractionDigits={2} />;
           break;
         case 'J':
-          messageId = 'Rejected'
+          messageId = 'Rejected';
           break;
         default:
-          messageId = 'Unknown'
+          messageId = 'Unknown';
       }
       if (messageId) {
-        message = <FormattedMessage id={messageId} />
+        message = <FormattedMessage id={messageId} />;
       }
       return (
         <span>{message} {refundable}</span>
@@ -53,11 +64,12 @@ class ContractClaimsPage extends React.Component {
           <div className='ibm-card__content'>
             <h4 className='ibm-bold ibm-h4'>{claim.description}</h4>
             <div style={{ wordWrap: 'break-word' }}>
-              <FormattedMessage id='Creation Date' />: <FormattedDate value={claim.date} /> <br />
-              <FormattedMessage id='Theft' />: <input type='checkbox' ref='theftField'
-                className='ibm-styled-checkbox'
-                checked={claim.isTheft} />
-              <label className='ibm-field-label' htmlFor='theftField'></label><br />
+              <FormattedMessage id='Creation Date' />:
+              <FormattedDate value={claim.date} /> <br />
+              <FormattedMessage id='Theft' />:
+              <input type='checkbox' ref='theftField'
+                className='ibm-styled-checkbox' checked={claim.isTheft} />
+              <label className='ibm-field-label' htmlFor='theftField' /><br />
               <FormattedMessage id='Description' />: {claim.description}<br />
               <FormattedMessage id='Status' />: {formatStatus(claim)}
             </div>
@@ -74,10 +86,13 @@ class ContractClaimsPage extends React.Component {
       <div style={{ minHeight: '30vh' }}>
         <div className='ibm-columns'>
           <div className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1'>
-            <h3 className='ibm-h3'><FormattedMessage id='Claims to Selected Contract' /></h3>
+            <h3 className='ibm-h3'>
+              <FormattedMessage id='Claims to Selected Contract' />
+            </h3>
           </div>
         </div>
-        <div className='ibm-columns ibm-cards' data-widget='masonry' data-items='.ibm-col-5-1'>
+        <div className='ibm-columns ibm-cards' data-widget='masonry'
+          data-items='.ibm-col-5-1'>
           {cards}
         </div>
       </div>
@@ -87,15 +102,21 @@ class ContractClaimsPage extends React.Component {
 
 ContractClaimsPage.propTypes = {
   intl: intlShape.isRequired,
-  user: PropTypes.object.isRequired,
-  contracts: PropTypes.array.isRequired
+  user: PropTypes.object,
+  contracts: PropTypes.array.isRequired,
+  match: PropTypes.shape({
+    params: PropTypes.shape({
+      contractUuid: PropTypes.string.isRequired
+    })
+  }).isRequired
 };
 
 function mapStateToProps(state, ownProps) {
   return {
     user: state.userMgmt.user,
     contracts: state.contracts
-  }
+  };
 }
 
-export default injectIntl(connect(mapStateToProps)(ContractClaimsPage));
+export default withRouter(connect(mapStateToProps)(
+  injectIntl(ContractClaimsPage)));
