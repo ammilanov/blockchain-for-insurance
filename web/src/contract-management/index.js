@@ -23,7 +23,7 @@ addLocaleData([...deLocaleData, ...enLocaleData]);
 window.digitalData.page.pageInfo.language = locale;
 
 render(
-  <IntlProvider locale={locale} messages={translations[locale]} defaultLocale="en">
+  <IntlProvider locale={locale} messages={translations[locale]} defaultLocale='en'>
     <StoreProvider store={store}>
       <AppRouter />
     </StoreProvider>
