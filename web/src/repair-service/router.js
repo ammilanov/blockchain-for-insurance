@@ -1,6 +1,8 @@
-import React, { PropTypes, Props } from 'react';
-import { connect } from 'react-redux';
-import { Router, browserHistory, Route, IndexRoute } from 'react-router';
+import React, { Props } from 'react';
+import PropTypes from 'prop-types';
+import {
+  BrowserRouter as Router, Route, Switch, withRouter
+} from 'react-router-dom';
 
 import App from './components/App';
 import RepairOrdersPage from './components/RepairOrdersPage';
@@ -8,12 +10,13 @@ import NotFoundPage from '../shared/NotFoundPage';
 
 export default function router() {
   return (
-    <Router history={browserHistory}>
-      <Route path='repair-service' component={App}>
-        <IndexRoute component={RepairOrdersPage} />
-        <Route path='*' component={NotFoundPage} />
-      </Route>
-      <Route path='*' component={NotFoundPage} />
+    <Router basename='repair-service'>
+      <App>
+        <Switch>
+          <Route exact path='/' component={RepairOrdersPage} />
+          <Route component={NotFoundPage} />
+        </Switch>
+      </App>
     </Router>
   );
-};
+}
