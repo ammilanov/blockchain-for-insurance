@@ -50,7 +50,7 @@ export function createContractType(contractType) {
     if (response.success) {
       return response.uuid;
     } else {
-      throw new error(response.error);
+      throw new Error(response.error);
     }
   });
 }
