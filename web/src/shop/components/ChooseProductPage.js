@@ -1,10 +1,11 @@
 'use strict';
 
-import React, { PropTypes, Props } from 'react';
+import React, { Props } from 'react';
+import PropTypes from 'prop-types';
 import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { browserHistory } from 'react-router';
+import { withRouter, Redirect } from 'react-router-dom';
 
 import * as shopActions from '../actions/shopActions';
 import ProductCarousel from './ProductCarousel';
@@ -30,13 +31,16 @@ class ChooseProductPage extends React.Component {
     // Persist data
     this.props.shopActions.submitProduct(this.state.productInfo);
     // Navigate to the next page
-    browserHistory.push(`/shop/${this.props.shopType}/insurance`);
+    this.setState({ redirectToNext: true });
   }
 
   onSerialNoChanged(event) {
     event.preventDefault();
     let serialNo = (event.target.value || '').toUpperCase();
-    this.setState({ productInfo: Object.assign({}, this.state.productInfo, { serialNo }) });
+    this.setState({
+      productInfo: Object.assign(
+        {}, this.state.productInfo, { serialNo })
+    });
   }
 
   render() {
@@ -53,61 +57,77 @@ class ChooseProductPage extends React.Component {
         break;
     }
     let { intl, products } = this.props;
-    let { productInfo } = this.state;
+    let { productInfo, redirectToNext } = this.state;
+
+    if (redirectToNext) {
+      return (
+        <Redirect to='/insurance' />
+      );
+    }
 
     return (
       <div>
-        <div className='ibm-columns'>
-          <div className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1'>
-            <h3 className='ibm-h3'>{messageAtTop}</h3>
+        <div>
+          <div className='ibm-columns'>
+            <div className='ibm-col-1-1'>
+              <h3 className='ibm-h3'>{messageAtTop}</h3>
+            </div>
           </div>
-        </div>
-        <div className='ibm-columns'>
-          <div className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1'>
-            <label><FormattedMessage id='Choose a Product' />:</label>
-            <span>
-              <ProductCarousel products={products} selectedProductIndex={productInfo.index} onSelectedProduct={this.selectProduct} />
-            </span>
+          <div className='ibm-columns'>
+            <div className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1'>
+              <label><FormattedMessage id='Choose a Product' />:</label>
+              <span>
+                <ProductCarousel products={products}
+                  selectedProductIndex={productInfo.index}
+                  onSelectedProduct={this.selectProduct} />
+              </span>
+            </div>
           </div>
-        </div>
-        <div className='ibm-columns'>
-          <div className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1'>
-            <div className='ibm-column-form'>
-              <p>
-                <label><FormattedMessage id='Product Brand' />:</label>
-                <span>
-                  <input type='text' readOnly value={productInfo.brand} />
-                </span>
-              </p>
-              <p>
-                <label><FormattedMessage id='Product Model' />:</label>
-                <span>
-                  <input type='text' readOnly value={productInfo.model} />
-                </span>
-              </p>
-              <p>
-                <label><FormattedMessage id='Price' />:</label>
-                <span>
-                  <input type='text' readOnly
-                    value={intl.formatNumber(productInfo.price,
-                      {
-                        style: 'currency', currency: intl.formatMessage({ id: 'currency code' }),
-                        minimumFractionDigits: 2
-                      })} />
-                </span>
-              </p>
-              <p>
-                <label><FormattedMessage id='Serial No.' />:</label>
-                <span>
-                  <input type='text' value={productInfo.serialNo} onChange={this.onSerialNoChanged} />
-                </span>
-              </p>
+          <div className='ibm-columns'>
+            <div className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1'>
+              <div className='ibm-column-form'>
+                <p>
+                  <label><FormattedMessage id='Product Brand' />:</label>
+                  <span>
+                    <input type='text' readOnly value={productInfo.brand} />
+                  </span>
+                </p>
+                <p>
+                  <label><FormattedMessage id='Product Model' />:</label>
+                  <span>
+                    <input type='text' readOnly value={productInfo.model} />
+                  </span>
+                </p>
+                <p>
+                  <label><FormattedMessage id='Price' />:</label>
+                  <span>
+                    <input type='text' readOnly
+                      value={intl.formatNumber(productInfo.price,
+                        {
+                          style: 'currency',
+                          currency: intl.formatMessage({ id: 'currency code' }),
+                          minimumFractionDigits: 2
+                        })} />
+                  </span>
+                </p>
+                <p>
+                  <label><FormattedMessage id='Serial No.' />:</label>
+                  <span>
+                    <input type='text'
+                      value={productInfo.serialNo}
+                      onChange={this.onSerialNoChanged} />
+                  </span>
+                </p>
+              </div>
             </div>
           </div>
         </div>
         <div className='ibm-columns'>
           <div className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1 ibm-right'>
-            <button type='button' className='ibm-btn-pri ibm-btn-blue-50' onClick={this.nextStep}><FormattedMessage id='Next' /></button>
+            <button type='button' className='ibm-btn-pri ibm-btn-blue-50'
+              onClick={this.nextStep}>
+              <FormattedMessage id='Next' />
+            </button>
           </div>
         </div>
       </div>
@@ -118,7 +138,10 @@ class ChooseProductPage extends React.Component {
 ChooseProductPage.propTypes = {
   intl: intlShape.isRequired,
   shopType: PropTypes.string.isRequired,
-  products: PropTypes.array.isRequired
+  products: PropTypes.array.isRequired,
+  productInfo: PropTypes.object,
+  shopActions: PropTypes.object.isRequired,
+  history: PropTypes.object.isRequired
 };
 
 function generateSerialNo() {
@@ -139,4 +162,5 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default injectIntl(connect(mapStateToProps, mapDispatchToProps)(ChooseProductPage));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(
+  injectIntl(ChooseProductPage)));

@@ -1,10 +1,11 @@
 'use strict';
 
-import React, { PropTypes, Props } from 'react';
+import React, { Props } from 'react';
+import PropTypes from 'prop-types';
 import { FormattedMessage, FormattedNumber, injectIntl, intlShape } from 'react-intl';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { browserHistory } from 'react-router';
+import { withRouter, Redirect } from 'react-router-dom';
 import moment from 'moment';
 
 import Loading from '../../shared/Loading';
@@ -15,9 +16,7 @@ import { enterContract } from '../api';
 class PaymentPage extends React.Component {
   constructor(props) {
     super(props);
-    if (!this.props.productInfo) {
-      browserHistory.push(`/shop/${this.props.shopType}`);
-    }
+
     this.state = { loading: false, inTransaction: false };
     this.order = this.order.bind(this);
   }
@@ -44,7 +43,7 @@ class PaymentPage extends React.Component {
             firstName, lastName,
             username: email, password: loginInfo.password
           });
-          browserHistory.push(`/shop/${this.props.shopType}/summary`);
+          this.setState({ redirectToNext: true });
         });
       });
     }
@@ -59,83 +58,108 @@ class PaymentPage extends React.Component {
     let paymentStatus;
 
     const { intl, productInfo, contractInfo } = this.props;
+    const { redirectToNext } = this.state;
+
     const startDate = moment(new Date(contractInfo.startDate));
     const endDate = moment(new Date(contractInfo.endDate));
     const dateDiff = moment.duration(endDate.diff(startDate)).asDays();
 
-    const insurancePrice = dateDiff * (contractInfo.formulaPerDay(productInfo.price));
+    const insurancePrice = dateDiff * (
+      contractInfo.formulaPerDay(productInfo.price));
     const total = productInfo.price + insurancePrice;
 
+    if (redirectToNext) {
+      return (
+        <Redirect to='/summary' />
+      );
+    }
+
+    if (!productInfo) {
+      return (
+        <Redirect to='/' />
+      );
+    }
+
     return (
-      <Loading hidden={!this.state.loading} text={intl.formatMessage({ id: 'Processing Transaction...' })}>
-        <div className='ibm-columns'>
-          <div className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1'>
-            <h3 className='ibm-h3'>
-              <FormattedMessage id='Payment' />
-            </h3>
+      <Loading hidden={!this.state.loading} text={intl.formatMessage({
+        id: 'Processing Transaction...'
+      })}>
+        <div>
+          <div className='ibm-columns'>
+            <div className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1'>
+              <h3 className='ibm-h3'>
+                <FormattedMessage id='Payment' />
+              </h3>
+            </div>
           </div>
-        </div>
-        <div className='ibm-columns'>
-          <div className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1'>
-            <table cols='2' style={{ width: '100%' }}>
-              <tr>
-                <td style={{ padding: '.3em' }} colSpan='2' className='ibm-background-blue-20'>
-                  <h4 className='ibm-h4'>
-                    <FormattedMessage id='Product' />
-                  </h4>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  {productInfo.brand}
-                  <br />
-                  {productInfo.model}
-                  <br />
-                  <FormattedMessage id='Serial No.' />: {productInfo.serialNo}
-                </td>
-                <td className='ibm-right'>
-                  <FormattedNumber style='currency'
-                    currency={intl.formatMessage({ id: 'currency code' })}
-                    value={productInfo.price} minimumFractionDigits={2} />
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: '.3em' }} colSpan='2' className='ibm-background-blue-20'>
-                  <h4 className='ibm-h4'>
-                    <FormattedMessage id='Services' />
-                  </h4>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <FormattedMessage id='Insurance' />
-                </td>
-                <td className='ibm-right'>
-                  <FormattedNumber style='currency'
-                    currency={intl.formatMessage({ id: 'currency code' })}
-                    value={insurancePrice} minimumFractionDigits={2} />
-                </td>
-              </tr>
-              <tr>
-                <td className='ibm-background-gray-10' style={{ padding: '.3em' }}>
-                  <h3 className='ibm-h3'>
-                    <FormattedMessage id='Total' />
-                  </h3>
-                </td>
-                <td className='ibm-background-gray-10 ibm-right'>
-                  <h3 className='ibm-h3'>
-                    <FormattedNumber style='currency'
-                      currency={intl.formatMessage({ id: 'currency code' })}
-                      value={total} minimumFractionDigits={2} />
-                  </h3>
-                </td>
-              </tr>
-            </table>
+          <div className='ibm-columns'>
+            <div className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1'>
+              <table cols='2' style={{ width: '100%' }}>
+                <tbody>
+                  <tr>
+                    <td style={{ padding: '.3em' }} colSpan='2'
+                      className='ibm-background-blue-20'>
+                      <h4 className='ibm-h4'>
+                        <FormattedMessage id='Product' />
+                      </h4>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      {productInfo.brand}
+                      <br />
+                      {productInfo.model}
+                      <br />
+                      <FormattedMessage id='Serial No.' />: {productInfo.serialNo}
+                    </td>
+                    <td className='ibm-right'>
+                      <FormattedNumber style='currency'
+                        currency={intl.formatMessage({ id: 'currency code' })}
+                        value={productInfo.price} minimumFractionDigits={2} />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '.3em' }} colSpan='2'
+                      className='ibm-background-blue-20'>
+                      <h4 className='ibm-h4'>
+                        <FormattedMessage id='Services' />
+                      </h4>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <FormattedMessage id='Insurance' />
+                    </td>
+                    <td className='ibm-right'>
+                      <FormattedNumber style='currency'
+                        currency={intl.formatMessage({ id: 'currency code' })}
+                        value={insurancePrice} minimumFractionDigits={2} />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className='ibm-background-gray-10'
+                      style={{ padding: '.3em' }}>
+                      <h3 className='ibm-h3'>
+                        <FormattedMessage id='Total' />
+                      </h3>
+                    </td>
+                    <td className='ibm-background-gray-10 ibm-right'>
+                      <h3 className='ibm-h3'>
+                        <FormattedNumber style='currency'
+                          currency={intl.formatMessage({ id: 'currency code' })}
+                          value={total} minimumFractionDigits={2} />
+                      </h3>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-        <div className='ibm-columns'>
-          <div className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1 ibm-right'>
-            <button type='button' className='ibm-btn-pri ibm-btn-blue-50' onClick={this.order}><FormattedMessage id='Order' /></button>
+          <div className='ibm-columns'>
+            <div className='ibm-col-2-1 ibm-col-medium-5-3 ibm-col-small-1-1 ibm-right'>
+              <button type='button' className='ibm-btn-pri ibm-btn-blue-50'
+                onClick={this.order}><FormattedMessage id='Order' /></button>
+            </div>
           </div>
         </div>
       </Loading>
@@ -149,7 +173,9 @@ PaymentPage.propTypes = {
   productInfo: PropTypes.object.isRequired,
   contractInfo: PropTypes.object.isRequired,
   payed: PropTypes.bool.isRequired,
-  user: PropTypes.object
+  user: PropTypes.object,
+  paymentActions: PropTypes.object.isRequired,
+  userMgmtActions: PropTypes.object.isRequired
 };
 
 function mapStateToProps(state, ownProps) {
@@ -169,4 +195,5 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default injectIntl(connect(mapStateToProps, mapDispatchToProps)(PaymentPage));
+export default withRouter(
+  connect(mapStateToProps, mapDispatchToProps)(injectIntl(PaymentPage)));

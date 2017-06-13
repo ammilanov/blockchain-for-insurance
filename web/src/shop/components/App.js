@@ -1,28 +1,30 @@
 'use strict';
 
-import React, { PropTypes, Props } from 'react';
+import React, { Props } from 'react';
+import PropTypes from 'prop-types';
 import { FormattedMessage } from 'react-intl';
 import { connect } from 'react-redux';
+import { withRouter } from 'react-router-dom';
 
 const app = ({ children, shopType }) => {
   let shopHeadingMessage;
   switch (shopType) {
     case 'bikes':
-      shopHeadingMessage = <FormattedMessage id="Bike Shop" />;
+      shopHeadingMessage = <FormattedMessage id='Bike Shop' />;
       break;
     case 'smart-phones':
-      shopHeadingMessage = <FormattedMessage id="Smart Phone Shop" />;
+      shopHeadingMessage = <FormattedMessage id='Smart Phone Shop' />;
       break;
     case 'skis':
-      shopHeadingMessage = <FormattedMessage id="Ski Shop" />;
+      shopHeadingMessage = <FormattedMessage id='Ski Shop' />;
       break;
   }
 
   const shopWrapper = (
     <div>
-      <div className="ibm-columns">
-        <div className="ibm-col-1-1">
-          <h2 className="ibm-h2">{shopHeadingMessage}</h2>
+      <div className='ibm-columns'>
+        <div className='ibm-col-1-1'>
+          <h2 className='ibm-h2'>{shopHeadingMessage}</h2>
         </div>
       </div>
       {children}
@@ -30,7 +32,7 @@ const app = ({ children, shopType }) => {
   );
 
   const defaultWrapper = (
-    <div className="main-content">
+    <div className='main-content'>
       {children}
     </div>
   );
@@ -40,7 +42,7 @@ const app = ({ children, shopType }) => {
 
 app.propTypes = {
   shopType: PropTypes.string
-}
+};
 
 function mapStateToProps(state, ownProps) {
   return {
@@ -48,6 +50,6 @@ function mapStateToProps(state, ownProps) {
   };
 }
 
-export default connect(mapStateToProps)(app);
+export default withRouter(connect(mapStateToProps)(app));
 
 

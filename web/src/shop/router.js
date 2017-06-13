@@ -1,5 +1,9 @@
-import React, { PropTypes, Props } from 'react';
-import { Router, browserHistory, Route, IndexRoute } from 'react-router';
+import React, { Props } from 'react';
+import PropTypes from 'prop-types';
+import {
+  BrowserRouter as Router,
+  Route, Switch, withRouter
+} from 'react-router-dom';
 
 import App from './components/App';
 import ChooseProductPage from './components/ChooseProductPage';
@@ -8,23 +12,24 @@ import PaymentPage from './components/PaymentPage';
 import SummaryPage from './components/SummaryPage';
 import NotFoundPage from '../shared/NotFoundPage';
 
-function router({shopType}) {
+function router({ shopType }) {
   return (
-    <Router history={browserHistory}>
-      <Route path={`shop/${shopType}`} component={App}>
-        <IndexRoute component={ChooseProductPage} />
-        <Route path='insurance' component={ChooseInsurancePage} />
-        <Route path='payment' component={PaymentPage} />
-        <Route path='summary' component={SummaryPage} />
-        <Route path='*' component={NotFoundPage} />
-      </Route>
-      <Route path='*' component={NotFoundPage} />
+    <Router basename={`/shop/${shopType}`}>
+      <App>
+        <Switch>
+          <Route exact path='/' component={ChooseProductPage} />
+          <Route path='/insurance' component={ChooseInsurancePage} />
+          <Route path='/payment' component={PaymentPage} />
+          <Route path='/summary' component={SummaryPage} />
+          <Route component={NotFoundPage} />
+        </Switch>
+      </App>
     </Router>
   );
 }
 
 router.propTypes = {
   shopType: PropTypes.string
-}
+};
 
 export default router;
