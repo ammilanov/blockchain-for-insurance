@@ -9,6 +9,7 @@ html(lang='en')
     script(src='/js/northstar.js')
     script(src='/js/northstar-forms.js')
     script(src='/common.bundle.js')
+    script(src='/socket.io/socket.io.js')
     link(rel='alternate', href='?applang=en', hreflang='en-us')
     link(rel='alternate', href='?applang=de', hreflang='de-de')
     include _favicon
@@ -51,21 +52,24 @@ html(lang='en')
                     a(role='menuitem' href='/contract-management/claim-processing') #{ __('Claim Processing') }
                 li(role='presentation' class=(contractTemplatesActive ? 'ibm-highlight' : ''))
                   a(role='menuitem' href='/contract-management/contract-templates') #{ __('Contract Templates') }
-      #ibm-content-wrapper
-        main(role='main', aria-labelledby='ibm-pagetitle-h1')
-          #ibm-pcon
-            #ibm-content
-              #ibm-content-body
-                #ibm-content-main
-                  block content
+    #ibm-content-wrapper
+      main(role='main', aria-labelledby='ibm-pagetitle-h1')
+        #ibm-pcon
+          #ibm-content
+            #ibm-content-body
+              #ibm-content-main
+                block content
       footer
-        .ibm-columns
-          #ibm-footer-locale-selector.ibm-col-4-1.ibm-col-medium-4-2.ibm-fright
+        .ibm-columns.ibm-padding-content
+          #ibm-footer-locale-selector.ibm-col-4-1.ibm-col-medium-4-2.ibm-fright(style='padding-top: 20px;')
             h3.ibm-bold Select a country/region:
             select#region-selector(style='width: 100%;')
               option(value='' selected) &nbsp;
               option(value='en') English
               option(value='de') Deutsch
         #ibm-footer
+
+    #block-explorer
+    script(src='/block-explorer.bundle.js')
     // scripts section
     block scripts
