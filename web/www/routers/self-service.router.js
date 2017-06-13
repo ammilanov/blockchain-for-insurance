@@ -65,7 +65,7 @@ router.post('/api/file-claim', async (req, res) => {
 router.post('/api/authenticate-user', async (req, res) => {
   if (!typeof req.body.user === 'object') {
     res.json({ error: 'Invalid request!' });
-    return
+    return;
   }
 
   try {
@@ -80,6 +80,19 @@ router.post('/api/authenticate-user', async (req, res) => {
   }
 });
 
+router.post('/api/blocks', async (req, res) => {
+  const { noOfLastBlocks } = req.body;
+  if (typeof noOfLastBlocks !== 'number') {
+    res.json({ error: 'Invalid request' });
+  }
+  try {
+    const blocks = await InsurancePeer.getBlocks(noOfLastBlocks);
+    res.json(blocks);
+  } catch (e) {
+    res.json({ error: 'Error accessing blockchain.' });
+  }
+});
+
 router.get('*', (req, res) => {
   // // If no session present then redirect to login
   // if(!req.cookies['INS_BC_SESSION']) {
@@ -90,4 +103,9 @@ router.get('*', (req, res) => {
   res.render('self-service', { selfServiceActive: true });
 });
 
+function wsConfig(io) {
+  InsurancePeer.on('block', block => { io.emit('block', block); });
+}
+
 export default router;
+export { wsConfig };

@@ -150,6 +150,16 @@ export async function getUserInfo(username) {
   }
 }
 
+export function getBlocks(noOfLastBlocks) {
+  return client.getBlocks(noOfLastBlocks);
+}
+
+export const on = client.on.bind(client);
+export const once = client.once.bind(client);
+export const addListener = client.addListener.bind(client);
+export const prependListener = client.prependListener.bind(client);
+export const removeListener = client.removeListener.bind(client);
+
 function invoke(fcn, ...args) {
   return client.invoke(config.chaincodeId, config.chaincodeVersion, config.chaincodePath, fcn, ...args);
 }

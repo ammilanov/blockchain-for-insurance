@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get('/', (req, res) => {
   res.render('contract-management-main', { contractManagementActive: true });
-})
+});
 
 router.post('/api/claims', async (req, res) => {
   let { status } = req.body;
@@ -17,7 +17,7 @@ router.post('/api/claims', async (req, res) => {
     let claims = await InsurancePeer.getClaims(status);
     res.json(claims);
   } catch (e) {
-    res.json({ error: "Error accessing blockchain." });
+    res.json({ error: 'Error accessing blockchain.' });
   }
 });
 
@@ -27,7 +27,7 @@ router.post('/api/process-claim', async (req, res) => {
     || typeof uuid !== 'string'
     || !(typeof status === 'string' && status[0])
     || typeof refundable !== 'number') {
-    res.json({ error: "Invalid request." });
+    res.json({ error: 'Invalid request.' });
     return;
   }
   status = status[0].toUpperCase();
@@ -37,7 +37,7 @@ router.post('/api/process-claim', async (req, res) => {
       contractUuid, uuid, status, refundable);
     res.json({ success });
   } catch (e) {
-    res.json({ error: "Error accessing blockchain." });
+    res.json({ error: 'Error accessing blockchain.' });
   }
 });
 
@@ -46,7 +46,7 @@ router.post('/api/contract-types', async (req, res) => {
     let contractTypes = await InsurancePeer.getContractTypes();
     res.json(contractTypes);
   } catch (e) {
-    res.json({ error: "Error accessing blockchain." });
+    res.json({ error: 'Error accessing blockchain.' });
   }
 });
 
@@ -63,15 +63,15 @@ router.post('/api/create-contract-type', async (req, res) => {
     active
   } = req.body;
   if (!(typeof shopType === 'string' && shopType[0])
-  || typeof formulaPerDay !== 'string'
-  || typeof maxSumInsured !== 'number'
-  || typeof theftInsured !== 'boolean'
-  || typeof description !== 'string'
-  || typeof conditions !== 'string'
-  || typeof minDurationDays !== 'number'
-  || typeof maxDurationDays !== 'number'
-  || typeof active !== 'boolean') {
-    res.json({ error: "Invalid request." });
+    || typeof formulaPerDay !== 'string'
+    || typeof maxSumInsured !== 'number'
+    || typeof theftInsured !== 'boolean'
+    || typeof description !== 'string'
+    || typeof conditions !== 'string'
+    || typeof minDurationDays !== 'number'
+    || typeof maxDurationDays !== 'number'
+    || typeof active !== 'boolean') {
+    res.json({ error: 'Invalid request.' });
     return;
   }
   shopType = shopType.toUpperCase();
@@ -90,7 +90,7 @@ router.post('/api/create-contract-type', async (req, res) => {
     });
     res.json({ success: true, uuid });
   } catch (e) {
-    res.json({ error: "Error accessing blockchain." });
+    res.json({ error: 'Error accessing blockchain.' });
   }
 });
 
@@ -98,15 +98,28 @@ router.post('/api/set-contract-type-active', async (req, res) => {
   const { uuid, active } = req.body;
   if (typeof uuid !== 'string'
     || typeof active !== 'boolean') {
-    res.json({ error: "Invalid request." });
+    res.json({ error: 'Invalid request.' });
     return;
   }
   try {
-    let success = await InsurancePeer.setActiveContractType(
+    const success = await InsurancePeer.setActiveContractType(
       uuid, active);
     res.json({ success });
   } catch (e) {
-    res.json({ error: "Error accessing blockchain." });
+    res.json({ error: 'Error accessing blockchain.' });
+  }
+});
+
+router.post('/api/blocks', async (req, res) => {
+  const { noOfLastBlocks } = req.body;
+  if (typeof noOfLastBlocks !== 'number') {
+    res.json({ error: 'Invalid request' });
+  }
+  try {
+    const blocks = await InsurancePeer.getBlocks(noOfLastBlocks);
+    res.json(blocks);
+  } catch (e) {
+    res.json({ error: 'Error accessing blockchain.' });
   }
 });
 
@@ -118,4 +131,11 @@ router.get('*', (req, res) => {
   });
 });
 
+function wsConfig(io) {
+  InsurancePeer.on('block', block => {
+    io.emit('block', block);
+  });
+}
+
 export default router;
+export { wsConfig };

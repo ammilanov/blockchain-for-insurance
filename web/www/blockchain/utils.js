@@ -1,8 +1,10 @@
 'use strict';
 
 import { resolve } from 'path';
+import EventEmitter from 'events';
 
-import grpc from 'grpc';
+import { load as loadProto } from 'grpc';
+import Long from 'long';
 import hfc from 'fabric-client';
 import utils from 'fabric-client/lib/utils';
 import Orderer from 'fabric-client/lib/Orderer';
@@ -14,11 +16,13 @@ import { snakeToCamelCase, camelToSnakeCase } from 'json-style-converter';
 
 process.env.GOPATH = resolve(__dirname, '../../chaincode');
 const INSTALL_TIMEOUT = 120000;
-const _commonProto = grpc.load(resolve(__dirname, '../../node_modules/fabric-client/lib/protos/common/common.proto')).common;
+const _commonProto = loadProto(resolve(__dirname,
+  '../../node_modules/fabric-client/lib/protos/common/common.proto')).common;
 
-export class OrganizationClient {
+export class OrganizationClient extends EventEmitter {
 
   constructor(channelName, ordererConfig, peerConfig, caConfig) {
+    super();
     this._channelName = channelName;
     this._ordererConfig = ordererConfig;
     this._peerConfig = peerConfig;
@@ -51,14 +55,19 @@ export class OrganizationClient {
       pem: peerConfig.pem,
       'ssl-target-name-override': peerConfig.hostname
     });
+    defaultEventHub.connect();
+    defaultEventHub.registerBlockEvent(
+      block => { this.emit('block', unmarshalBlock(block)); });
     this._eventHubs.push(defaultEventHub);
   }
 
   async login() {
     try {
       this._client.setStateStore(
-        await hfc.newDefaultKeyValueStore({ path: `./${this._peerConfig.hostname}` }));
-      this._adminUser = await getSubmitter(this._client, "admin", "adminpw", this._caConfig);
+        await hfc.newDefaultKeyValueStore(
+          { path: `./${this._peerConfig.hostname}` }));
+      this._adminUser = await getSubmitter(
+        this._client, "admin", "adminpw", this._caConfig);
     } catch (e) {
       console.log(`Failed to enroll user. Error: ${e.message}`);
       throw e;
@@ -97,23 +106,26 @@ export class OrganizationClient {
       const blockRegisteredPromises = this._eventHubs.map(eh => {
         eh.connect();
         return new Promise((resolve, reject) => {
-          let responseTimeout = setTimeout(() => {
-            reject(new Error('Peer did not respond in a timely fashion!'));
-          }, INSTALL_TIMEOUT);
-
-          eh.registerBlockEvent(block => {
+          const cb = block => {
             clearTimeout(responseTimeout);
-            debugger;
             if (block.data.data.length === 1) {
               const envelope = _commonProto.Envelope.decode(block.data.data[0]);
               const payload = _commonProto.Payload.decode(envelope.payload);
-              const channelHeader = _commonProto.ChannelHeader.decode(payload.header.channel_header);
+              const channelHeader = _commonProto.ChannelHeader.decode(
+                payload.header.channel_header);
 
               if (channelHeader.channel_id === this._channelName) {
+                eh.unregisterBlockEvent(cb);
                 resolve();
               }
             }
-          });
+          };
+
+          let responseTimeout = setTimeout(() => {
+            eh.unregisterBlockEvent(cb);
+            reject(new Error('Peer did not respond in a timely fashion!'));
+          }, INSTALL_TIMEOUT);
+          eh.registerBlockEvent(cb);
         });
       });
 
@@ -129,7 +141,7 @@ export class OrganizationClient {
     try {
       const channelConfig = await this._chain.getChannelConfig();
       return true;
-    } catch(e) {
+    } catch (e) {
       return false;
     }
   }
@@ -167,8 +179,9 @@ export class OrganizationClient {
       throw e;
     }
     let proposalResponses = results[0];
-    let allGood = proposalResponses.every(pr => pr.response
-      && pr.response.status == 200);
+    let allGood = proposalResponses.every(
+      pr => pr.response
+        && pr.response.status == 200);
     return allGood;
   }
 
@@ -196,7 +209,8 @@ export class OrganizationClient {
       && pr.response.status == 200);
 
     if (!allGood) {
-      throw new Error(`Proposal rejected by some (all) of the peers: ${proposalResponses}`);
+      throw new Error(
+        `Proposal rejected by some (all) of the peers: ${proposalResponses}`);
     }
 
     request = {
@@ -205,19 +219,24 @@ export class OrganizationClient {
       header: results[2]
     };
 
+    const deployId = txId.toString();
+
     let transactionCompletePromises = this._eventHubs.map(eh => {
       eh.connect();
+
       return new Promise((resolve, reject) => {
-        let responseTimeout = setTimeout(() => {
+        // Set timeout for the transaction response from the current peer
+        const responseTimeout = setTimeout(() => {
+          eh.unregisterTxEvent(deployId);
           reject(new Error('Peer did not respond in a timely fashion!'));
         }, INSTALL_TIMEOUT);
 
-        let deployId = txId.toString();
         eh.registerTxEvent(deployId, (tx, code) => {
           clearTimeout(responseTimeout);
           eh.unregisterTxEvent(deployId);
           if (code != 'VALID') {
-            reject(new Error(`Peer has rejected transaction with code: ${code}`));
+            reject(new Error(
+              `Peer has rejected transaction with code: ${code}`));
           } else {
             resolve();
           }
@@ -253,7 +272,8 @@ export class OrganizationClient {
       && pr.response.status == 200);
 
     if (!allGood) {
-      throw new Error(`Proposal rejected by some (all) of the peers: ${proposalResponses}`);
+      throw new Error(
+        `Proposal rejected by some (all) of the peers: ${proposalResponses}`);
     }
 
     request = {
@@ -261,12 +281,15 @@ export class OrganizationClient {
       proposal: results[1],
       header: results[2]
     };
-    let deployId = txId.toString();
 
+    const deployId = txId.toString();
     let transactionCompletePromises = this._eventHubs.map(eh => {
       eh.connect();
+
       return new Promise((resolve, reject) => {
-        let responseTimeout = setTimeout(() => {
+        // Set timeout for the transaction response from the current peer
+        const responseTimeout = setTimeout(() => {
+          eh.unregisterTxEvent(deployId);
           reject(new Error('Peer did not respond in a timely fashion!'));
         }, INSTALL_TIMEOUT);
 
@@ -274,7 +297,8 @@ export class OrganizationClient {
           clearTimeout(responseTimeout);
           eh.unregisterTxEvent(deployId);
           if (code != 'VALID') {
-            reject(new Error(`Peer has rejected transaction with code: ${code}`));
+            reject(new Error(
+              `Peer has rejected transaction with code: ${code}`));
           } else {
             resolve();
           }
@@ -283,8 +307,13 @@ export class OrganizationClient {
     });
 
     transactionCompletePromises.push(this._chain.sendTransaction(request));
-    let payload = proposalResponses[0].response.payload;
-    return unmarshalResult([proposalResponses[0].response.payload]);
+    try {
+      await transactionCompletePromises;
+      const payload = proposalResponses[0].response.payload;
+      return unmarshalResult([payload]);
+    } catch (e) {
+      throw e;
+    }
   }
 
   async query(chaincodeId, chaincodeVersion, chaincodePath, fcn, ...args) {
@@ -303,6 +332,36 @@ export class OrganizationClient {
     };
     return unmarshalResult(await this._chain.queryByChaincode(request));
   }
+
+  async getBlocks(noOfLastBlocks) {
+    if (typeof noOfLastBlocks !== 'number' &&
+      typeof noOfLastBlocks !== 'string') {
+      return [];
+    }
+
+    const { height } = await this._chain.queryInfo();
+    let blockCount;
+    if (height.comp(noOfLastBlocks) > 0) {
+      blockCount = noOfLastBlocks;
+    } else {
+      blockCount = height;
+    }
+    if (typeof blockCount === 'number') {
+      blockCount = Long.fromNumber(blockCount, blockCount.unsigned);
+    } else if (typeof blockCount === 'string') {
+      blockCount = Long.fromString(blockCount, blockCount.unsigned);
+    }
+
+    const queryBlock = this._chain.queryBlock.bind(this._chain);
+    const blockPromises = {};
+    blockPromises[Symbol.iterator] = function* () {
+      for (let i = Long.fromInt(1); i.comp(blockCount) <= 0; i = i.add(1)) {
+        yield queryBlock(height.sub(i).toInt());
+      }
+    };
+    const blocks = await Promise.all(blockPromises);
+    return blocks.map(unmarshalBlock);
+  }
 }
 
 /**
@@ -315,7 +374,8 @@ export class OrganizationClient {
  * @param {object} { url, mspId }
  * @returns the User object
  */
-export async function getSubmitter(client, enrollmentID, enrollmentSecret, { url, mspId }) {
+export async function getSubmitter(
+  client, enrollmentID, enrollmentSecret, { url, mspId }) {
 
   try {
     let user = await client.getUserContext(enrollmentID);
@@ -333,7 +393,8 @@ export async function getSubmitter(client, enrollmentID, enrollmentSecret, { url
       await client.setUserContext(user);
       return user;
     } catch (e) {
-      throw new Error(`Failed to enroll and persist User. Error: ${e.messsage}`);
+      throw new Error(
+        `Failed to enroll and persist User. Error: ${e.messsage}`);
     }
   } catch (e) {
     throw new Error(`Could not get UserContext! Error: ${e.message}`);
@@ -360,7 +421,8 @@ function marshalArgs(args) {
   let snakeArgs = camelToSnakeCase(args);
 
   if (Array.isArray(args)) {
-    return snakeArgs.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg.toString());
+    return snakeArgs.map(
+      arg => typeof arg === 'object' ? JSON.stringify(arg) : arg.toString());
   }
 
   if (typeof args === 'object') {
@@ -382,4 +444,26 @@ function unmarshalResult(result) {
   }
   let obj = JSON.parse(json);
   return snakeToCamelCase(obj);
+}
+
+function unmarshalBlock(block) {
+  const transactions = Array.isArray(block.data.data) ?
+    block.data.data.map(data => {
+      const envelope = _commonProto.Envelope.decode(data);
+      const payload = _commonProto.Payload.decode(envelope.payload);
+      const channelHeader = _commonProto.ChannelHeader.decode(
+        payload.header.channel_header);
+
+      const type = Object.keys(_commonProto.HeaderType).find(key =>
+        _commonProto.HeaderType[key] === channelHeader.type);
+      return {
+        type,
+        timestamp: channelHeader.timestamp
+      };
+    }) : [];
+  return {
+    id: block.header.number.toString(),
+    fingerprint: block.header.data_hash.buffer.toString('hex').slice(0, 20),
+    transactions
+  };
 }
