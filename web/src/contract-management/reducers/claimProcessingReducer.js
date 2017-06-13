@@ -21,4 +21,4 @@ export default function claimProcessingReducer(state = initialState.claimProcess
     default:
       return state;
   }
-};
+}

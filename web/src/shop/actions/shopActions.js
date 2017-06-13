@@ -8,11 +8,11 @@ export function setShopType(shopType, products) {
     shopType,
     products
   };
-};
+}
 
 export function submitProduct(productInfo) {
   return {
     type: ShopActionType.SUBMIT_PRODUCT,
     productInfo
   };
-};
+}

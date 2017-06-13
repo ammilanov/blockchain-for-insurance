@@ -14,14 +14,16 @@ export default function contractTemplateReducer(state = initialState.contractTem
         contractTypes: [...state.contractTypes, action.contractType]
       });
     case ContractTemplateActionType.SET_CONTRACT_TYPE_ACTIVE_SUCCESS:
-      let contractTypesWithout = state.contractTypes.filter(ct => ct.uuid !== action.uuid);
-      let newContractType = state.contractTypes.find(ct => ct.uuid === action.uuid);
-      return Object.assign({}, state, {
-        contractTypes: [
-          ...contractTypesWithout,
-          Object.assign({}, newContractType, { active: action.active })
-        ]
-      });
+      {
+        let contractTypesWithout = state.contractTypes.filter(ct => ct.uuid !== action.uuid);
+        let newContractType = state.contractTypes.find(ct => ct.uuid === action.uuid);
+        return Object.assign({}, state, {
+          contractTypes: [
+            ...contractTypesWithout,
+            Object.assign({}, newContractType, { active: action.active })
+          ]
+        });
+      }
     default:
       return state;
   }

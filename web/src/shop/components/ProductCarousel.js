@@ -1,18 +1,20 @@
+/*eslint react/no-danger: "off"*/
 'use strict';
 
-import React, { PropTypes, Props } from 'react';
+import React, { Props } from 'react';
+import PropTypes from 'prop-types';
 
 class ProductCarousel extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {
+    let state = {
       selected: null
     };
     if (typeof props.selectedProductIndex === 'number') {
-      this.state.selected = props.products[props.selectedProductIndex];
+      state.selected = props.products[props.selectedProductIndex];
     }
-
+    this.state = state;
     this.carouselItem = this.carouselItem.bind(this);
     this.onSlideChanged = this.onSlideChanged.bind(this);
   }
@@ -31,7 +33,7 @@ class ProductCarousel extends React.Component {
     let elem = jQuery(this.refs.carouselElement);
     elem.carousel({
       autoplay: false
-    })
+    });
     elem.on('afterChange', this.onSlideChanged);
   }
 
@@ -58,7 +60,8 @@ class ProductCarousel extends React.Component {
 
   onSlideChanged(event) {
     if (event.type == 'afterChange') {
-      let activeSlide = jQuery(this.refs.carouselElement).find('.slick-current.slick-active');
+      let activeSlide = jQuery(this.refs.carouselElement)
+        .find('.slick-current.slick-active');
       let index = Number(activeSlide.attr('data-slick-index'));
       this.onSelectedProduct(this.props.products[index]);
     }
@@ -69,7 +72,7 @@ class ProductCarousel extends React.Component {
     return (
       <div key={index} className={`${isActive ? ' is-active' : ''}`}>
         <p><img src={product.imgSrc} /></p>
-        <p dangerouslySetInnerHTML={{ __html: product.description }}></p>
+        <p dangerouslySetInnerHTML={{ __html: product.description }} />
       </div>
     );
   }
@@ -81,12 +84,12 @@ class ProductCarousel extends React.Component {
       </div>
     );
   }
-};
+}
 
 ProductCarousel.propTypes = {
   products: PropTypes.array.isRequired,
   selectedProductIndex: PropTypes.number,
   onSelectedProduct: PropTypes.func
-}
+};
 
 export default ProductCarousel;

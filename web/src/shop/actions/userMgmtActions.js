@@ -12,11 +12,11 @@ export function requestNewUser(user) {
       console.log(error);
     }
   };
-};
+}
 
 export function setUser(user) {
   return {
     type: UserMgmtActionType.SET_USER,
     user
   };
-};
+}

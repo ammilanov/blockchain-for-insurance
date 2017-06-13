@@ -15,11 +15,11 @@ export function loadContracts(user) {
       dispatch(loadContractsSuccess(contracts));
     }
   };
-};
+}
 
 function loadContractsSuccess(contracts) {
   return {
     type: ContractsActionTypes.LOAD_CONTRACTS_SUCCESS,
     contracts
   };
-};
+}

@@ -1,5 +1,5 @@
-'use strict'
+'use strict';
 
 export const repairService = {
   repairOrders: null
-}
+};

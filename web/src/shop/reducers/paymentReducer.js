@@ -10,4 +10,4 @@ export default function paymentReducer(state = initialState.payment, action) {
     default:
       return state;
   }
-};
+}

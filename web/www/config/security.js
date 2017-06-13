@@ -20,14 +20,14 @@ export default function(app) {
 
   const csrfProtection = csrf({
     cookie: true
-  })
+  });
 
   app.get('/*', csrfProtection, (req, res, next) => {
     if (!res.locals) {
-      res.locals = {}
+      res.locals = {};
     }
     res.locals.ct = req.csrfToken();
     next();
   });
 
-};
+}

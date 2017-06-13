@@ -3,7 +3,7 @@
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
-export default () => {
+const NotFoundPage = () => {
   return (
     <div className='row'>
       <div className='small-12 columns'>
@@ -14,3 +14,5 @@ export default () => {
     </div>
   );
 };
+
+export default NotFoundPage;

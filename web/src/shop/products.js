@@ -89,4 +89,4 @@ export default {
       "description": `Radius in m: 25 <br> Length in cm: 184`
     }
   ]
-}
+};

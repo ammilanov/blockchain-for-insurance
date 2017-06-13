@@ -16,11 +16,11 @@ export function authenticateUser(user) {
       console.log(error);
     }
   };
-};
+}
 
 export function setUser(user) {
   return {
     type: UserMgmtActionType.SET_USER,
     user
   };
-};
+}

@@ -1,6 +1,7 @@
 'use strict';
 
-import React, { PropTypes, Props } from 'react';
+import React, { Props } from 'react';
+import PropTypes from 'prop-types';
 
 class SelectList extends React.Component {
 
@@ -43,7 +44,7 @@ class SelectList extends React.Component {
   render() {
     const { options } = this.props;
     return (
-      <select ref='selectElement' readOnly={true} value={this.state.selectedItemIndex}>
+      <select ref='selectElement' readOnly value={this.state.selectedItemIndex}>
         {this.props.options.map(this.optionItem)}
       </select>
     );

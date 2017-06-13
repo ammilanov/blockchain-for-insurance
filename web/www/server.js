@@ -8,9 +8,9 @@ import server from './app';
 
 const port = process.env.PORT || process.env.VCAP_APP_PORT || 3000;
 
-dotenv.config({silent: true});
+dotenv.config({ silent: true });
 deploymentTracker.track();
 
-server.listen(port, function() {
+server.listen(port, () => {
   console.log('Server running on port: %d', port);
 });

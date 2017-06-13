@@ -4,23 +4,23 @@ import config, { DEFAULT_CONTRACT_TYPES } from './config';
 import { OrganizationClient } from './utils';
 import Docker from 'dockerode';
 
-var status = 'down';
-var statusChangedCallbacks = [];
+let status = 'down';
+let statusChangedCallbacks = [];
 
 // Setup clients per organization
-var insuranceClient = new OrganizationClient(
+let insuranceClient = new OrganizationClient(
   config.channelName,
   config.orderer0,
   config.insuranceOrg.peer,
   config.insuranceOrg.ca
 );
-var shopClient = new OrganizationClient(
+let shopClient = new OrganizationClient(
   config.channelName,
   config.orderer0,
   config.shopOrg.peer,
   config.shopOrg.ca
 );
-var repairServiceClient = new OrganizationClient(
+let repairServiceClient = new OrganizationClient(
   config.channelName,
   config.orderer0,
   config.repairServiceOrg.peer,
@@ -117,7 +117,7 @@ export function isReady() {
   let installed = installedOnInsuranceOrg && installedOnShopOrg && installedOnRepairServiceOrg;
   if (!installed) {
     // Pull chaincode environment base image
-    console.log('Chaincode is not installed, attempting installation...')
+    console.log('Chaincode is not installed, attempting installation...');
     try {
       const socketPath = process.env.DOCKER_SOCKET_PATH
         || '/var/run/docker.sock';
@@ -145,7 +145,7 @@ export function isReady() {
         });
 
       } else {
-        console.log('Base container image present.')
+        console.log('Base container image present.');
       }
     } catch (e) {
       console.log('Fatal error pulling docker images.');
@@ -186,4 +186,4 @@ export function isReady() {
 })();
 
 // Export organization clients
-export { insuranceClient, shopClient, repairServiceClient }
+export { insuranceClient, shopClient, repairServiceClient };

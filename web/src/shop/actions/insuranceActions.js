@@ -15,7 +15,7 @@ export function loadContractsTypes(shopType) {
       dispatch(loadContractsTypesSuccess(contractTypes));
     }
   };
-};
+}
 
 function loadContractsTypesSuccess(contractTypes) {
   return {
@@ -29,4 +29,4 @@ export function submitContract(contractInfo) {
     type: InsuranceActionType.SUBMIT_CONTRACT,
     contractInfo
   };
-};
+}

@@ -1,15 +1,17 @@
 'use strict';
 
-import React, { PropTypes, Props } from 'react';
+import React, { Props } from 'react';
+import PropTypes from 'prop-types';
 import { FormattedMessage } from 'react-intl';
 import { connect } from 'react-redux';
+import { withRouter } from 'react-router-dom';
 
 const app = ({ children }) => {
   return (
     <div>
-      <div className="ibm-columns">
-        <div className="ibm-col-1-1">
-          <h2 className="ibm-h2">
+      <div className='ibm-columns'>
+        <div className='ibm-col-1-1'>
+          <h2 className='ibm-h2'>
             <FormattedMessage id='Claim Self-Service' />
           </h2>
         </div>
@@ -17,6 +19,10 @@ const app = ({ children }) => {
       {children}
     </div>
   );
-}
+};
+
+app.propTypes = {
+  children: PropTypes.element.isRequired
+};
 
 export default app;

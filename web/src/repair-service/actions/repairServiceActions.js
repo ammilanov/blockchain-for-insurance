@@ -14,8 +14,8 @@ export function loadRepairOrders() {
     if (Array.isArray(repairOrders)) {
       dispatch(loadRepairOrdersSuccess(repairOrders));
     }
-  }
-};
+  };
+}
 
 function loadRepairOrdersSuccess(repairOrders) {
   return {
@@ -32,8 +32,8 @@ export function completeRepairOrder(uuid) {
       console.log(e);
     }
     dispatch(completeRepairOrderSuccess(uuid));
-  }
-};
+  };
+}
 
 function completeRepairOrderSuccess(uuid) {
   return {

@@ -12,5 +12,5 @@ export default function configStore(initialState) {
       ReduxThunk
     )
   );
-};
+}
 

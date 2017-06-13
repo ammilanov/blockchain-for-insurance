@@ -16,7 +16,7 @@ export function getContractTypes(shopType) {
       }));
     return contractTypes;
   });
-};
+}
 
 export function requestNewUser(user) {
   return fetch('/shop/api/request-user', {
@@ -28,7 +28,7 @@ export function requestNewUser(user) {
   }).then(async res => {
     return await res.json();
   });
-};
+}
 
 export function enterContract(user, contractTypeUuid, additionalInfo) {
   return fetch('/shop/api/enter-contract', {
@@ -45,7 +45,7 @@ export function enterContract(user, contractTypeUuid, additionalInfo) {
       throw new Error(response.error);
     }
   });
-};
+}
 
 /**
  * Function parses formula, to prevent cross site scripting attacks.

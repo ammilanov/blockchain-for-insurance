@@ -1,6 +1,8 @@
+/*global IBMCore*/
 'use strict';
 
-import React, { PropTypes, Props } from 'react';
+import React, { Props } from 'react';
+import PropTypes from 'prop-types';
 import { injectIntl, intlShape } from 'react-intl';
 import moment from 'moment';
 
@@ -21,7 +23,7 @@ class DateInput extends React.Component {
   }
 
   componentWillUnmount() {
-    this.picker.off('set', this.onChange)
+    this.picker.off('set', this.onChange);
   }
 
   onChange(value) {
@@ -36,7 +38,7 @@ class DateInput extends React.Component {
       formattedDate = moment(new Date(this.props.value)).format('L', this.props.intl.locale);
     }
     return (
-      <input type='text' readOnly={true} ref='dateInputElement' value={formattedDate} />
+      <input type='text' readOnly ref='dateInputElement' value={formattedDate} />
     );
   }
 }
