@@ -161,7 +161,7 @@ class ChooseInsurancePage extends React.Component {
                 <p>
                   <label><FormattedMessage id='Daily Price' />:</label>
                   <span>
-                    <input type='text' readOnly disabled value={
+                    <input type='text' readOnly value={
                       intl.formatNumber(dailyPrice,
                         {
                           style: 'currency',
@@ -176,7 +176,7 @@ class ChooseInsurancePage extends React.Component {
                   <span className='ibm-input-group'>
                     <input type='checkbox' className='ibm-styled-checkbox'
                       ref='theftInsuredField'
-                      checked={contractType.theftInsured} disabled readOnly />
+                      checked={contractType.theftInsured} readOnly />
                     <label className='ibm-field-label'
                     htmlFor='theftInsuredField' />
                   </span>
@@ -184,7 +184,7 @@ class ChooseInsurancePage extends React.Component {
                 <p>
                   <label><FormattedMessage id='Contract Terms' />:</label>
                   <span>
-                    <textarea value={contractType.conditions} readOnly disabled />
+                    <textarea value={contractType.conditions} readOnly />
                   </span>
                 </p>
                 <p>
