@@ -1,5 +1,5 @@
 @media screen and (min-device-width: 768px) {
-    $block-viewer-height: 150px;
+    $block-viewer-height: 180px;
     #ibm-content-wrapper {
         margin-bottom: $block-viewer-height;
     }
@@ -62,7 +62,53 @@
                 width: 200px;
                 height: 90px;
                 margin: 0 10px;
+                padding: 10px;
                 background-color: #7CC7FF; // IBM Blue 20
+                .block-data {
+                    display: flex;
+                    flex-flow: column;
+                    height: 100%;
+                    p,
+                    div {
+                        padding: 0;
+                        margin: 0;
+                        line-height: 15px;
+                    }
+                    .transactions {
+                        overflow-x: hidden;
+                        overflow-y: auto;
+                        flex: auto;
+                        .transaction {
+                            display: flex;
+                            flex-flow: row;
+                            white-space: nowrap;
+                            .trans-date {
+                                flex: initial;
+                            }
+                            .trans-type {
+                                flex: auto;
+                                overflow: hidden;
+                                div.overflown:hover {
+                                    animation-name: marquee;
+                                    animation-duration: 3s;
+                                    animation-timing-function: linear;
+                                    animation-iteration-count: infinite;
+                                }
+                                @keyframes marquee {
+                                    0% {
+                                        transform: translateX(0);
+                                    }
+                                    50% {
+                                        transform: translateX(calc(100% - var(--scroll-width)));
+                                    }
+                                    100% {
+                                        transform: translateX(0);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

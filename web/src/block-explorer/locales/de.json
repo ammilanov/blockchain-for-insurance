@@ -1,5 +1,8 @@
 {
   "Block Explorer": "Block Explorer",
   "Show Explorer": "Explorer öffnen",
-  "Hide Explorer": "Explorer ausblenden"
+  "Hide Explorer": "Explorer ausblenden",
+  "Block No.": "Blocknr.",
+  "Timestamp": "Zeitstempel",
+  "Transactions": "Transaktionen"
 }

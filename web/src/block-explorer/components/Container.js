@@ -74,7 +74,7 @@ class Container extends React.Component {
 
     return (
       <div className='block-explorer'>
-        <div className={`toggle-visibility-button ${hidden ? 'hidden' : ''}`}>
+        <div className={`toggle-visibility-button${hidden ? ' hidden' : ''}`}>
           <div className={`hint ${hintHidden ? 'hidden' : ''}`}>
             {intl.formatMessage({ id: explorerMessage })}
           </div>
@@ -84,14 +84,18 @@ class Container extends React.Component {
             <img src={explorerIcon} />
           </div>
         </div>
-        <div className={`contents ${hidden ? 'hidden' : ''}`}>
-          <div>
-            <h2 className='ibm-h2' style={{ paddingLeft: '10px' }}>
-              <FormattedMessage id='Block Explorer' />
-            </h2>
-          </div>
-          <div>
-            {blocks.map(block => <Block key={block.id} data={block} />)}
+        <div className={`contents${hidden ? ' hidden' : ''}`}
+          style={{ textAlign: 'center' }}>
+          <div style={{ display: 'inline-block', textAlign: 'initial' }}>
+            <div>
+              <h2 className='ibm-h2'
+                style={{ paddingTop: '10px', paddingLeft: '10px' }}>
+                <FormattedMessage id='Block Explorer' />
+              </h2>
+            </div>
+            <div>
+              {blocks.map(block => <Block key={block.id} data={block} />)}
+            </div>
           </div>
         </div>
       </div>
