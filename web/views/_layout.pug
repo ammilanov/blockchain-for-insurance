@@ -23,36 +23,35 @@ html(lang='en')
           #ibm-home
             a(href='/') IBM&reg;
           ul#ibm-menu-links(role='toolbar', aria-label='Site map')
-      .ibm-sitenav-menu-container
-        .ibm-sitenav-menu-name
-          p(role='presentation') #{__('Blockchain for Insurance')}
-        .ibm-sitenav-menu-list
-          ul(role='menubar')
-            li(role='presentation' class=(homeActive ? 'ibm-highlight' : ''))
-              a(role='menuitem' href='/') #{ __('Home') }
-            li.ibm-haschildlist(role='presentation' class=(shopActive ? 'ibm-highlight' : ''))
-              button(role='menuitem')
-                a(href='/shop') #{ __('Shop') }
-              ul(role='menu')
-                li(role='presentation' class=(bikesActive ? 'ibm-highlight' : ''))
-                  a(role='menuitem' href='/shop/bikes') #{ __('Bikes') }
-                li(role='presentation' class=(smartPhonesActive ? 'ibm-highlight' : ''))
-                  a(role='menuitem' href='/shop/smart-phones') #{ __('Smart Phones') }
-                li(role='presentation' class=(skisActive ? 'ibm-highlight' : ''))
-                  a(role='menuitem' href='/shop/skis') #{ __('Skis') }
-            li(role='presentation' class=(selfServiceActive ? 'ibm-highlight' : ''))
-              a(role='menuitem' href='/self-service') #{ __('Claim Self-Service') }
-            li(role='presentation' class=(repairServiceActive ? 'ibm-highlight' : ''))
-              a(role='menuitem' href='/repair-service') #{ __('Repair Service') }
-            li.ibm-haschildlist(role='presentation' class=(contractManagementActive ? 'ibm-highlight' : ''))
-              button(role='menuitem')
-                a(href='/contract-management') #{ __('Contract Management') }
-              ul(role='menu')
-                li(role='presentation' class=(claimProcessingActive ? 'ibm-highlight' : ''))
-                    a(role='menuitem' href='/contract-management/claim-processing') #{ __('Claim Processing') }
-                li(role='presentation' class=(contractTemplatesActive ? 'ibm-highlight' : ''))
-                  a(role='menuitem' href='/contract-management/contract-templates') #{ __('Contract Templates') }
     #ibm-content-wrapper
+      header
+        .ibm-sitenav-menu-container
+          .ibm-sitenav-menu-name
+            a(href='/') #{__('Blockchain for Insurance')}
+          .ibm-sitenav-menu-list
+            ul(role='menubar')
+              li(role='presentation', class=(homeActive ? 'ibm-highlight' : ''))
+                a(role='menuitem', href='/') #{ __('Home') }
+              li.ibm-haschildlist(role='presentation', class=(shopActive ? 'ibm-highlight' : ''))
+                span(role='menuitem') #{ __('Shop') }
+                ul(role='menu')
+                  li(role='presentation', class=(bikesActive ? 'ibm-highlight' : ''))
+                    a(role='menuitem', href='/shop/bikes') #{ __('Bikes') }
+                  li(role='presentation', class=(smartPhonesActive ? 'ibm-highlight' : ''))
+                    a(role='menuitem', href='/shop/smart-phones') #{ __('Smart Phones') }
+                  li(role='presentation', class=(skisActive ? 'ibm-highlight' : ''))
+                    a(role='menuitem', href='/shop/skis') #{ __('Skis') }
+              li(role='presentation', class=(selfServiceActive ? 'ibm-highlight' : ''))
+                a(role='menuitem', href='/self-service') #{ __('Claim Self-Service') }
+              li(role='presentation', class=(repairServiceActive ? 'ibm-highlight' : ''))
+                a(role='menuitem', href='/repair-service') #{ __('Repair Service') }
+              li.ibm-haschildlist(role='presentation', class=(contractManagementActive ? 'ibm-highlight' : ''))
+                span(role='menuitem') #{ __('Contract Management') }
+                ul(role='menu')
+                  li(role='presentation', class=(claimProcessingActive ? 'ibm-highlight' : ''))
+                    a(role='menuitem', href='/contract-management/claim-processing') #{ __('Claim Processing') }
+                  li(role='presentation', class=(contractTemplatesActive ? 'ibm-highlight' : ''))
+                    a(role='menuitem', href='/contract-management/contract-templates') #{ __('Contract Templates') }
       main(role='main', aria-labelledby='ibm-pagetitle-h1')
         #ibm-pcon
           #ibm-content
@@ -64,7 +63,7 @@ html(lang='en')
           #ibm-footer-locale-selector.ibm-col-4-1.ibm-col-medium-4-2.ibm-fright(style='padding-top: 20px;')
             h3.ibm-bold Select a country/region:
             select#region-selector(style='width: 100%;')
-              option(value='' selected) &nbsp;
+              option(value='', selected) &nbsp;
               option(value='en') English
               option(value='de') Deutsch
         #ibm-footer
