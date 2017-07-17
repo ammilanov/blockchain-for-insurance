@@ -60,25 +60,25 @@ if [ $BUILD ];
     echo '############################################################'
     echo '#                 BUILDING CONTAINER IMAGES                #'
     echo '############################################################'
-    docker build -t registry.ng.bluemix.net/bcins/orderer:latest orderer/
-    docker build -t registry.ng.bluemix.net/bcins/insurance-peer:latest insurancePeer/
-    docker build -t registry.ng.bluemix.net/bcins/shop-peer:latest shopPeer/
-    docker build -t registry.ng.bluemix.net/bcins/repairservice-peer:latest repairServicePeer/
-    docker build -t registry.ng.bluemix.net/bcins/web:latest web/
-    docker build -t registry.ng.bluemix.net/bcins/insurance-ca:latest insuranceCA/
-    docker build -t registry.ng.bluemix.net/bcins/shop-ca:latest shopCA/
-    docker build -t registry.ng.bluemix.net/bcins/repairservice-ca:latest repairServiceCA/
+    docker build -t registry.eu-de.bluemix.net/bcins/orderer:latest orderer/
+    docker build -t registry.eu-de.bluemix.net/bcins/insurance-peer:latest insurancePeer/
+    docker build -t registry.eu-de.bluemix.net/bcins/shop-peer:latest shopPeer/
+    docker build -t registry.eu-de.bluemix.net/bcins/repairservice-peer:latest repairServicePeer/
+    docker build -t registry.eu-de.bluemix.net/bcins/web:latest web/
+    docker build -t registry.eu-de.bluemix.net/bcins/insurance-ca:latest insuranceCA/
+    docker build -t registry.eu-de.bluemix.net/bcins/shop-ca:latest shopCA/
+    docker build -t registry.eu-de.bluemix.net/bcins/repairservice-ca:latest repairServiceCA/
 fi
 if [ $PUSH ]; then
     echo '############################################################'
     echo '#                UPLOADING CONTAINER IMAGES                #'
     echo '############################################################'
-    docker push registry.ng.bluemix.net/bcins/orderer:latest
-    docker push registry.ng.bluemix.net/bcins/insurance-peer:latest
-    docker push registry.ng.bluemix.net/bcins/shop-peer:latest
-    docker push registry.ng.bluemix.net/bcins/repairservice-peer:latest
-    docker push registry.ng.bluemix.net/bcins/web:latest
-    docker push registry.ng.bluemix.net/bcins/insurance-ca:latest
-    docker push registry.ng.bluemix.net/bcins/shop-ca:latest
-    docker push registry.ng.bluemix.net/bcins/repairservice-ca:latest
+    docker push registry.eu-de.bluemix.net/bcins/orderer:latest
+    docker push registry.eu-de.bluemix.net/bcins/insurance-peer:latest
+    docker push registry.eu-de.bluemix.net/bcins/shop-peer:latest
+    docker push registry.eu-de.bluemix.net/bcins/repairservice-peer:latest
+    docker push registry.eu-de.bluemix.net/bcins/web:latest
+    docker push registry.eu-de.bluemix.net/bcins/insurance-ca:latest
+    docker push registry.eu-de.bluemix.net/bcins/shop-ca:latest
+    docker push registry.eu-de.bluemix.net/bcins/repairservice-ca:latest
 fi

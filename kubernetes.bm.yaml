@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: insurance-ca
-        image: registry.ng.bluemix.net/bcins/insurance-ca:latest
+        image: registry.eu-de.bluemix.net/bcins/insurance-ca:latest
         command: ["fabric-ca-server"]
         args: ["start"]
         ports:
@@ -41,7 +41,7 @@ spec:
     spec:
       containers:
       - name: shop-ca
-        image: registry.ng.bluemix.net/bcins/shop-ca:latest
+        image: registry.eu-de.bluemix.net/bcins/shop-ca:latest
         command: ["fabric-ca-server"]
         args: ["start"]
         ports:
@@ -67,7 +67,7 @@ spec:
     spec:
       containers:
       - name: repairservice-ca
-        image: registry.ng.bluemix.net/bcins/repairservice-ca:latest
+        image: registry.eu-de.bluemix.net/bcins/repairservice-ca:latest
         command: ["fabric-ca-server"]
         args: ["start"]
         ports:
@@ -92,7 +92,7 @@ spec:
     spec:
       containers:
       - name: orderer0
-        image: registry.ng.bluemix.net/bcins/orderer:latest
+        image: registry.eu-de.bluemix.net/bcins/orderer:latest
         command: ["orderer"]
         ports:
         - containerPort: 7050
@@ -132,7 +132,7 @@ spec:
           path: /var/run/
       containers:
       - name: insurance-peer
-        image: registry.ng.bluemix.net/bcins/insurance-peer:latest
+        image: registry.eu-de.bluemix.net/bcins/insurance-peer:latest
         command: ["peer"]
         args: ["node", "start", "--peer-defaultchain=false"]
         ports:
@@ -197,7 +197,7 @@ spec:
           path: /var/run/
       containers:
       - name: shop-peer
-        image: registry.ng.bluemix.net/bcins/shop-peer:latest
+        image: registry.eu-de.bluemix.net/bcins/shop-peer:latest
         command: ["peer"]
         args: ["node", "start", "--peer-defaultchain=false"]
         ports:
@@ -262,7 +262,7 @@ spec:
           path: /var/run/
       containers:
       - name: repairservice-peer
-        image: registry.ng.bluemix.net/bcins/repairservice-peer:latest
+        image: registry.eu-de.bluemix.net/bcins/repairservice-peer:latest
         command: ["peer"]
         args: ["node", "start", "--peer-defaultchain=false"]
         ports:
@@ -327,7 +327,7 @@ spec:
           path: /var/run/
       containers:
       - name: web-frontend
-        image: registry.ng.bluemix.net/bcins/web:latest
+        image: registry.eu-de.bluemix.net/bcins/web:latest
         env:
         - name: PORT
           value: "3000"
