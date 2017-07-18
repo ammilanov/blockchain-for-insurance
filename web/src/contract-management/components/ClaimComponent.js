@@ -6,19 +6,19 @@ class ClaimComponent extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = { refundable: 0 };
-    this.setRefundable = this.setRefundable.bind(this);
+    this.state = { reimbursable: 0 };
+    this.setReimbursable = this.setReimbursable.bind(this);
     this.repair = this.repair.bind(this);
-    this.refund = this.refund.bind(this);
+    this.reimburse = this.reimburse.bind(this);
     this.reject = this.reject.bind(this);
   }
 
-  setRefundable(e) {
+  setReimbursable(e) {
     let { value } = e.target;
     if (value) {
       value = Number(value) ? value : 0;
     }
-    this.setState({ refundable: value });
+    this.setState({ reimbursable: value });
   }
 
   repair() {
@@ -26,10 +26,10 @@ class ClaimComponent extends React.Component {
     onRepair();
   }
 
-  refund() {
-    const { onRefund } = this.props;
-    const { refundable } = this.state;
-    onRefund(Number(refundable));
+  reimburse() {
+    const { onReimburse } = this.props;
+    const { reimbursable } = this.state;
+    onReimburse(Number(reimbursable));
   }
 
   reject() {
@@ -39,7 +39,7 @@ class ClaimComponent extends React.Component {
 
   render() {
     const { claim } = this.props;
-    const { refundable } = this.state;
+    const { reimbursable } = this.state;
 
     const claimButtons = (c) => {
       const repairButton = c.isTheft ? null : (
@@ -50,12 +50,12 @@ class ClaimComponent extends React.Component {
           <FormattedMessage id='Repair' />
         </button>
       );
-      const refundButton = (
-        <button key='refundButton' type='button'
+      const reimburseButton = (
+        <button key='reimburseButton' type='button'
         className='ibm-btn-sec ibm-btn-small ibm-btn-teal-50'
           style={{ marginLeft: '15px', marginRight: '15px' }}
-          onClick={this.refund}>
-          <FormattedMessage id='Refund' />
+          onClick={this.reimburse}>
+          <FormattedMessage id='Reimburse' />
         </button>
       );
       const rejectButton = (
@@ -68,7 +68,7 @@ class ClaimComponent extends React.Component {
       );
       return (
         <div>
-          {[repairButton, refundButton, rejectButton]}
+          {[repairButton, reimburseButton, rejectButton]}
         </div>
       );
     };
@@ -97,10 +97,10 @@ class ClaimComponent extends React.Component {
                 </span>
               </p>
               <p>
-                <label><FormattedMessage id='Refundable' />: </label>
+                <label><FormattedMessage id='Reimbursable' />: </label>
                 <span>
                   <input type='text'
-                    value={refundable} onChange={this.setRefundable} />
+                    value={reimbursable} onChange={this.setReimbursable} />
                 </span>
               </p>
             </div>
@@ -115,7 +115,7 @@ class ClaimComponent extends React.Component {
 ClaimComponent.propTypes = {
   claim: PropTypes.object.isRequired,
   onRepair: PropTypes.func.isRequired,
-  onRefund: PropTypes.func.isRequired,
+  onReimburse: PropTypes.func.isRequired,
   onReject: PropTypes.func.isRequired
 };
 

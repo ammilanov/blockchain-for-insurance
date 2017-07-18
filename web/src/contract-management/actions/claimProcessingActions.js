@@ -7,7 +7,7 @@ export function loadClaims() {
   return async dispatch => {
     let claims;
     try {
-      claims = await Api.getClaims('N'); // Load only (N)ot processed (new) claims
+      claims = await Api.getClaims('N'); // Load only (N)ew (unprocessed) claims
     } catch (e) {
       console.log(e);
     }
@@ -24,10 +24,10 @@ function loadClaimsSuccess(claims) {
   };
 }
 
-export function processClaim(contractUuid, uuid, status, refundable) {
+export function processClaim(contractUuid, uuid, status, reimbursable) {
   return async dispatch => {
     try {
-      await Api.processClaim(contractUuid, uuid, status, refundable);
+      await Api.processClaim(contractUuid, uuid, status, reimbursable);
       dispatch(processClaimSuccess(contractUuid, uuid));
     } catch (e) {
       console.log(e);

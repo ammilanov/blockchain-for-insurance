@@ -29,9 +29,9 @@ class ClaimsPage extends React.Component {
           claimProcessingActions.processClaim(
             claim.contractUuid, claim.uuid, 'R', 0);
         };
-        const refund = (refundable) => {
+        const reimburse = (reimbursable) => {
           claimProcessingActions.processClaim(
-            claim.contractUuid, claim.uuid, 'F', refundable);
+            claim.contractUuid, claim.uuid, 'F', reimbursable);
         };
         const reject = () => {
           claimProcessingActions.processClaim(
@@ -40,7 +40,7 @@ class ClaimsPage extends React.Component {
         return (
           <ClaimComponent key={claim.uuid} claim={claim}
             onRepair={repair}
-            onRefund={refund}
+            onReimburse={reimburse}
             onReject={reject} />
         );
       }) : null;

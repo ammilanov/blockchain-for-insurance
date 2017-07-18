@@ -22,11 +22,11 @@ router.post('/api/claims', async (req, res) => {
 });
 
 router.post('/api/process-claim', async (req, res) => {
-  let { contractUuid, uuid, status, refundable } = req.body;
+  let { contractUuid, uuid, status, reimbursable } = req.body;
   if (typeof contractUuid !== 'string'
     || typeof uuid !== 'string'
     || !(typeof status === 'string' && status[0])
-    || typeof refundable !== 'number') {
+    || typeof reimbursable !== 'number') {
     res.json({ error: 'Invalid request.' });
     return;
   }
@@ -34,7 +34,7 @@ router.post('/api/process-claim', async (req, res) => {
 
   try {
     let success = await InsurancePeer.processClaim(
-      contractUuid, uuid, status, refundable);
+      contractUuid, uuid, status, reimbursable);
     res.json({ success });
   } catch (e) {
     res.json({ error: 'Error accessing blockchain.' });

@@ -31,7 +31,7 @@ class ContractClaimsPage extends React.Component {
       if (!claim) {
         return null;
       }
-      let message, messageId, refundable;
+      let message, messageId, reimbursable;
       switch (claim.status) {
         case 'N':
           messageId = 'Not processes yet';
@@ -40,10 +40,10 @@ class ContractClaimsPage extends React.Component {
           messageId = claim.repaired ? 'Repaired' : 'To be repaired';
           break;
         case 'F':
-          messageId = 'Refund';
-          refundable = <FormattedNumber style='currency'
+          messageId = 'Reimburse';
+          reimbursable = <FormattedNumber style='currency'
             currency={intl.formatMessage({ id: 'currency code' })}
-            value={claim.refundable} minimumFractionDigits={2} />;
+            value={claim.reimbursable} minimumFractionDigits={2} />;
           break;
         case 'J':
           messageId = 'Rejected';
@@ -55,7 +55,7 @@ class ContractClaimsPage extends React.Component {
         message = <FormattedMessage id={messageId} />;
       }
       return (
-        <span>{message} {refundable}</span>
+        <span>{message} {reimbursable}</span>
       );
     }
     const cards = Array.isArray(claims) ? claims.map((claim, index) => (

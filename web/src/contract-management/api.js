@@ -15,13 +15,13 @@ export function getClaims(status) {
   });
 }
 
-export function processClaim(contractUuid, uuid, status, refundable) {
+export function processClaim(contractUuid, uuid, status, reimbursable) {
   return fetch('/contract-management/api/process-claim', {
     method: 'POST',
     headers: new Headers({
       'Content-Type': 'application/json'
     }),
-    body: JSON.stringify({ contractUuid, uuid, status, refundable })
+    body: JSON.stringify({ contractUuid, uuid, status, reimbursable })
   }).then(async res => {
     return await res.json();
   });
