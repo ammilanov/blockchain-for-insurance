@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"strings"
 )
 
 // Key consists of prefix + UUID of the contract type
@@ -43,13 +44,75 @@ type item struct {
 
 // Key consists of prefix + UUID of the contract + UUID of the claim
 type claim struct {
-	ContractUUID string    `json:"contract_uuid"`
-	Date         time.Time `json:"date"`
-	Description  string    `json:"description"`
-	IsTheft      bool      `json:"is_theft"`
-	Status       string    `json:"status"`
-	Refundable   float32   `json:"refundable"`
-	Repaired     bool      `json:"repaired"`
+	ContractUUID  string      `json:"contract_uuid"`
+	Date          time.Time   `json:"date"`
+	Description   string      `json:"description"`
+	IsTheft       bool        `json:"is_theft"`
+	Status        ClaimStatus `json:"status"`
+	Reimbursable  float32     `json:"reimbursable"`
+	Repaired      bool        `json:"repaired"`
+	FileReference string      `json:"file_reference"`
+}
+
+// The claim status indicates how the claim should be treated
+type ClaimStatus int8
+
+const (
+	// The claim is new
+	ClaimStatusNew ClaimStatus = iota
+	// The claim has been rejected (either by the insurer, or by authorities
+	ClaimStatusRejected
+	// The item is up for repairs, or has been repaired
+	ClaimStatusRepair
+	// The customer should be reimbursed, or has already been
+	ClaimStatusReimbursement
+	// The theft of the item has been confirmed by authorities
+	ClaimStatusTheftConfirmed
+)
+
+func (s *ClaimStatus) UnmarshalJSON(b []byte) error {
+	var value string
+	if err := json.Unmarshal(b, &value); err != nil {
+		return err
+	}
+
+	switch strings.ToUpper(value) {
+	default:
+		fallthrough
+	case "N":
+		*s = ClaimStatusNew
+	case "J":
+		*s = ClaimStatusRejected
+	case "R":
+		*s = ClaimStatusRepair
+	case "F":
+		*s = ClaimStatusReimbursement
+	case "P":
+		*s = ClaimStatusTheftConfirmed
+	}
+
+	return nil
+}
+
+func (s ClaimStatus) MarshalJSON() ([]byte, error) {
+	var value string
+
+	switch s {
+	default:
+		fallthrough
+	case ClaimStatusNew:
+		value = "N"
+	case ClaimStatusRejected:
+		value = "J"
+	case ClaimStatusRepair:
+		value = "R"
+	case ClaimStatusReimbursement:
+		value = "J"
+	case ClaimStatusTheftConfirmed:
+		value = "F"
+	}
+
+	return json.Marshal(value)
 }
 
 // Key consists of prefix + username
@@ -132,19 +195,19 @@ func (c *claim) Contract(stub shim.ChaincodeStubInterface) (*contract, error) {
 	defer resultsIterator.Close()
 
 	for resultsIterator.HasNext() {
-		key, value, err := resultsIterator.Next()
+		kvResult, err := resultsIterator.Next()
 		if err != nil {
 			return nil, err
 		}
 
-		_, keyParams, err := stub.SplitCompositeKey(key)
+		_, keyParams, err := stub.SplitCompositeKey(kvResult.Key)
 		if len(keyParams) != 2 {
 			continue
 		}
 
 		if keyParams[1] == c.ContractUUID {
 			contract := &contract{}
-			err := json.Unmarshal(value, contract)
+			err := json.Unmarshal(kvResult.Value, contract)
 			if err != nil {
 				return nil, err
 			}

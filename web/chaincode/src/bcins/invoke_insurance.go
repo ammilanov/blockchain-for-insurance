@@ -31,7 +31,7 @@ func listContractTypes(stub shim.ChaincodeStubInterface, args []string) pb.Respo
 
 	results := []interface{}{}
 	for resultsIterator.HasNext() {
-		key, value, err := resultsIterator.Next()
+		kvResult, err := resultsIterator.Next()
 		if err != nil {
 			return shim.Error(err.Error())
 		}
@@ -40,11 +40,11 @@ func listContractTypes(stub shim.ChaincodeStubInterface, args []string) pb.Respo
 			UUID string `json:"uuid"`
 			*contractType
 		}{}
-		err = json.Unmarshal(value, &ct)
+		err = json.Unmarshal(kvResult.Value, &ct)
 		if err != nil {
 			return shim.Error(err.Error())
 		}
-		prefix, keyParts, err := stub.SplitCompositeKey(key)
+		prefix, keyParts, err := stub.SplitCompositeKey(kvResult.Key)
 		if err != nil {
 			return shim.Error(err.Error())
 		}
@@ -179,7 +179,7 @@ func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	results := []interface{}{}
 	// Iterate over the results
 	for resultsIterator.HasNext() {
-		key, value, err := resultsIterator.Next()
+		kvResult, err := resultsIterator.Next()
 		if err != nil {
 			return shim.Error(err.Error())
 		}
@@ -191,13 +191,13 @@ func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 			Claims []claim `json:"claims,omitempty"`
 		}{}
 
-		err = json.Unmarshal(value, &result)
+		err = json.Unmarshal(kvResult.Value, &result)
 		if err != nil {
 			return shim.Error(err.Error())
 		}
 
 		// Fetch key
-		prefix, keyParts, err := stub.SplitCompositeKey(key)
+		prefix, keyParts, err := stub.SplitCompositeKey(kvResult.Key)
 		if len(keyParts) == 2 {
 			result.UUID = keyParts[1]
 		} else {
@@ -223,10 +223,10 @@ func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 }
 
 func listClaims(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	var status string
+	var status ClaimStatus
 	if len(args) > 0 {
 		input := struct {
-			Status string `json:"status"`
+			Status ClaimStatus `json:"status"`
 		}{}
 		err := json.Unmarshal([]byte(args[0]), &input)
 		if err != nil {
@@ -243,7 +243,7 @@ func listClaims(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	defer resultsIterator.Close()
 
 	for resultsIterator.HasNext() {
-		key, value, err := resultsIterator.Next()
+		kvResult, err := resultsIterator.Next()
 		if err != nil {
 			return shim.Error(err.Error())
 		}
@@ -252,17 +252,18 @@ func listClaims(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 			UUID string `json:"uuid"`
 			*claim
 		}{}
-		err = json.Unmarshal(value, &result)
+		err = json.Unmarshal(kvResult.Value, &result)
 		if err != nil {
 			return shim.Error(err.Error())
 		}
 
-		if len(status) > 0 && !strings.Contains(result.Status, status) {
-			continue // Skip the processing of the result, if the status does not equal the query status
+		// Skip the processing of the result, if the status does not equal the query status
+		if result.Status != status {
+			continue
 		}
 
 		// Fetch key
-		prefix, keyParts, err := stub.SplitCompositeKey(key)
+		prefix, keyParts, err := stub.SplitCompositeKey(kvResult.Key)
 		if len(keyParts) < 2 {
 			result.UUID = prefix
 		} else {
@@ -301,7 +302,7 @@ func fileClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 		Date:         dto.Date,
 		Description:  dto.Description,
 		IsTheft:      dto.IsTheft,
-		Status:       "N", // N - new claim
+		Status:       ClaimStatusNew,
 	}
 
 	// Check if the contract exists
@@ -353,10 +354,10 @@ func processClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	}
 
 	input := struct {
-		UUID         string  `json:"uuid"`
-		ContractUUID string  `json:"contract_uuid"`
-		Status       string  `json:"status"`
-		Refundable   float32 `json:"refundable"`
+		UUID         string      `json:"uuid"`
+		ContractUUID string      `json:"contract_uuid"`
+		Status       ClaimStatus `json:"status"`
+		Reimbursable float32     `json:"reimbursable"`
 	}{}
 	err := json.Unmarshal([]byte(args[0]), &input)
 	if err != nil {
@@ -379,18 +380,20 @@ func processClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 		return shim.Error(err.Error())
 	}
 
-	if claim.Status != "N" {
-		return shim.Error("Cannot change a status of a non-new claim.")
+	if claim.Status == ClaimStatusNew && claim.IsTheft {
+		return shim.Error("Theft must first be confirmed by authorities.")
+	} else if claim.Status != ClaimStatusNew { // Check if altering claim is allowed
+		return shim.Error("Cannot change the status of a non-new claim.")
 	}
 
-	claim.Status = input.Status
+	claim.Status = input.Status // Assigning requested status
 	switch input.Status {
-	case "R":
+	case ClaimStatusRepair:
 		// Approve and create a repair order
 		if claim.IsTheft {
-			return shim.Error("Invalid status selected.")
+			return shim.Error("Cannot repair stolen items.")
 		}
-		claim.Refundable = 0
+		claim.Reimbursable = 0
 
 		contract, err := claim.Contract(stub)
 		if err != nil {
@@ -415,9 +418,10 @@ func processClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 		if err != nil {
 			return shim.Error(err.Error())
 		}
-	case "F":
-		// Approve as refundable, and provide the sum of the refund
-		claim.Refundable = input.Refundable
+
+	case ClaimStatusReimbursement:
+		// Approve reimbursement of item, and add the sum
+		claim.Reimbursable = input.Reimbursable
 		// If theft was involved, mark the contract as void
 		if claim.IsTheft {
 			contract, err := claim.Contract(stub)
@@ -441,9 +445,11 @@ func processClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 			}
 		}
 
-	case "J":
+	case ClaimStatusRejected:
 		// Mark as rejected
-		claim.Refundable = 0
+		claim.Reimbursable = 0
+	default:
+		return shim.Error("Unknown status change.")
 	}
 
 	// Persist claim

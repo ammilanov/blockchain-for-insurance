@@ -15,13 +15,13 @@ func listRepairOrders(stub shim.ChaincodeStubInterface, args []string) pb.Respon
 
 	results := []interface{}{}
 	for resultsIterator.HasNext() {
-		key, value, err := resultsIterator.Next()
+		kvResult, err := resultsIterator.Next()
 		if err != nil {
 			return shim.Error(err.Error())
 		}
 
 		repairOrder := repairOrder{}
-		err = json.Unmarshal(value, &repairOrder)
+		err = json.Unmarshal(kvResult.Value, &repairOrder)
 		if err != nil {
 			return shim.Error(err.Error())
 		}
@@ -35,11 +35,11 @@ func listRepairOrders(stub shim.ChaincodeStubInterface, args []string) pb.Respon
 			ContractUUID string `json:"contract_uuid"`
 			Item         item   `json:"item"`
 		}{}
-		err = json.Unmarshal(value, &result)
+		err = json.Unmarshal(kvResult.Value, &result)
 		if err != nil {
 			return shim.Error(err.Error())
 		}
-		prefix, keyParts, err := stub.SplitCompositeKey(key)
+		prefix, keyParts, err := stub.SplitCompositeKey(kvResult.Key)
 		if err != nil {
 			return shim.Error(err.Error())
 		}

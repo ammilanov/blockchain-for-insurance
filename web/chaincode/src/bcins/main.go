@@ -16,12 +16,11 @@ const prefixRepairOrder = "repair_order"
 
 var logger = shim.NewLogger("main")
 
-// SimpleChaincode example simple Chaincode implementation
-type SimpleChaincode struct {
+type SmartContract struct {
 }
 
 var bcFunctions = map[string]func(shim.ChaincodeStubInterface, []string) pb.Response{
-	//InsurancePeer
+	//Insurance Peer
 	"contract_type_ls":         listContractTypes,
 	"contract_type_create":     createContractType,
 	"contract_type_set_active": setActiveContractType,
@@ -31,16 +30,19 @@ var bcFunctions = map[string]func(shim.ChaincodeStubInterface, []string) pb.Resp
 	"claim_process":            processClaim,
 	"user_authenticate":        authUser,
 	"user_get_info":            getUser,
-	//ShopPeer
+	//Shop Peer
 	"contract_create": createContract,
 	"user_create":     createUser,
-	//RepairService
+	//Repair Service Peer
 	"repair_order_ls":       listRepairOrders,
 	"repair_order_complete": completeRepairOrder,
+	//Police Peer
+	"theft_claim_ls":      listTheftClaims,
+	"theft_claim_process": processTheftClaim,
 }
 
 // Init callback representing the invocation of a chaincode
-func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
+func (t *SmartContract) Init(stub shim.ChaincodeStubInterface) pb.Response {
 	_, args := stub.GetFunctionAndParameters()
 
 	if len(args) == 1 {
@@ -71,7 +73,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
 }
 
 // Invoke Function accept blockchain code invocations.
-func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
+func (t *SmartContract) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	function, args := stub.GetFunctionAndParameters()
 
 	if function == "init" {
@@ -87,7 +89,7 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 func main() {
 	logger.SetLevel(shim.LogInfo)
 
-	err := shim.Start(new(SimpleChaincode))
+	err := shim.Start(new(SmartContract))
 	if err != nil {
 		fmt.Printf("Error starting Simple chaincode: %s", err)
 	}
