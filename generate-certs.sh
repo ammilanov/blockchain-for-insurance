@@ -1,201 +1,80 @@
-#!/bin/bash
-
+#!/bin/sh
 set -e
 
+echo
+echo "#################################################################"
+echo "#######        Generating cryptographic material       ##########"
+echo "#################################################################"
 PROJPATH=$(cd $(dirname "$0") && pwd)
+CLIPATH=$PROJPATH/cli/peers
+ORDERERS=$CLIPATH/ordererOrganizations
+PEERS=$CLIPATH/peerOrganizations
 
-### Orderer
-echo "--> Generating certificates for orderer..."
-ORDERERPATH=$PROJPATH/orderer/crypto
-ORDERERMSP=$ORDERERPATH/localMspConfig
-rm -rf $ORDERERPATH
-mkdir -p $ORDERERMSP/{admincerts,cacerts,keystore,signcerts}
-
-echo "> Generating CA private key"
-openssl ecparam -genkey -name prime256v1 -noout -out $ORDERERMSP/cakey.pem
-
-echo "> Generating CA certificates"
-openssl req -new -x509 -sha256 -days 3650 -nodes -subj '/CN=orderer-org' \
-    -key $ORDERERMSP/cakey.pem \
-    -out $ORDERERMSP/cacerts/ordererOrg.pem
-cp $ORDERERMSP/cacerts/ordererOrg.pem $ORDERERMSP/admincerts/ordererOrg.pem
-
-echo "> Generating peer node private key"
-openssl ecparam -genkey -name prime256v1 -noout \
-    -out $ORDERERMSP/keystore/ordererSigner.pem
-
-echo "> Generating peer node certificate"
-openssl req -new -subj '/CN=orderer0' \
-    -key $ORDERERMSP/keystore/ordererSigner.pem \
-    -out $ORDERERMSP/signcerts/ordererSigner.csr
-openssl x509 -req -days 3650 -sha256 -set_serial 1000 \
-    -CA $ORDERERMSP/cacerts/ordererOrg.pem \
-    -CAkey $ORDERERMSP/cakey.pem \
-    -in $ORDERERMSP/signcerts/ordererSigner.csr \
-    -out $ORDERERMSP/signcerts/orderer0Signer.pem
-
-# Cleaning up
-rm $ORDERERMSP/signcerts/ordererSigner.csr
-rm $ORDERERMSP/cakey.pem
-
-echo
-echo
-
-### Insurance Peer
-echo "--> Generating certificates for insurance organization..."
-INSURANCEPEERPATH=$PROJPATH/insurancePeer/crypto
-INSURANCECAPATH=$PROJPATH/insuranceCA
-INSURANCEMSP=$INSURANCEPEERPATH/localMspConfig
-rm -rf $INSURANCEPEERPATH
-rm -rf $INSURANCECAPATH/{ca,tls}
-mkdir -p $INSURANCECAPATH/{ca,tls}
-mkdir -p $INSURANCEMSP/{admincerts,cacerts,keystore,signcerts}
-
-echo "> Generating CA private key"
-openssl ecparam -genkey -name prime256v1 -noout \
-    | tee $INSURANCECAPATH/ca/key.pem \
-        $INSURANCECAPATH/tls/key.pem > /dev/null
-
-echo "> Generating CA certificates"
-openssl req -new -x509 -sha256 -days 3650 -nodes -subj '/CN=insurance-org' \
-    -key $INSURANCECAPATH/ca/key.pem \
-    | tee $INSURANCECAPATH/ca/cert.pem \
-        $INSURANCECAPATH/tls/cert.pem \
-        $INSURANCEMSP/cacerts/insuranceOrg.pem \
-        $INSURANCEMSP/admincerts/insuranceOrg.pem > /dev/null
-
-echo "> Generating peer node private key"
-openssl ecparam -genkey -name prime256v1 -noout \
-    -out $INSURANCEMSP/keystore/insuranceOrgSigner.pem
-
-echo "> Generating peer node certificate"
-openssl req -new -subj '/CN=insurance-peer' \
-    -key $INSURANCEMSP/keystore/insuranceOrgSigner.pem \
-    -out $INSURANCEMSP/signcerts/insuranceOrgSigner.csr
-openssl x509 -req -days 3650 -sha256 -set_serial 1000 \
-    -CA $INSURANCEMSP/cacerts/insuranceOrg.pem \
-    -CAkey $INSURANCECAPATH/ca/key.pem \
-    -in $INSURANCEMSP/signcerts/insuranceOrgSigner.csr \
-    -out $INSURANCEMSP/signcerts/insuranceOrgSigner.pem
-
-# Cleaning up
-rm $INSURANCEMSP/signcerts/insuranceOrgSigner.csr
-
-echo
-echo
-
-### Shop Peer
-echo "--> Generating certificates for shop organization..."
-SHOPPEERPATH=$PROJPATH/shopPeer/crypto
-SHOPCAPATH=$PROJPATH/shopCA
-SHOPMSP=$SHOPPEERPATH/localMspConfig
-rm -rf $SHOPPEERPATH
-rm -rf $SHOPCAPATH/{ca,tls}
-mkdir -p $SHOPCAPATH/{ca,tls}
-mkdir -p $SHOPMSP/{admincerts,cacerts,keystore,signcerts}
-
-echo "> Generating CA private key"
-openssl ecparam -genkey -name prime256v1 -noout \
-    | tee $SHOPCAPATH/ca/key.pem \
-        $SHOPCAPATH/tls/key.pem > /dev/null
-
-echo "> Generating CA certificates"
-openssl req -new -x509 -sha256 -days 3650 -nodes -subj '/CN=shop-org' \
-    -key $SHOPCAPATH/ca/key.pem \
-    | tee $SHOPCAPATH/ca/cert.pem \
-        $SHOPCAPATH/tls/cert.pem \
-        $SHOPMSP/cacerts/shopOrg.pem \
-        $SHOPMSP/admincerts/shopOrg.pem > /dev/null
-
-echo "> Generating peer node private key"
-openssl ecparam -genkey -name prime256v1 -noout \
-    -out $SHOPMSP/keystore/shopOrgSigner.pem
-
-echo "> Generating peer node certificate"
-openssl req -new -subj '/CN=shop-peer' \
-    -key $SHOPMSP/keystore/shopOrgSigner.pem \
-    -out $SHOPMSP/signcerts/shopOrgSigner.csr
-openssl x509 -req -days 3650 -sha256 -set_serial 1000 \
-    -CA $SHOPMSP/cacerts/shopOrg.pem \
-    -CAkey $SHOPCAPATH/ca/key.pem \
-    -in $SHOPMSP/signcerts/shopOrgSigner.csr \
-    -out $SHOPMSP/signcerts/shopOrgSigner.pem
-
-# Cleaning up
-rm $SHOPMSP/signcerts/shopOrgSigner.csr
-
-echo
-echo
-
-### Repair Service Peer
-echo "--> Generating certificates for repair service organization..."
-REPAIRSERVICEPEERPATH=$PROJPATH/repairServicePeer/crypto
-REPAIRSERVICECAPATH=$PROJPATH/repairServiceCA
-REPAIRSERVICEMSP=$REPAIRSERVICEPEERPATH/localMspConfig
-rm -rf $REPAIRSERVICEPEERPATH
-rm -rf $REPAIRSERVICECAPATH/{ca,tls}
-mkdir -p $REPAIRSERVICECAPATH/{ca,tls}
-mkdir -p $REPAIRSERVICEMSP/{admincerts,cacerts,keystore,signcerts}
-
-echo "> Generating CA private key"
-openssl ecparam -genkey -name prime256v1 -noout \
-    | tee $REPAIRSERVICECAPATH/ca/key.pem \
-        $REPAIRSERVICECAPATH/tls/key.pem > /dev/null
-
-echo "> Generating CA certificates"
-openssl req -new -x509 -sha256 -days 3650 -nodes -subj '/CN=repairservice-org' \
-    -key $REPAIRSERVICECAPATH/ca/key.pem \
-    | tee $REPAIRSERVICECAPATH/ca/cert.pem \
-        $REPAIRSERVICECAPATH/tls/cert.pem \
-        $REPAIRSERVICEMSP/cacerts/repairServiceOrg.pem \
-        $REPAIRSERVICEMSP/admincerts/repairServiceOrg.pem > /dev/null
-
-echo "> Generating peer node private key"
-openssl ecparam -genkey -name prime256v1 -noout \
-    -out $REPAIRSERVICEMSP/keystore/repairServiceOrgSigner.pem
-
-echo "> Generating peer node certificate"
-openssl req -new -subj '/CN=repairservice-peer' \
-    -key $REPAIRSERVICEMSP/keystore/repairServiceOrgSigner.pem \
-    -out $REPAIRSERVICEMSP/signcerts/repairServiceOrgSigner.csr
-openssl x509 -req -days 3650 -sha256 -set_serial 1000 \
-    -CA $REPAIRSERVICEMSP/cacerts/repairServiceOrg.pem \
-    -CAkey $REPAIRSERVICECAPATH/ca/key.pem \
-    -in $REPAIRSERVICEMSP/signcerts/repairServiceOrgSigner.csr \
-    -out $REPAIRSERVICEMSP/signcerts/repairServiceOrgSigner.pem
-
-# Cleaning up
-rm $REPAIRSERVICEMSP/signcerts/repairServiceOrgSigner.csr
-
-echo
-echo
-
-### Copying cryptographic material across peers
-echo "--> Copying CA certificates across peers"
-eval `echo 'cp '$INSURANCEMSP/cacerts/*.pem\ {$SHOPMSP/,$REPAIRSERVICEMSP/}{admincerts,cacerts}';'`
-eval `echo 'cp '$SHOPMSP/cacerts/*.pem\ {$INSURANCEMSP/,$REPAIRSERVICEMSP/}{admincerts,cacerts}';'`
-eval `echo 'cp '$REPAIRSERVICEMSP/cacerts/*.pem\ {$INSURANCEMSP/,$SHOPMSP/}{admincerts,cacerts}';'`
-
-echo
-echo
+rm -rf $CLIPATH
+cryptogen generate --config=./crypto-config.yaml --output=$CLIPATH
 
 sh generate-cfgtx.sh
 
-### Copying Certificates to the CLI
-echo "--> Copying cryptographic material to cli and web container definition..."
-CLIPATH=$PROJPATH/cli/peers
-rm -rf CLIPATH
-mkdir -p $CLIPATH/{orderer,insurancePeer,shopPeer,repairServicePeer}
-echo "> Copying orderer certificates"
-cp -r $ORDERERPATH/* $CLIPATH/orderer
-echo "> Copying insurance peer certificates"
-cp -r $INSURANCEPEERPATH/* $CLIPATH/insurancePeer
-echo "> Copying shop peer certificates"
-cp -r $SHOPPEERPATH/* $CLIPATH/shopPeer
-echo "> Copying repair service peer certificates"
-cp -r $REPAIRSERVICEPEERPATH/* $CLIPATH/repairServicePeer
-echo "> Copying CA certificates to web container"
-cp $ORDERERMSP/admincerts/ordererOrg.pem $PROJPATH/web/certs
-cp $INSURANCEMSP/admincerts/insuranceOrg.pem $PROJPATH/web/certs
-cp $SHOPMSP/admincerts/shopOrg.pem $PROJPATH/web/certs
-cp $REPAIRSERVICEMSP/admincerts/repairServiceOrg.pem $PROJPATH/web/certs
+rm -rf $PROJPATH/{orderer,insurancePeer,policePeer,repairShopPeer,shopPeer}/crypto
+mkdir $PROJPATH/{orderer,insurancePeer,policePeer,repairShopPeer,shopPeer}/crypto
+cp -r $ORDERERS/orderer-org/orderers/orderer0/{msp,tls} $PROJPATH/orderer/crypto
+cp -r $PEERS/insurance-org/peers/insurance-peer/{msp,tls} $PROJPATH/insurancePeer/crypto
+cp -r $PEERS/police-org/peers/police-peer/{msp,tls} $PROJPATH/policePeer/crypto
+cp -r $PEERS/repairshop-org/peers/repairshop-peer/{msp,tls} $PROJPATH/repairShopPeer/crypto
+cp -r $PEERS/shop-org/peers/shop-peer/{msp,tls} $PROJPATH/shopPeer/crypto
+cp $CLIPATH/genesis.block $PROJPATH/orderer/crypto/
+
+INSURANCECAPATH=$PROJPATH/insuranceCA
+POLICECAPATH=$PROJPATH/policeCA
+REPAIRSHOPCAPATH=$PROJPATH/repairShopCA
+SHOPCAPATH=$PROJPATH/shopCA
+
+rm -rf {$INSURANCECAPATH,$POLICECAPATH,$REPAIRSHOPCAPATH,$SHOPCAPATH}/{ca,tls}
+mkdir -p {$INSURANCECAPATH,$POLICECAPATH,$REPAIRSHOPCAPATH,$SHOPCAPATH}/{ca,tls}
+cp $PEERS/insurance-org/ca/* $INSURANCECAPATH/ca
+cp $PEERS/insurance-org/tlsca/* $INSURANCECAPATH/tls
+mv $INSURANCECAPATH/ca/*_sk $INSURANCECAPATH/ca/key.pem
+mv $INSURANCECAPATH/ca/*-cert.pem $INSURANCECAPATH/ca/cert.pem
+mv $INSURANCECAPATH/tls/*_sk $INSURANCECAPATH/tls/key.pem
+mv $INSURANCECAPATH/tls/*-cert.pem $INSURANCECAPATH/tls/cert.pem
+
+cp $PEERS/police-org/ca/* $POLICECAPATH/ca
+cp $PEERS/police-org/tlsca/* $POLICECAPATH/tls
+mv $POLICECAPATH/ca/*_sk $POLICECAPATH/ca/key.pem
+mv $POLICECAPATH/ca/*-cert.pem $POLICECAPATH/ca/cert.pem
+mv $POLICECAPATH/tls/*_sk $POLICECAPATH/tls/key.pem
+mv $POLICECAPATH/tls/*-cert.pem $POLICECAPATH/tls/cert.pem
+
+cp $PEERS/repairshop-org/ca/* $REPAIRSHOPCAPATH/ca
+cp $PEERS/repairshop-org/tlsca/* $REPAIRSHOPCAPATH/tls
+mv $REPAIRSHOPCAPATH/ca/*_sk $REPAIRSHOPCAPATH/ca/key.pem
+mv $REPAIRSHOPCAPATH/ca/*-cert.pem $REPAIRSHOPCAPATH/ca/cert.pem
+mv $REPAIRSHOPCAPATH/tls/*_sk $REPAIRSHOPCAPATH/tls/key.pem
+mv $REPAIRSHOPCAPATH/tls/*-cert.pem $REPAIRSHOPCAPATH/tls/cert.pem
+
+cp $PEERS/shop-org/ca/* $SHOPCAPATH/ca
+cp $PEERS/shop-org/tlsca/* $SHOPCAPATH/tls
+mv $SHOPCAPATH/ca/*_sk $SHOPCAPATH/ca/key.pem
+mv $SHOPCAPATH/ca/*-cert.pem $SHOPCAPATH/ca/cert.pem
+mv $SHOPCAPATH/tls/*_sk $SHOPCAPATH/tls/key.pem
+mv $SHOPCAPATH/tls/*-cert.pem $SHOPCAPATH/tls/cert.pem
+
+WEBCERTS=$PROJPATH/web/certs
+rm -rf $WEBCERTS
+mkdir -p $WEBCERTS
+cp $PROJPATH/orderer/crypto/tls/ca.crt $WEBCERTS/ordererOrg.pem
+cp $PROJPATH/insurancePeer/crypto/tls/ca.crt $WEBCERTS/insuranceOrg.pem
+cp $PROJPATH/policePeer/crypto/tls/ca.crt $WEBCERTS/policeOrg.pem
+cp $PROJPATH/repairShopPeer/crypto/tls/ca.crt $WEBCERTS/repairShopOrg.pem
+cp $PROJPATH/shopPeer/crypto/tls/ca.crt $WEBCERTS/shopOrg.pem
+cp $PEERS/insurance-org/users/Admin@insurance-org/msp/keystore/* $WEBCERTS/Admin@insurance-org-key.pem
+cp $PEERS/insurance-org/users/Admin@insurance-org/msp/signcerts/* $WEBCERTS/
+cp $PEERS/shop-org/users/Admin@shop-org/msp/keystore/* $WEBCERTS/Admin@shop-org-key.pem
+cp $PEERS/shop-org/users/Admin@shop-org/msp/signcerts/* $WEBCERTS/
+cp $PEERS/police-org/users/Admin@police-org/msp/keystore/* $WEBCERTS/Admin@police-org-key.pem
+cp $PEERS/police-org/users/Admin@police-org/msp/signcerts/* $WEBCERTS/
+cp $PEERS/repairshop-org/users/Admin@repairshop-org/msp/keystore/* $WEBCERTS/Admin@repairshop-org-key.pem
+cp $PEERS/repairshop-org/users/Admin@repairshop-org/msp/signcerts/* $WEBCERTS/
+
+
+

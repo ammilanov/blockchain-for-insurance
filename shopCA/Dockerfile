@@ -1,4 +1,4 @@
-FROM docker.io/hyperledger/fabric-ca:x86_64-1.0.0-alpha
+FROM docker.io/hyperledger/fabric-ca:x86_64-1.0.0
 
 RUN mkdir /ca
 COPY fabric-ca-server-config.yaml /ca
