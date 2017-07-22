@@ -3,138 +3,149 @@ version: '2'
 services:
   insurance-ca:
     container_name: insurance-ca
-    image: registry.ng.bluemix.net/bcins/insurance-ca
-    environment:
-      - FABRIC_CA_HOME=/ca
+    extends:
+      file: ./ca-base.yaml
+      service: ca-base
+    image: registry.eu-de.bluemix.net/bcins/insurance-ca
     ports:
-      - 7054:7054
-    command: fabric-ca-server start
+    - 7054:7054
 
   shop-ca:
     container_name: shop-ca
-    image: registry.ng.bluemix.net/bcins/shop-ca
-    environment:
-      - FABRIC_CA_HOME=/ca
+    extends:
+      file: ./ca-base.yaml
+      service: ca-base
+    image: registry.eu-de.bluemix.net/bcins/shop-ca
     ports:
-      - 8054:7054
-    command: fabric-ca-server start
-  
-  repairservice-ca:
-    container_name: repairservice-ca
-    image: registry.ng.bluemix.net/bcins/repairservice-ca
-    environment:
-      - FABRIC_CA_HOME=/ca
+    - 8054:7054
+
+  repairshop-ca:
+    container_name: repairshop-ca
+    extends:
+      file: ./ca-base.yaml
+      service: ca-base
+    image: registry.eu-de.bluemix.net/bcins/repairshop-ca
     ports:
-      - 9054:7054
-    command: fabric-ca-server start
+    - 9054:7054
+
+  police-ca:
+    container_name: police-ca
+    extends:
+      file: ./ca-base.yaml
+      service: ca-base
+    image: registry.eu-de.bluemix.net/bcins/police-ca
+    ports:
+    - 10054:7054
 
   orderer0:
     container_name: orderer0
-    image: registry.ng.bluemix.net/bcins/orderer
+    image: registry.eu-de.bluemix.net/bcins/orderer
     environment:
-      - ORDERER_GENERAL_LOGLEVEL=debug
-      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
-      - ORDERER_GENERAL_GENESISMETHOD=file
-      - ORDERER_GENERAL_GENESISFILE=/peer/crypto/orderer.block
-      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
-      - ORDERER_GENERAL_LOCALMSPDIR=/peer/crypto/localMspConfig
-      # - ORDERER_GENERAL_TLS_ENABLED=true
-      # - ORDERER_GENERAL_TLS_PRIVATEKEY=/peer/crypto/localMspConfig/keystore/ordererSigner.pem
-      # - ORDERER_GENERAL_TLS_CERTIFICATE=/peer/crypto/localMspConfig/signcerts/orderer0Signer.pem
-      # - ORDERER_GENERAL_TLS_ROOTCAS=[/peer/crypto/localMspConfig/cacerts/ordererOrg.pem]
-    working_dir: /peer
+    - ORDERER_GENERAL_LOGLEVEL=debug
+    - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+    - ORDERER_GENERAL_GENESISMETHOD=file
+    - ORDERER_GENERAL_GENESISFILE=/orderer/crypto/genesis.block
+    - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+    - ORDERER_GENERAL_LOCALMSPDIR=/orderer/crypto/msp
+    - ORDERER_GENERAL_TLS_ENABLED=true
+    - ORDERER_GENERAL_TLS_PRIVATEKEY=/orderer/crypto/tls/server.key
+    - ORDERER_GENERAL_TLS_CERTIFICATE=/orderer/crypto/tls/server.crt
+    - ORDERER_GENERAL_TLS_ROOTCAS=[/orderer/crypto/tls/ca.crt]
+    working_dir: /orderer
     command: orderer
     ports:
-      - 7050:7050
+    - 7050:7050
 
   insurance-peer:
     container_name: insurance-peer
     extends:
       file: ./peer-base.yaml
       service: peer-base
-    image: registry.ng.bluemix.net/bcins/insurance-peer
+    image: registry.eu-de.bluemix.net/bcins/insurance-peer
     environment:
-      - CORE_PEER_ID=insurance-peer
-      - CORE_PEER_ADDRESS=insurance-peer:7051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=insurance-peer:7051
-      - CORE_PEER_LOCALMSPID=InsuranceOrgMSP
-      - CORE_PEER_MSPCONFIGPATH=/peer/crypto/localMspConfig
-      # - CORE_PEER_TLS_CERT_FILE=/peer/crypto/localMspConfig/signcerts/insuranceOrgSigner.pem
-      # - CORE_PEER_TLS_KEY_FILE=/peer/crypto/localMspConfig/keystore/insuranceOrgSigner.pem
-      # - CORE_PEER_TLS_ROOTCERT_FILE=/peer/crypto/localMspConfig/cacerts/insuranceOrg.pem
-    volumes:
-      - /var/run/:/host/var/run/
+    - CORE_PEER_ID=insurance-peer
+    - CORE_PEER_ADDRESS=insurance-peer:7051
+    - CORE_PEER_GOSSIP_EXTERNALENDPOINT=insurance-peer:7051
+    - CORE_PEER_LOCALMSPID=InsuranceOrgMSP
     ports:
-      - 7051:7051
-      - 7053:7053
+    - 7051:7051
+    - 7053:7053
     depends_on:
-      - orderer0
+    - orderer0
 
   shop-peer:
     container_name: shop-peer
     extends:
       file: ./peer-base.yaml
       service: peer-base
-    image: registry.ng.bluemix.net/bcins/shop-peer
+    image: registry.eu-de.bluemix.net/bcins/shop-peer
     environment:
-      - CORE_PEER_ID=shop-peer
-      - CORE_PEER_ADDRESS=shop-peer:7051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=shop-peer:7051
-      - CORE_PEER_LOCALMSPID=ShopOrgMSP
-      - CORE_PEER_MSPCONFIGPATH=/peer/crypto/localMspConfig
-      # - CORE_PEER_TLS_CERT_FILE=/peer/crypto/localMspConfig/signcerts/shopOrgSigner.pem
-      # - CORE_PEER_TLS_KEY_FILE=/peer/crypto/localMspConfig/keystore/shopOrgSigner.pem
-      # - CORE_PEER_TLS_ROOTCERT_FILE=/peer/crypto/localMspConfig/cacerts/shopOrg.pem
-    volumes:
-      - /var/run/:/host/var/run/
+    - CORE_PEER_ID=shop-peer
+    - CORE_PEER_ADDRESS=shop-peer:7051
+    - CORE_PEER_GOSSIP_EXTERNALENDPOINT=shop-peer:7051
+    - CORE_PEER_LOCALMSPID=ShopOrgMSP
     ports:
-      - 8051:7051
-      - 8053:7053
+    - 8051:7051
+    - 8053:7053
     depends_on:
-      - orderer0
-      - insurance-peer
-  
-  repairservice-peer:
-    container_name: repairservice-peer
+    - orderer0
+    - insurance-peer
+
+  repairshop-peer:
+    container_name: repairshop-peer
     extends:
       file: ./peer-base.yaml
       service: peer-base
-    image: registry.ng.bluemix.net/bcins/repairservice-peer
+    image: registry.eu-de.bluemix.net/bcins/repairshop-peer
     environment:
-      - CORE_PEER_ID=repairservice-peer
-      - CORE_PEER_ADDRESS=repairservice-peer:7051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=repairservice-peer:7051
-      - CORE_PEER_LOCALMSPID=RepairServiceOrgMSP
-      - CORE_PEER_MSPCONFIGPATH=/peer/crypto/localMspConfig
-      # - CORE_PEER_TLS_CERT_FILE=/peer/crypto/localMspConfig/signcerts/repairServiceOrgSigner.pem
-      # - CORE_PEER_TLS_KEY_FILE=/peer/crypto/localMspConfig/keystore/repairServiceOrgSigner.pem
-      # - CORE_PEER_TLS_ROOTCERT_FILE=/peer/crypto/localMspConfig/cacerts/repairServiceOrg.pem
-    volumes:
-      - /var/run/:/host/var/run/
+    - CORE_PEER_ID=repairshop-peer
+    - CORE_PEER_ADDRESS=repairshop-peer:7051
+    - CORE_PEER_GOSSIP_EXTERNALENDPOINT=repairshop-peer:7051
+    - CORE_PEER_LOCALMSPID=RepairShopOrgMSP
     ports:
-      - 9051:7051
-      - 9053:7053
+    - 9051:7051
+    - 9053:7053
     depends_on:
-      - orderer0
-      - insurance-peer
-      - shop-peer
+    - orderer0
+    - insurance-peer
+    - shop-peer
 
-  web:
-    container_name: web
-    image: registry.ng.bluemix.net/bcins/web
+  police-peer:
+    container_name: police-peer
+    extends:
+      file: ./peer-base.yaml
+      service: peer-base
+    image: registry.eu-de.bluemix.net/bcins/police-peer
     environment:
-      - PORT=3000
-      - DOCKER_SOCKET_PATH=/host/var/run/docker.sock
-      - DOCKER_CCENV_IMAGE=hyperledger/fabric-ccenv:x86_64-1.0.0-alpha
+    - CORE_PEER_ID=police-peer
+    - CORE_PEER_ADDRESS=police-peer:7051
+    - CORE_PEER_GOSSIP_EXTERNALENDPOINT=police-peer:7051
+    - CORE_PEER_LOCALMSPID=PoliceOrgMSP
     ports:
-      - 3000:3000
-    volumes:
-      - /var/run/:/host/var/run/
+    - 10051:7051
+    - 10053:7053
     depends_on:
-      - orderer0
-      - insurance-ca
-      - insurance-peer
-      - shop-ca
-      - shop-peer
-      - repairservice-ca
-      - repairservice-peer
+    - orderer0
+    - insurance-peer
+    - shop-peer
+    - repairshop-peer
+
+  # web:
+  #   container_name: web
+  #   image: registry.eu-de.bluemix.net/bcins/web
+  #   environment:
+  #   - PORT=3000
+  #   - DOCKER_SOCKET_PATH=/host/var/run/docker.sock
+  #   - DOCKER_CCENV_IMAGE=hyperledger/fabric-ccenv:x86_64-1.0.0
+  #   ports:
+  #   - 3000:3000
+  #   volumes:
+  #   - /var/run/:/host/var/run/
+  #   depends_on:
+  #   - orderer0
+  #   - insurance-ca
+  #   - insurance-peer
+  #   - shop-ca
+  #   - shop-peer
+  #   - repairshop-ca
+  #   - repairshop-peer

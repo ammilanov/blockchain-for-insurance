@@ -298,7 +298,7 @@ spec:
         - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
           value: repairservice-peer:7051
         - name: CORE_PEER_LOCALMSPID
-          value: RepairServiceOrgMSP
+          value: RepairShopOrgMSP
         - name: CORE_PEER_MSPCONFIGPATH
           value: /peer/crypto/localMspConfig
 
@@ -329,7 +329,7 @@ spec:
         - name: DOCKER_SOCKET_PATH
           value: /host/var/run/docker.sock
         - name: DOCKER_CCENV_IMAGE
-          value: hyperledger/fabric-ccenv:x86_64-1.0.0-alpha
+          value: hyperledger/fabric-ccenv:x86_64-1.0.0
         volumeMounts:
         - name: docker-internals
           mountPath: /host/var/run/
