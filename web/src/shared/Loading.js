@@ -9,7 +9,9 @@ const Loading = ({ hidden, text, children }) => {
   }
   return (
     <div style={{ position: 'relative', cursor: 'progress' }}>
-      <div style={{ textAlign: 'center', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: '100' }}>
+      <div style={{ textAlign: 'center', position: 'absolute',
+      top: '50%', left: '50%', height: '100%', width: '100%',
+      transform: 'translate(-50%, -50%)', zIndex: '100' }}>
         <p>
           <span className='ibm-h1 ibm-spinner' />
         </p>

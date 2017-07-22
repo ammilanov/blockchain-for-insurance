@@ -6,11 +6,7 @@ import { injectIntl, intlShape } from 'react-intl';
 import moment from 'moment';
 
 const calcDate = (timestamp) => {
-  let date = 0;
-  date += timestamp.seconds.low * 1000;
-  date += (timestamp.seconds.high << 32) * 1000;
-  date += timestamp.nanos / 1000000;
-  return new Date(date);
+  return new Date(timestamp);
 };
 
 class Transaction extends React.Component {
@@ -57,7 +53,7 @@ Transaction.propTypes = {
   intl: intlShape.isRequired,
   data: PropTypes.shape({
     type: PropTypes.string.isRequired,
-    timestamp: PropTypes.object.isRequired
+    timestamp: PropTypes.string.isRequired
   })
 };
 

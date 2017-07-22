@@ -9,17 +9,25 @@ import { Socket } from 'engine.io-client';
 
 import * as Api from '../api';
 import Block from './Block';
+import Loading from '../../shared/Loading';
 
 const MAX_BLOCK_COUNT = 5;
-
+const BLOCK_EXPLORER_HIDDEN = 'block-explorer:hidden';
+const storeItem = (key, value) => {
+  localStorage.setItem(key, JSON.stringify(value));
+};
+const retrieveItem = (key, def) => {
+  const item = localStorage.getItem(key);
+  return item === null ? def : JSON.parse(item);
+};
 class Container extends React.Component {
 
   constructor(props) {
     super(props);
 
     this.state = {
-      blocks: [],
-      hidden: true,
+      blocks: null,
+      hidden: retrieveItem(BLOCK_EXPLORER_HIDDEN, true),
       hintHidden: true
     };
 
@@ -37,6 +45,10 @@ class Container extends React.Component {
       blocks = Array.isArray(blocks) ? blocks : [];
       this.setState({ blocks });
     });
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    storeItem(BLOCK_EXPLORER_HIDDEN, this.state.hidden);
   }
 
   toggleVisibility() {
@@ -71,7 +83,14 @@ class Container extends React.Component {
     const explorerMessage = hidden ? 'Show Explorer' : 'Hide Explorer';
     const explorerIcon = hidden ? '/img/icons/maximize_24.svg' :
       '/img/icons/minimize_24.svg';
-
+    const blocksDisplay = !hidden ?
+      (<Loading hidden={Array.isArray(blocks)}
+        text={intl.formatMessage({ id: 'Loading Blocks...' })}>
+        {Array.isArray(blocks) ?
+          blocks.map(block => <Block key={block.id} data={block} />) :
+          null}
+      </Loading>) :
+      null;
     return (
       <div className='block-explorer'>
         <div className={`toggle-visibility-button${hidden ? ' hidden' : ''}`}>
@@ -93,8 +112,8 @@ class Container extends React.Component {
                 <FormattedMessage id='Block Explorer' />
               </h2>
             </div>
-            <div>
-              {blocks.map(block => <Block key={block.id} data={block} />)}
+            <div style={{ width: '100%' }}>
+              {blocksDisplay}
             </div>
           </div>
         </div>
