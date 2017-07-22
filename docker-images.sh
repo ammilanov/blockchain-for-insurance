@@ -42,8 +42,8 @@ else
 fi
 
 if [ $DOWNLOAD ]; then
-    : ${CA_TAG:="x86_64-1.0.0-alpha"}
-    : ${FABRIC_TAG:="x86_64-1.0.0-alpha"}
+    : ${CA_TAG:="x86_64-1.0.0"}
+    : ${FABRIC_TAG:="x86_64-1.0.0"}
 
     echo "===> Pulling fabric Images"
     dockerFabricPull ${FABRIC_TAG}
@@ -62,12 +62,14 @@ if [ $BUILD ];
     echo '############################################################'
     docker build -t registry.eu-de.bluemix.net/bcins/orderer:latest orderer/
     docker build -t registry.eu-de.bluemix.net/bcins/insurance-peer:latest insurancePeer/
+    docker build -t registry.eu-de.bluemix.net/bcins/police-peer:latest policePeer/
     docker build -t registry.eu-de.bluemix.net/bcins/shop-peer:latest shopPeer/
-    docker build -t registry.eu-de.bluemix.net/bcins/repairservice-peer:latest repairServicePeer/
+    docker build -t registry.eu-de.bluemix.net/bcins/repairshop-peer:latest repairShopPeer/
     docker build -t registry.eu-de.bluemix.net/bcins/web:latest web/
     docker build -t registry.eu-de.bluemix.net/bcins/insurance-ca:latest insuranceCA/
+    docker build -t registry.eu-de.bluemix.net/bcins/police-ca:latest policeCA/
     docker build -t registry.eu-de.bluemix.net/bcins/shop-ca:latest shopCA/
-    docker build -t registry.eu-de.bluemix.net/bcins/repairservice-ca:latest repairServiceCA/
+    docker build -t registry.eu-de.bluemix.net/bcins/repairshop-ca:latest repairShopCA/
 fi
 if [ $PUSH ]; then
     echo '############################################################'
@@ -75,10 +77,12 @@ if [ $PUSH ]; then
     echo '############################################################'
     docker push registry.eu-de.bluemix.net/bcins/orderer:latest
     docker push registry.eu-de.bluemix.net/bcins/insurance-peer:latest
+    docker push registry.eu-de.bluemix.net/bcins/police-peer:latest
     docker push registry.eu-de.bluemix.net/bcins/shop-peer:latest
-    docker push registry.eu-de.bluemix.net/bcins/repairservice-peer:latest
+    docker push registry.eu-de.bluemix.net/bcins/repairshop-peer:latest
     docker push registry.eu-de.bluemix.net/bcins/web:latest
     docker push registry.eu-de.bluemix.net/bcins/insurance-ca:latest
     docker push registry.eu-de.bluemix.net/bcins/shop-ca:latest
-    docker push registry.eu-de.bluemix.net/bcins/repairservice-ca:latest
+    docker push registry.eu-de.bluemix.net/bcins/police-ca:latest
+    docker push registry.eu-de.bluemix.net/bcins/repairshow-ca:latest
 fi
