@@ -10,8 +10,8 @@ export function getBlocksFromSelfService(noOfLastBlocks) {
   return getBlocks('/self-service/api/blocks', noOfLastBlocks);
 }
 
-export function getBlocksFromRepairService(noOfLastBlocks) {
-  return getBlocks('/repair-service/api/blocks', noOfLastBlocks);
+export function getBlocksFromRepairShop(noOfLastBlocks) {
+  return getBlocks('/repair-shop/api/blocks', noOfLastBlocks);
 }
 
 export function getBlocksFromContractManagement(noOfLastBlocks) {

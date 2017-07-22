@@ -8,23 +8,33 @@ let status = 'down';
 let statusChangedCallbacks = [];
 
 // Setup clients per organization
-let insuranceClient = new OrganizationClient(
+const insuranceClient = new OrganizationClient(
   config.channelName,
   config.orderer0,
   config.insuranceOrg.peer,
-  config.insuranceOrg.ca
+  config.insuranceOrg.ca,
+  config.insuranceOrg.admin
 );
-let shopClient = new OrganizationClient(
+const shopClient = new OrganizationClient(
   config.channelName,
   config.orderer0,
   config.shopOrg.peer,
-  config.shopOrg.ca
+  config.shopOrg.ca,
+  config.shopOrg.admin
 );
-let repairServiceClient = new OrganizationClient(
+const repairShopClient = new OrganizationClient(
   config.channelName,
   config.orderer0,
-  config.repairServiceOrg.peer,
-  config.repairServiceOrg.ca
+  config.repairShopOrg.peer,
+  config.repairShopOrg.ca,
+  config.repairShopOrg.admin
+);
+const policeClient = new OrganizationClient(
+  config.channelName,
+  config.orderer0,
+  config.policeOrg.peer,
+  config.policeOrg.ca,
+  config.policeOrg.admin
 );
 
 function setStatus(s) {
@@ -51,32 +61,52 @@ export function isReady() {
   return status === 'ready';
 }
 
+function getAdminOrgs() {
+  return Promise.all([
+    insuranceClient.getOrgAdmin(),
+    shopClient.getOrgAdmin(),
+    repairShopClient.getOrgAdmin(),
+    policeClient.getOrgAdmin()
+  ]);
+}
+
 (async () => {
   // Login
   try {
     await Promise.all([
       insuranceClient.login(),
       shopClient.login(),
-      repairServiceClient.login()
+      repairShopClient.login(),
+      policeClient.login()
     ]);
   } catch (e) {
     console.log('Fatal error logging into blockchain organization clients!');
     console.log(e);
     process.exit(-1);
   }
+  // Setup event hubs
+  insuranceClient.initEventHubs();
+  shopClient.initEventHubs();
+  repairShopClient.initEventHubs();
+  policeClient.initEventHubs();
 
   // Bootstrap blockchain network
   try {
+    await getAdminOrgs();
     if (!(await insuranceClient.checkChannelMembership())) {
+      console.log('Default channel not found, attempting creation...');
       const createChannelResponse =
         await insuranceClient.createChannel(config.channelConfig);
       if (createChannelResponse.status === 'SUCCESS') {
-        console.log('Successfully created a new channel.');
+        console.log('Successfully created a new default channel.');
+        console.log('Joining peers to the default channel.');
         await Promise.all([
           insuranceClient.joinChannel(),
           shopClient.joinChannel(),
-          repairServiceClient.joinChannel()
+          repairShopClient.joinChannel(),
+          policeClient.joinChannel()
         ]);
+        // Wait for 10s for the peers to join the newly created channel
         await new Promise(resolve => { setTimeout(resolve, 10000); });
       }
     }
@@ -91,7 +121,8 @@ export function isReady() {
     await Promise.all([
       insuranceClient.initialize(),
       shopClient.initialize(),
-      repairServiceClient.initialize()
+      repairShopClient.initialize(),
+      policeClient.initialize()
     ]);
   } catch (e) {
     console.log('Fatal error initializing blockchain organization clients!');
@@ -100,13 +131,17 @@ export function isReady() {
   }
 
   // Install chaincode on all peers
-  let installedOnInsuranceOrg, installedOnShopOrg, installedOnRepairServiceOrg;
+  let installedOnInsuranceOrg, installedOnShopOrg, installedOnRepairShopOrg,
+    installedOnPoliceOrg;
   try {
+    await getAdminOrgs();
     installedOnInsuranceOrg = await insuranceClient.checkInstalled(
       config.chaincodeId, config.chaincodeVersion, config.chaincodePath);
     installedOnShopOrg = await shopClient.checkInstalled(
       config.chaincodeId, config.chaincodeVersion, config.chaincodePath);
-    installedOnRepairServiceOrg = await repairServiceClient.checkInstalled(
+    installedOnRepairShopOrg = await repairShopClient.checkInstalled(
+      config.chaincodeId, config.chaincodeVersion, config.chaincodePath);
+    installedOnPoliceOrg = await policeClient.checkInstalled(
       config.chaincodeId, config.chaincodeVersion, config.chaincodePath);
   } catch (e) {
     console.log('Fatal error getting installation status of the chaincode!');
@@ -114,33 +149,38 @@ export function isReady() {
     process.exit(-1);
   }
 
-  let installed = installedOnInsuranceOrg && installedOnShopOrg && installedOnRepairServiceOrg;
-  if (!installed) {
-    // Pull chaincode environment base image
+  if (!(installedOnInsuranceOrg && installedOnShopOrg
+    && installedOnRepairShopOrg && installedOnPoliceOrg)) {
     console.log('Chaincode is not installed, attempting installation...');
+
+    // Pull chaincode environment base image
     try {
+      await getAdminOrgs();
       const socketPath = process.env.DOCKER_SOCKET_PATH
         || '/var/run/docker.sock';
       const ccenvImage = process.env.DOCKER_CCENV_IMAGE
-        || 'hyperledger/fabric-ccenv:x86_64-1.0.0-alpha';
+        || 'hyperledger/fabric-ccenv:x86_64-1.0.0';
       const docker = new Docker({ socketPath });
       const images = await docker.listImages();
       const imageExists = images.some(
         i => i.RepoTags && i.RepoTags.some(tag => tag === ccenvImage));
       if (!imageExists) {
-        console.log('Base container image not present, pulling from Docker Hub...');
+        console.log(
+          'Base container image not present, pulling from Docker Hub...');
 
         await new Promise((resolve, reject) => {
           docker.pull(ccenvImage, (err, stream) => {
             if (err) {
-              reject(err); return;
+              reject(err);
+              return;
             }
             docker.modem.followProgress(stream, (err, output) => {
               if (err) {
-                reject(err); return;
+                reject(err);
+                return;
               }
               resolve();
-            }, ()=>{});
+            }, () => { });
           });
         });
 
@@ -152,17 +192,22 @@ export function isReady() {
       console.log(e);
       process.exit(-1);
     }
-    let installationPromises = [
-      insuranceClient.install(config.chaincodeId, config.chaincodeVersion, config.chaincodePath),
-      shopClient.install(config.chaincodeId, config.chaincodeVersion, config.chaincodePath),
-      repairServiceClient.install(config.chaincodeId, config.chaincodeVersion, config.chaincodePath)
+    const installationPromises = [
+      insuranceClient.install(
+        config.chaincodeId, config.chaincodeVersion, config.chaincodePath),
+      shopClient.install(
+        config.chaincodeId, config.chaincodeVersion, config.chaincodePath),
+      repairShopClient.install(
+        config.chaincodeId, config.chaincodeVersion, config.chaincodePath),
+      policeClient.install(
+        config.chaincodeId, config.chaincodeVersion, config.chaincodePath)
     ];
     try {
       await Promise.all(installationPromises);
       await new Promise(resolve => { setTimeout(resolve, 10000); });
-      console.log('Successfully installed chaincode on the blockchain network.');
+      console.log('Successfully installed chaincode on the default channel.');
     } catch (e) {
-      console.log('Fatal error installing chaincode on the blockchain network!');
+      console.log('Fatal error installing chaincode on the default channel!');
       console.log(e);
       process.exit(-1);
     }
@@ -171,11 +216,12 @@ export function isReady() {
     // Instantiating the chaincode on a single peer should be enough (for now)
     try {
       // Initial contract types
-      await insuranceClient.instantiate(config.chaincodeId, config.chaincodeVersion, config.chaincodePath, DEFAULT_CONTRACT_TYPES);
-      console.log('Successfully instantiated chaincode on the blockchain network.');
+      await insuranceClient.instantiate(config.chaincodeId,
+        config.chaincodeVersion, DEFAULT_CONTRACT_TYPES);
+      console.log('Successfully instantiated chaincode on all peers.');
       setStatus('ready');
     } catch (e) {
-      console.log('Fatal error instantiating chaincode on the blockchain network!');
+      console.log('Fatal error instantiating chaincode on some(all) peers!');
       console.log(e);
       process.exit(-1);
     }
@@ -186,4 +232,4 @@ export function isReady() {
 })();
 
 // Export organization clients
-export { insuranceClient, shopClient, repairServiceClient };
+export { insuranceClient, shopClient, repairShopClient, policeClient };

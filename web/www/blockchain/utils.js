@@ -15,57 +15,46 @@ import CAClient from 'fabric-ca-client';
 import { snakeToCamelCase, camelToSnakeCase } from 'json-style-converter';
 
 process.env.GOPATH = resolve(__dirname, '../../chaincode');
-const INSTALL_TIMEOUT = 120000;
-const _commonProto = loadProto(resolve(__dirname,
-  '../../node_modules/fabric-client/lib/protos/common/common.proto')).common;
+const JOIN_TIMEOUT = 120000, TRANSACTION_TIMEOUT = 120000;
 
 export class OrganizationClient extends EventEmitter {
 
-  constructor(channelName, ordererConfig, peerConfig, caConfig) {
+  constructor(channelName, ordererConfig, peerConfig, caConfig, admin) {
     super();
     this._channelName = channelName;
     this._ordererConfig = ordererConfig;
     this._peerConfig = peerConfig;
     this._caConfig = caConfig;
-
+    this._admin = admin;
     this._peers = [];
     this._eventHubs = [];
     this._client = new hfc();
 
     // Setup channel
-    this._chain = this._client.newChain(channelName);
+    this._channel = this._client.newChannel(channelName);
 
     // Setup orderer and peers
-    this._chain.addOrderer(new Orderer(ordererConfig.url, {
+    const orderer = this._client.newOrderer(ordererConfig.url, {
       pem: ordererConfig.pem,
       'ssl-target-name-override': ordererConfig.hostname
-    }));
+    });
+    this._channel.addOrderer(orderer);
 
-    let defaultPeer = new Peer(peerConfig.url, {
+    const defaultPeer = this._client.newPeer(peerConfig.url, {
       pem: peerConfig.pem,
       'ssl-target-name-override': peerConfig.hostname
     });
     this._peers.push(defaultPeer);
-    this._chain.addPeer(defaultPeer);
+    this._channel.addPeer(defaultPeer);
     this._adminUser = null;
-
-    // Setup event hubs
-    let defaultEventHub = new EventHub();
-    defaultEventHub.setPeerAddr(peerConfig.eventHubUrl, {
-      pem: peerConfig.pem,
-      'ssl-target-name-override': peerConfig.hostname
-    });
-    defaultEventHub.connect();
-    defaultEventHub.registerBlockEvent(
-      block => { this.emit('block', unmarshalBlock(block)); });
-    this._eventHubs.push(defaultEventHub);
   }
 
   async login() {
     try {
       this._client.setStateStore(
-        await hfc.newDefaultKeyValueStore(
-          { path: `./${this._peerConfig.hostname}` }));
+        await hfc.newDefaultKeyValueStore({
+          path: `./${this._peerConfig.hostname}`
+        }));
       this._adminUser = await getSubmitter(
         this._client, "admin", "adminpw", this._caConfig);
     } catch (e) {
@@ -74,72 +63,112 @@ export class OrganizationClient extends EventEmitter {
     }
   }
 
+  initEventHubs() {
+    // Setup event hubs
+    try {
+      const defaultEventHub = this._client.newEventHub();
+      defaultEventHub.setPeerAddr(this._peerConfig.eventHubUrl, {
+        pem: this._peerConfig.pem,
+        'ssl-target-name-override': this._peerConfig.hostname
+      });
+      defaultEventHub.connect();
+      defaultEventHub.registerBlockEvent(
+        block => { this.emit('block', unmarshalBlock(block)); });
+      this._eventHubs.push(defaultEventHub);
+    } catch (e) {
+      console.log(`Failed to configure event hubs. Error ${e.message}`);
+      throw e;
+    }
+  }
+
+  async getOrgAdmin() {
+    return this._client.createUser({
+      username: `Admin@${this._peerConfig.hostname}`,
+      mspid: this._caConfig.mspId,
+      cryptoContent: {
+        privateKeyPEM: this._admin.key,
+        signedCertPEM: this._admin.cert
+      }
+    });
+  }
+
   async initialize() {
     try {
-      await this._chain.initialize();
+      await this._channel.initialize();
     } catch (e) {
       console.log(`Failed to initialize chain. Error: ${e.message}`);
       throw e;
     }
   }
 
-  async createChannel(configTxBuffer) {
-    let request = {
-      envelope: configTxBuffer
+  async createChannel(envelope) {
+    const txId = this._client.newTransactionID();
+    const channelConfig = this._client.extractChannelConfig(envelope);
+    const signature = this._client.signChannelConfig(channelConfig);
+    const request = {
+      name: this._channelName,
+      orderer: this._channel.getOrderers()[0],
+      config: channelConfig,
+      signatures: [signature],
+      txId
     };
-    let response = await this._chain.createChannel(request);
+    const response = await this._client.createChannel(request);
+
     // Wait for 5sec to create channel
     await new Promise(resolve => { setTimeout(resolve, 5000); });
     return response;
   }
 
   async joinChannel() {
-    const nonce = utils.getNonce();
-    const txId = this._chain.buildTransactionID(nonce, this._adminUser);
-    const request = {
-      targets: this._peers,
-      txId,
-      nonce
-    };
-
     try {
-      const blockRegisteredPromises = this._eventHubs.map(eh => {
+      const genesisBlock = await this._channel.getGenesisBlock({
+        txId: this._client.newTransactionID()
+      });
+      const request = {
+        targets: this._peers,
+        txId: this._client.newTransactionID(),
+        block: genesisBlock
+      };
+      const joinedChannelPromises = this._eventHubs.map(eh => {
         eh.connect();
         return new Promise((resolve, reject) => {
+          let blockRegistration;
           const cb = block => {
+            debugger;
             clearTimeout(responseTimeout);
+            eh.unregisterBlockEvent(blockRegistration);
             if (block.data.data.length === 1) {
-              const envelope = _commonProto.Envelope.decode(block.data.data[0]);
-              const payload = _commonProto.Payload.decode(envelope.payload);
-              const channelHeader = _commonProto.ChannelHeader.decode(
-                payload.header.channel_header);
-
+              const channelHeader =
+                block.data.data[0].payload.header.channel_header;
               if (channelHeader.channel_id === this._channelName) {
-                eh.unregisterBlockEvent(cb);
                 resolve();
+              } else {
+                reject(new Error('Peer did not join an expected channel.'));
               }
             }
           };
 
-          let responseTimeout = setTimeout(() => {
-            eh.unregisterBlockEvent(cb);
+          blockRegistration = eh.registerBlockEvent(cb)
+          const responseTimeout = setTimeout(() => {
+            eh.unregisterBlockEvent(blockRegistration);
             reject(new Error('Peer did not respond in a timely fashion!'));
-          }, INSTALL_TIMEOUT);
-          eh.registerBlockEvent(cb);
+          }, JOIN_TIMEOUT);
         });
       });
 
-      const sendPromise = this._chain.joinChannel(request);
-      await Promise.all([blockRegisteredPromises, sendPromise]);
+      const completedPromise = joinedChannelPromises.concat([
+        this._channel.joinChannel(request)
+      ]);
+      await Promise.all(completedPromise);
     } catch (e) {
-      console.log('Error joining peer to channel.');
+      console.log(`Error joining peer to channel. Error: ${e.message}`);
       throw e;
     }
   }
 
   async checkChannelMembership() {
     try {
-      const channelConfig = await this._chain.getChannelConfig();
+      const channelConfig = await this._channel.getChannelConfig();
       return true;
     } catch (e) {
       return false;
@@ -147,7 +176,7 @@ export class OrganizationClient extends EventEmitter {
   }
 
   async checkInstalled(chaincodeId, chaincodeVersion, chaincodePath) {
-    let { chaincodes } = await this._chain.queryInstantiatedChaincodes();
+    let { chaincodes } = await this._channel.queryInstantiatedChaincodes();
     if (!Array.isArray(chaincodes)) {
       return false;
     }
@@ -158,179 +187,170 @@ export class OrganizationClient extends EventEmitter {
   }
 
   async install(chaincodeId, chaincodeVersion, chaincodePath) {
-    let nonce = utils.getNonce();
-    let txId = this._chain.buildTransactionID(nonce, this._adminUser);
-
-    let request = {
+    const request = {
       targets: this._peers,
       chaincodePath,
       chaincodeId,
-      chaincodeVersion,
-      txId,
-      nonce
+      chaincodeVersion
     };
 
     // Make install proposal to all peers
     let results;
     try {
-      results = await this._chain.sendInstallProposal(request);
+      results = await this._client.installChaincode(request);
     } catch (e) {
-      console.log('Error sending install proposal to peer!');
+      console.log(
+        `Error sending install proposal to peer! Error: ${e.message}`);
       throw e;
     }
-    let proposalResponses = results[0];
-    let allGood = proposalResponses.every(
-      pr => pr.response
-        && pr.response.status == 200);
+    const proposalResponses = results[0];
+    const allGood = proposalResponses
+      .every(pr => pr.response && pr.response.status == 200);
     return allGood;
   }
 
-  async instantiate(chaincodeId, chaincodeVersion, chaincodePath, ...args) {
-    let nonce = utils.getNonce();
-    let txId = this._chain.buildTransactionID(nonce, this._adminUser);
-
-    let request = {
-      chaincodePath,
-      chaincodeId,
-      chaincodeVersion,
-      fcn: 'init',
-      args: marshalArgs(args),
-      chainId: this._channelName,
-      txId,
-      nonce
-    };
-
-    let results = await this._chain.sendInstantiateProposal(request);
-    let proposalResponses = results[0];
-    let proposal = results[1];
-    let header = results[2];
-
-    let allGood = proposalResponses.every(pr => pr.response
-      && pr.response.status == 200);
-
-    if (!allGood) {
-      throw new Error(
-        `Proposal rejected by some (all) of the peers: ${proposalResponses}`);
-    }
-
-    request = {
-      proposalResponses,
-      proposal: results[1],
-      header: results[2]
-    };
-
-    const deployId = txId.toString();
-
-    let transactionCompletePromises = this._eventHubs.map(eh => {
-      eh.connect();
-
-      return new Promise((resolve, reject) => {
-        // Set timeout for the transaction response from the current peer
-        const responseTimeout = setTimeout(() => {
-          eh.unregisterTxEvent(deployId);
-          reject(new Error('Peer did not respond in a timely fashion!'));
-        }, INSTALL_TIMEOUT);
-
-        eh.registerTxEvent(deployId, (tx, code) => {
-          clearTimeout(responseTimeout);
-          eh.unregisterTxEvent(deployId);
-          if (code != 'VALID') {
-            reject(new Error(
-              `Peer has rejected transaction with code: ${code}`));
-          } else {
-            resolve();
-          }
-        });
-      });
-    });
-
-    transactionCompletePromises.push(this._chain.sendTransaction(request));
-    await transactionCompletePromises;
-  }
-
-  async invoke(chaincodeId, chaincodeVersion, chaincodePath, fcn, ...args) {
-    let nonce = utils.getNonce();
-    let txId = this._chain.buildTransactionID(nonce, this._adminUser);
-
-    let request = {
-      chaincodePath,
-      chaincodeId,
-      chaincodeVersion,
-      fcn,
-      args: marshalArgs(args),
-      chainId: this._channelName,
-      txId,
-      nonce
-    };
-
-    let results = await this._chain.sendTransactionProposal(request);
-    let proposalResponses = results[0];
-    let proposal = results[1];
-    let header = results[2];
-
-    let allGood = proposalResponses.every(pr => pr.response
-      && pr.response.status == 200);
-
-    if (!allGood) {
-      throw new Error(
-        `Proposal rejected by some (all) of the peers: ${proposalResponses}`);
-    }
-
-    request = {
-      proposalResponses,
-      proposal: results[1],
-      header: results[2]
-    };
-
-    const deployId = txId.toString();
-    let transactionCompletePromises = this._eventHubs.map(eh => {
-      eh.connect();
-
-      return new Promise((resolve, reject) => {
-        // Set timeout for the transaction response from the current peer
-        const responseTimeout = setTimeout(() => {
-          eh.unregisterTxEvent(deployId);
-          reject(new Error('Peer did not respond in a timely fashion!'));
-        }, INSTALL_TIMEOUT);
-
-        eh.registerTxEvent(deployId, (tx, code) => {
-          clearTimeout(responseTimeout);
-          eh.unregisterTxEvent(deployId);
-          if (code != 'VALID') {
-            reject(new Error(
-              `Peer has rejected transaction with code: ${code}`));
-          } else {
-            resolve();
-          }
-        });
-      });
-    });
-
-    transactionCompletePromises.push(this._chain.sendTransaction(request));
+  async instantiate(chaincodeId, chaincodeVersion, ...args) {
+    let proposalResponses, proposal;
+    const txId = this._client.newTransactionID();
     try {
+      const request = {
+        chaincodeType: 'golang',
+        chaincodeId,
+        chaincodeVersion,
+        fcn: 'init',
+        args: marshalArgs(args),
+        txId
+      };
+      const results = await this._channel.sendInstantiateProposal(request);
+      proposalResponses = results[0];
+      proposal = results[1];
+
+      let allGood = proposalResponses
+        .every(pr => pr.response && pr.response.status == 200);
+
+      if (!allGood) {
+        throw new Error(
+          `Proposal rejected by some (all) of the peers: ${proposalResponses}`);
+      }
+    } catch (e) {
+      throw e;
+    }
+
+    try {
+      const request = {
+        proposalResponses,
+        proposal
+      };
+      const deployId = txId.getTransactionID();
+      const transactionCompletePromises = this._eventHubs.map(eh => {
+        eh.connect();
+
+        return new Promise((resolve, reject) => {
+          // Set timeout for the transaction response from the current peer
+          const responseTimeout = setTimeout(() => {
+            eh.unregisterTxEvent(deployId);
+            reject(new Error('Peer did not respond in a timely fashion!'));
+          }, TRANSACTION_TIMEOUT);
+
+          eh.registerTxEvent(deployId, (tx, code) => {
+            clearTimeout(responseTimeout);
+            eh.unregisterTxEvent(deployId);
+            if (code != 'VALID') {
+              reject(new Error(
+                `Peer has rejected transaction with code: ${code}`));
+            } else {
+              resolve();
+            }
+          });
+        });
+      });
+
+      transactionCompletePromises.push(this._channel.sendTransaction(request));
       await transactionCompletePromises;
-      const payload = proposalResponses[0].response.payload;
-      return unmarshalResult([payload]);
     } catch (e) {
       throw e;
     }
   }
 
-  async query(chaincodeId, chaincodeVersion, chaincodePath, fcn, ...args) {
-    let nonce = utils.getNonce();
-    let txId = this._chain.buildTransactionID(nonce, this._adminUser);
+  async invoke(chaincodeId, chaincodeVersion, fcn, ...args) {
+    let proposalResponses, proposal;
+    const txId = this._client.newTransactionID();
+    try {
+      const request = {
+        chaincodeId,
+        chaincodeVersion,
+        fcn,
+        args: marshalArgs(args),
+        txId
+      };
+      const results = await this._channel.sendTransactionProposal(request);
+      proposalResponses = results[0];
+      proposal = results[1];
 
-    let request = {
-      chaincodePath,
+      const allGood = proposalResponses
+        .every(pr => pr.response && pr.response.status == 200);
+
+      if (!allGood) {
+        throw new Error(
+          `Proposal rejected by some (all) of the peers: ${proposalResponses}`);
+      }
+    } catch (e) {
+      throw e;
+    }
+
+    try {
+      const request = {
+        proposalResponses,
+        proposal
+      };
+
+      const transactionId = txId.getTransactionID();
+      const transactionCompletePromises = this._eventHubs.map(eh => {
+        eh.connect();
+
+        return new Promise((resolve, reject) => {
+          // Set timeout for the transaction response from the current peer
+          const responseTimeout = setTimeout(() => {
+            eh.unregisterTxEvent(transactionId);
+            reject(new Error('Peer did not respond in a timely fashion!'));
+          }, TRANSACTION_TIMEOUT);
+
+          eh.registerTxEvent(transactionId, (tx, code) => {
+            clearTimeout(responseTimeout);
+            eh.unregisterTxEvent(transactionId);
+            if (code != 'VALID') {
+              reject(new Error(
+                `Peer has rejected transaction with code: ${code}`));
+            } else {
+              resolve();
+            }
+          });
+        });
+      });
+
+      transactionCompletePromises.push(this._channel.sendTransaction(request));
+      try {
+        await transactionCompletePromises;
+        const payload = proposalResponses[0].response.payload;
+        return unmarshalResult([payload]);
+      } catch (e) {
+        throw e;
+      }
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async query(chaincodeId, chaincodeVersion, fcn, ...args) {
+    const request = {
       chaincodeId,
       chaincodeVersion,
       fcn,
       args: marshalArgs(args),
-      chainId: this._channelName,
-      txId,
-      nonce
+      txId: this._client.newTransactionID(),
     };
-    return unmarshalResult(await this._chain.queryByChaincode(request));
+    debugger;
+    return unmarshalResult(await this._channel.queryByChaincode(request));
   }
 
   async getBlocks(noOfLastBlocks) {
@@ -339,7 +359,7 @@ export class OrganizationClient extends EventEmitter {
       return [];
     }
 
-    const { height } = await this._chain.queryInfo();
+    const { height } = await this._channel.queryInfo();
     let blockCount;
     if (height.comp(noOfLastBlocks) > 0) {
       blockCount = noOfLastBlocks;
@@ -352,7 +372,7 @@ export class OrganizationClient extends EventEmitter {
       blockCount = Long.fromString(blockCount, blockCount.unsigned);
     }
 
-    const queryBlock = this._chain.queryBlock.bind(this._chain);
+    const queryBlock = this._channel.queryBlock.bind(this._channel);
     const blockPromises = {};
     blockPromises[Symbol.iterator] = function* () {
       for (let i = Long.fromInt(1); i.comp(blockCount) <= 0; i = i.add(1)) {
@@ -374,32 +394,30 @@ export class OrganizationClient extends EventEmitter {
  * @param {object} { url, mspId }
  * @returns the User object
  */
-export async function getSubmitter(
+async function getSubmitter(
   client, enrollmentID, enrollmentSecret, { url, mspId }) {
 
   try {
-    let user = await client.getUserContext(enrollmentID);
+    let user = await client.getUserContext(enrollmentID, true);
     if (user && user.isEnrolled()) {
       return user;
     }
 
     // Need to enroll with CA server
-    let ca = new CAClient(url);
-
+    const ca = new CAClient(url, { verify: false });
     try {
-      let enrollment = await ca.enroll({ enrollmentID, enrollmentSecret });
+      const enrollment = await ca.enroll({ enrollmentID, enrollmentSecret });
       user = new User(enrollmentID, client);
       await user.setEnrollment(enrollment.key, enrollment.certificate, mspId);
       await client.setUserContext(user);
       return user;
     } catch (e) {
       throw new Error(
-        `Failed to enroll and persist User. Error: ${e.messsage}`);
+        `Failed to enroll and persist User. Error: ${e.message}`);
     }
   } catch (e) {
     throw new Error(`Could not get UserContext! Error: ${e.message}`);
   }
-
 }
 
 export function wrapError(message, innerError) {
@@ -448,22 +466,17 @@ function unmarshalResult(result) {
 
 function unmarshalBlock(block) {
   const transactions = Array.isArray(block.data.data) ?
-    block.data.data.map(data => {
-      const envelope = _commonProto.Envelope.decode(data);
-      const payload = _commonProto.Payload.decode(envelope.payload);
-      const channelHeader = _commonProto.ChannelHeader.decode(
-        payload.header.channel_header);
-
-      const type = Object.keys(_commonProto.HeaderType).find(key =>
-        _commonProto.HeaderType[key] === channelHeader.type);
+    block.data.data.map(({ payload: { header, data } }) => {
+      const { channel_header } = header;
+      const { type, timestamp, epoch } = channel_header;
       return {
         type,
-        timestamp: channelHeader.timestamp
+        timestamp
       };
     }) : [];
   return {
     id: block.header.number.toString(),
-    fingerprint: block.header.data_hash.buffer.toString('hex').slice(0, 20),
+    fingerprint: block.header.data_hash.slice(0, 20),
     transactions
   };
 }

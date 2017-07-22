@@ -12,7 +12,9 @@ export async function getContractTypes(shopType) {
   try {
     return await query('contract_type_ls', { shopType });
   } catch (e) {
-    throw wrapError(`Error getting contract types for shop type ${shopType} : ${e.message}`, e);
+    throw wrapError(
+      `Error getting contract types for shop type ${shopType} : ${e.message}`
+      , e);
   }
 }
 
@@ -23,7 +25,8 @@ export async function createContract(contract) {
   try {
     let c = Object.assign({}, contract, { uuid: uuidV4() });
     const loginInfo = await invoke('contract_create', c);
-    if (!loginInfo ^ !!(loginInfo && loginInfo.username && loginInfo.password)) {
+    if (!loginInfo
+      ^ !!(loginInfo && loginInfo.username && loginInfo.password)) {
       return Object.assign(loginInfo || {}, { uuid: c.uuid });
     } else {
       throw new Error(loginInfo);
@@ -39,7 +42,8 @@ export async function createUser(user) {
   }
   try {
     const loginInfo = await invoke('user_create', user);
-    if (!loginInfo ^ !!(loginInfo && loginInfo.username && loginInfo.password)) {
+    if (!loginInfo ^
+      !!(loginInfo && loginInfo.username && loginInfo.password)) {
       return loginInfo;
     } else {
       throw new Error(loginInfo);
@@ -54,7 +58,8 @@ export async function authenticateUser(username, password) {
     return;
   }
   try {
-    let authenticated = await query('user_authenticate', { username, password });
+    let authenticated =
+      await query('user_authenticate', { username, password });
     if (authenticated === undefined || authenticated === null) {
       throw new Error('Unknown error, invalid response!');
     }
@@ -87,9 +92,11 @@ export const prependListener = client.prependListener.bind(client);
 export const removeListener = client.removeListener.bind(client);
 
 function invoke(fcn, ...args) {
-  return client.invoke(config.chaincodeId, config.chaincodeVersion, config.chaincodePath, fcn, ...args);
+  return client.invoke(
+    config.chaincodeId, config.chaincodeVersion, fcn, ...args);
 }
 
 function query(fcn, ...args) {
-  return client.query(config.chaincodeId, config.chaincodeVersion, config.chaincodePath, fcn, ...args);
+  return client.query(
+    config.chaincodeId, config.chaincodeVersion, fcn, ...args);
 }

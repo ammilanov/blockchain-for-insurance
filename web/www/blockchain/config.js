@@ -1,82 +1,109 @@
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
-let config = {
+const basePath = resolve(__dirname, '../../certs');
+const readCryptoFile =
+  filename => readFileSync(resolve(basePath, filename)).toString();
+const config = {
   channelName: 'default',
-  channelConfig: '../../channel.tx',
+  channelConfig: readFileSync(resolve(__dirname, '../../channel.tx')),
   chaincodeId: 'bcins',
-  chaincodeVersion: 'v1',
+  chaincodeVersion: 'v2',
   chaincodePath: 'bcins',
   orderer0: {
     hostname: 'orderer0',
-    url: 'grpc://orderer0:7050',
-    pem: ''
+    url: 'grpcs://orderer0:7050',
+    pem: readCryptoFile('ordererOrg.pem')
   },
   insuranceOrg: {
     peer: {
       hostname: 'insurance-peer',
-      url: 'grpc://insurance-peer:7051',
-      pem: '',
-      eventHubUrl: 'grpc://insurance-peer:7053',
+      url: 'grpcs://insurance-peer:7051',
+      eventHubUrl: 'grpcs://insurance-peer:7053',
+      pem: readCryptoFile('insuranceOrg.pem')
     },
     ca: {
       hostname: 'insurance-ca',
       url: 'https://insurance-ca:7054',
       mspId: 'InsuranceOrgMSP'
+    },
+    admin: {
+      key: readCryptoFile('Admin@insurance-org-key.pem'),
+      cert: readCryptoFile('Admin@insurance-org-cert.pem')
+    }
+  },
+  policeOrg: {
+    peer: {
+      hostname: 'police-peer',
+      url: 'grpcs://police-peer:7051',
+      eventHubUrl: 'grpcs://police-peer:7053',
+      pem: readCryptoFile('policeOrg.pem')
+    },
+    ca: {
+      hostname: 'police-ca',
+      url: 'https://police-ca:7054',
+      mspId: 'PoliceOrgMSP'
+    },
+    admin: {
+      key: readCryptoFile('Admin@police-org-key.pem'),
+      cert: readCryptoFile('Admin@police-org-cert.pem')
     }
   },
   shopOrg: {
     peer: {
       hostname: 'shop-peer',
-      url: 'grpc://shop-peer:7051',
-      pem: '',
-      eventHubUrl: 'grpc://shop-peer:7053',
+      url: 'grpcs://shop-peer:7051',
+      eventHubUrl: 'grpcs://shop-peer:7053',
+      pem: readCryptoFile('shopOrg.pem')
     },
     ca: {
       hostname: 'shop-ca',
       url: 'https://shop-ca:7054',
       mspId: 'ShopOrgMSP'
+    },
+    admin: {
+      key: readCryptoFile('Admin@shop-org-key.pem'),
+      cert: readCryptoFile('Admin@shop-org-cert.pem')
     }
   },
-  repairServiceOrg: {
+  repairShopOrg: {
     peer: {
-      hostname: 'repairservice-peer',
-      url: 'grpc://repairservice-peer:7051',
-      pem: '',
-      eventHubUrl: 'grpc://repairservice-peer:7053',
+      hostname: 'repairshop-peer',
+      url: 'grpcs://repairshop-peer:7051',
+      pem: readCryptoFile('repairShopOrg.pem'),
+      eventHubUrl: 'grpcs://repairshop-peer:7053',
     },
     ca: {
-      hostname: 'repairservice-ca',
-      url: 'https://repairservice-ca:7054',
-      mspId: 'RepairServiceOrgMSP'
+      hostname: 'repairshop-ca',
+      url: 'https://repairshop-ca:7054',
+      mspId: 'RepairShopOrgMSP'
+    },
+    admin: {
+      key: readCryptoFile('Admin@repairshop-org-key.pem'),
+      cert: readCryptoFile('Admin@repairshop-org-cert.pem')
     }
   }
 };
 
 if (process.env.LOCALCONFIG) {
-  config.orderer0.url = 'grpc://localhost:7050';
+  config.orderer0.url = 'grpcs://localhost:7050';
 
-  config.insuranceOrg.peer.url = 'grpc://localhost:7051';
-  config.shopOrg.peer.url = 'grpc://localhost:8051';
-  config.repairServiceOrg.peer.url = 'grpc://localhost:9051';
+  config.insuranceOrg.peer.url = 'grpcs://localhost:7051';
+  config.shopOrg.peer.url = 'grpcs://localhost:8051';
+  config.repairShopOrg.peer.url = 'grpcs://localhost:9051';
+  config.policeOrg.peer.url = 'grpcs://localhost:10051';
 
-  config.insuranceOrg.peer.eventHubUrl = 'grpc://localhost:7053';
-  config.shopOrg.peer.eventHubUrl = 'grpc://localhost:8053';
-  config.repairServiceOrg.peer.eventHubUrl = 'grpc://localhost:9053';
+  config.insuranceOrg.peer.eventHubUrl = 'grpcs://localhost:7053';
+  config.shopOrg.peer.eventHubUrl = 'grpcs://localhost:8053';
+  config.repairShopOrg.peer.eventHubUrl = 'grpcs://localhost:9053';
+  config.policeOrg.peer.eventHubUrl = 'grpcs://localhost:10053';
 
   config.insuranceOrg.ca.url = 'https://localhost:7054';
   config.shopOrg.ca.url = 'https://localhost:8054';
-  config.repairServiceOrg.ca.url = 'https://localhost:9054';
+  config.repairShopOrg.ca.url = 'https://localhost:9054';
+  config.policeOrg.ca.url = 'https://localhost:10054';
 }
 
-// // Setup root certificates
-// const basePath = resolve(__dirname, '../../certs');
-// config.orderer0.pem = readFileSync(resolve(basePath, 'ordererOrg.pem')).toString();
-// config.insuranceOrg.peer.pem = readFileSync(resolve(basePath, 'insuranceOrg.pem')).toString();
-// config.shopOrg.peer.pem = readFileSync(resolve(basePath, 'shopOrg.pem')).toString();
-// config.repairServiceOrg.peer.pem = readFileSync(resolve(basePath, 'repairServiceOrg.pem')).toString();
-
-config.channelConfig = readFileSync(resolve(__dirname, config.channelConfig));
 export default config;
 
 export const DEFAULT_CONTRACT_TYPES = [

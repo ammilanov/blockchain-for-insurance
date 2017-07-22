@@ -12,7 +12,7 @@ export default function(app) {
     frameguard: false
   }));
 
-  app.use(['shop/api/', 'self-service/api/', 'repair-service/api/', 'contract-management/api/'], expressRateLimit({
+  app.use(['shop/api/', 'self-service/api/', 'repair-shop/api/', 'contract-management/api/'], expressRateLimit({
     windowMs: 30 * 1000,
     delayMs: 0,
     max: 50

@@ -161,9 +161,11 @@ export const prependListener = client.prependListener.bind(client);
 export const removeListener = client.removeListener.bind(client);
 
 function invoke(fcn, ...args) {
-  return client.invoke(config.chaincodeId, config.chaincodeVersion, config.chaincodePath, fcn, ...args);
+  return client.invoke(
+    config.chaincodeId, config.chaincodeVersion, fcn, ...args);
 }
 
 function query(fcn, ...args) {
- return client.query(config.chaincodeId, config.chaincodeVersion, config.chaincodePath, fcn, ...args);
+  return client.query(
+    config.chaincodeId, config.chaincodeVersion, fcn, ...args);
 }
