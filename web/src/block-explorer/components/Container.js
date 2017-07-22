@@ -86,9 +86,11 @@ class Container extends React.Component {
     const blocksDisplay = !hidden ?
       (<Loading hidden={Array.isArray(blocks)}
         text={intl.formatMessage({ id: 'Loading Blocks...' })}>
-        {Array.isArray(blocks) ?
-          blocks.map(block => <Block key={block.id} data={block} />) :
-          null}
+        <div>
+          {Array.isArray(blocks) ?
+            blocks.map(block => <Block key={block.id} data={block} />) :
+            null}
+        </div>
       </Loading>) :
       null;
     return (
