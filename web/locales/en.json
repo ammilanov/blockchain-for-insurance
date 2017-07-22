@@ -18,11 +18,12 @@
 	"Go To The Shop Peer": "Go To The Shop Peer",
 	"Go To The Self Service Peer": "Go To The Police Peer",
 	"Go To The Repair Service Peer": "Go To The Repair Shop Peer",
-	"Go Go To The Insurance Peer": "Go To The Insurance Peer",
+	"Go To The Insurance Peer": "Go To The Insurance Peer",
 	"Go To The Bike Shop": "Go To The Bike Shop",
 	"Go To The Smart Phone Shop": "Go To The Smart Phone Shop",
 	"Go To The Ski Shop": "Go To The Ski Shop",
 	"Insurance Self-Service": "Insurance Self-Service",
+	"Go To The Police Peer": "Go To The Police Peer",
 	"Claim Processing": "Claim Processing",
 	"Claim Processing Description": "Explore and process newly filed claims",
 	"Process New Claims": "Process New Claims",
@@ -30,6 +31,5 @@
 	"Contract Templates Description": "Manage contract templates, available to merchants",
 	"Manage Available Contract Templates": "Manage Available Contract Templates",
 	"Contract Management": "Contract Management",
-	"Police": "Police",
-	"Go To The Insurance Peer": "Go To The Insurance Peer"
+  "Police": "Police"
 }

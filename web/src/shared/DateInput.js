@@ -5,6 +5,7 @@ import React, { Props } from 'react';
 import PropTypes from 'prop-types';
 import { injectIntl, intlShape } from 'react-intl';
 import moment from 'moment';
+import 'moment/locale/de';
 
 class DateInput extends React.Component {
   constructor(props) {
