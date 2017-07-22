@@ -13,7 +13,7 @@ export default {
     ],
     'shop': resolve(__dirname, 'src/shop/index'),
     'self-service': resolve(__dirname, 'src/self-service/index'),
-    'repair-service': resolve(__dirname, 'src/repair-service/index'),
+    'repair-shop': resolve(__dirname, 'src/repair-shop/index'),
     'contract-management': resolve(__dirname, 'src/contract-management/index'),
     'block-explorer': resolve(__dirname, 'src/block-explorer/index')
   },

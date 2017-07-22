@@ -43,8 +43,8 @@ html(lang='en')
                     a(role='menuitem', href='/shop/skis') #{ __('Skis') }
               li(role='presentation', class=(selfServiceActive ? 'ibm-highlight' : ''))
                 a(role='menuitem', href='/self-service') #{ __('Claim Self-Service') }
-              li(role='presentation', class=(repairServiceActive ? 'ibm-highlight' : ''))
-                a(role='menuitem', href='/repair-service') #{ __('Repair Service') }
+              li(role='presentation', class=(repairShopActive ? 'ibm-highlight' : ''))
+                a(role='menuitem', href='/repair-shop') #{ __('Repair Service') }
               li.ibm-haschildlist(role='presentation', class=(contractManagementActive ? 'ibm-highlight' : ''))
                 span(role='menuitem') #{ __('Contract Management') }
                 ul(role='menu')

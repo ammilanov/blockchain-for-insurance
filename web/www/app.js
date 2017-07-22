@@ -8,14 +8,14 @@ import shopRouter, { wsConfig as shopWsConfig }
   from './routers/shop.router';
 import selfServiceRouter, { wsConfig as selfServiceWsConfig }
   from './routers/self-service.router';
-import repairServiceRouter, { wsConfig as repairServiceWsConfig }
-  from './routers/repair-service.router';
+import repairShopRouter, { wsConfig as repairShopWsConfig }
+  from './routers/repair-shop.router';
 import contractManagementRouter, { wsConfig as contractMgmtWsConfig }
   from './routers/contract-management.router';
 
 const SHOP_ROOT_URL = '/shop';
 const SELF_SERVICE_ROOT_URL = '/self-service';
-const REPAIR_SERVICE_ROOT_URL = '/repair-service';
+const REPAIR_SHOP_ROOT_URL = '/repair-shop';
 const CONTRACT_MGMT_ROOT_URL = '/contract-management';
 
 const app = express();
@@ -25,7 +25,7 @@ const httpServer = new Server(app);
 const io = socketIo(httpServer);
 shopWsConfig(io.of(SHOP_ROOT_URL));
 selfServiceWsConfig(io.of(SELF_SERVICE_ROOT_URL));
-repairServiceWsConfig(io.of(REPAIR_SERVICE_ROOT_URL));
+repairShopWsConfig(io.of(REPAIR_SHOP_ROOT_URL));
 contractMgmtWsConfig(io.of(CONTRACT_MGMT_ROOT_URL));
 
 configureExpress(app);
@@ -37,7 +37,7 @@ app.get('/', (req, res) => {
 // Setup routing
 app.use(SHOP_ROOT_URL, shopRouter);
 app.use(SELF_SERVICE_ROOT_URL, selfServiceRouter);
-app.use(REPAIR_SERVICE_ROOT_URL, repairServiceRouter);
+app.use(REPAIR_SHOP_ROOT_URL, repairShopRouter);
 app.use(CONTRACT_MGMT_ROOT_URL, contractManagementRouter);
 
 export default httpServer;

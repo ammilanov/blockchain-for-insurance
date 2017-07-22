@@ -8,7 +8,7 @@ import { bindActionCreators } from 'redux';
 import { withRouter } from 'react-router-dom';
 
 import Loading from '../../shared/Loading';
-import * as repairServiceActions from '../actions/repairServiceActions';
+import * as repairShopActions from '../actions/repairShopActions';
 import RepairOrderComponent from './RepairOrderComponent';
 
 class RepairOrdersPage extends React.Component {
@@ -17,12 +17,12 @@ class RepairOrdersPage extends React.Component {
   }
 
   render() {
-    const { repairOrders, loading, intl, repairServiceActions } = this.props;
+    const { repairOrders, loading, intl, repairShopActions } = this.props;
 
     const cards = Array.isArray(repairOrders) ? repairOrders.map(
       (repairOrder, index) =>
         <RepairOrderComponent key={index} repairOrder={repairOrder}
-          onMarkedComplete={repairServiceActions.completeRepairOrder} />)
+          onMarkedComplete={repairShopActions.completeRepairOrder} />)
       : null;
     const orders = ((Array.isArray(cards) && cards.length > 0) ||
       cards === null) ? cards :
@@ -47,19 +47,19 @@ RepairOrdersPage.propTypes = {
   intl: intlShape.isRequired,
   repairOrders: PropTypes.array,
   loading: PropTypes.bool.isRequired,
-  repairServiceActions: PropTypes.object.isRequired
+  repairShopActions: PropTypes.object.isRequired
 };
 
 function mapStateToProps(state, ownProps) {
   return {
-    repairOrders: state.repairService.repairOrders,
-    loading: !Array.isArray(state.repairService.repairOrders)
+    repairOrders: state.repairShop.repairOrders,
+    loading: !Array.isArray(state.repairShop.repairOrders)
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    repairServiceActions: bindActionCreators(repairServiceActions, dispatch)
+    repairShopActions: bindActionCreators(repairShopActions, dispatch)
   };
 }
 

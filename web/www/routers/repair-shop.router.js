@@ -1,11 +1,11 @@
 import express from 'express';
-import * as RepairServicePeer from '../blockchain/repairServicePeer';
+import * as RepairShopPeer from '../blockchain/repairShopPeer';
 
 const router = express.Router();
 
 router.post('/api/repair-orders', async (req, res) => {
   try {
-    let repairOrders = await RepairServicePeer.getRepairOrders();
+    let repairOrders = await RepairShopPeer.getRepairOrders();
     res.json(repairOrders);
   } catch (e) {
     console.log(e);
@@ -21,7 +21,7 @@ router.post('/api/complete-repair-order', async (req, res) => {
   }
 
   try {
-    await RepairServicePeer.completeRepairOrder(uuid);
+    await RepairShopPeer.completeRepairOrder(uuid);
     res.json({ success: true });
   } catch (e) {
     console.log(e);
@@ -35,7 +35,7 @@ router.post('/api/blocks', async (req, res) => {
     res.json({ error: 'Invalid request' });
   }
   try {
-    const blocks = await RepairServicePeer.getBlocks(noOfLastBlocks);
+    const blocks = await RepairShopPeer.getBlocks(noOfLastBlocks);
     res.json(blocks);
   } catch (e) {
     res.json({ error: 'Error accessing blockchain.' });
@@ -43,11 +43,11 @@ router.post('/api/blocks', async (req, res) => {
 });
 
 router.get('*', (req, res) => {
-  res.render('repair-service', { repairServiceActive: true });
+  res.render('repair-shop', { repairShopActive: true });
 });
 
 function wsConfig(io) {
-  RepairServicePeer.on('block', block => { io.emit('block', block); });
+  RepairShopPeer.on('block', block => { io.emit('block', block); });
 }
 
 export default router;

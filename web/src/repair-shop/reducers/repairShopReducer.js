@@ -1,13 +1,13 @@
 'use strict';
 
-import * as RepairServiceActionType from '../actions/repairServiceActionTypes';
+import * as RepairShopActionType from '../actions/repairShopActionTypes';
 import * as initialState from './initialState';
 
-export default function repairServiceReducer(state = initialState.repairService, action) {
+export default function repairShopReducer(state = initialState.repairShop, action) {
   switch (action.type) {
-    case RepairServiceActionType.LOAD_REPAIR_ORDERS_SUCCESS:
+    case RepairShopActionType.LOAD_REPAIR_ORDERS_SUCCESS:
       return Object.assign({}, state, { repairOrders: action.repairOrders });
-    case RepairServiceActionType.COMPLETE_REPAIR_ORDER_SUCCESS:
+    case RepairShopActionType.COMPLETE_REPAIR_ORDER_SUCCESS:
       return Object.assign({}, state,
         {
           repairOrders: [

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"encoding/json"
+
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 )
@@ -20,7 +21,7 @@ type SmartContract struct {
 }
 
 var bcFunctions = map[string]func(shim.ChaincodeStubInterface, []string) pb.Response{
-	//Insurance Peer
+	// Insurance Peer
 	"contract_type_ls":         listContractTypes,
 	"contract_type_create":     createContractType,
 	"contract_type_set_active": setActiveContractType,
@@ -30,13 +31,13 @@ var bcFunctions = map[string]func(shim.ChaincodeStubInterface, []string) pb.Resp
 	"claim_process":            processClaim,
 	"user_authenticate":        authUser,
 	"user_get_info":            getUser,
-	//Shop Peer
+	// Shop Peer
 	"contract_create": createContract,
 	"user_create":     createUser,
-	//Repair Service Peer
+	// Repair Shop Peer
 	"repair_order_ls":       listRepairOrders,
 	"repair_order_complete": completeRepairOrder,
-	//Police Peer
+	// Police Peer
 	"theft_claim_ls":      listTheftClaims,
 	"theft_claim_process": processTheftClaim,
 }
