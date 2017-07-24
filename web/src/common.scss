@@ -15,7 +15,7 @@
 
 .network-container {
     width: 100%;
-    height: 520px;
+    height: 600px;
     position: relative;
     .network-circle {
         width: 75%;
@@ -63,7 +63,7 @@
             left: 50%;
             transform: translateX(-50%);
             &::after {
-                background-image: url('/img/icons/claim self-service.svg');
+                background-image: url('/img/icons/police.svg');
             }
         }
         &.repair-shop-peer {
