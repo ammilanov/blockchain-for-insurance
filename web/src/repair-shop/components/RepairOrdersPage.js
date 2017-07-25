@@ -12,18 +12,32 @@ import * as repairShopActions from '../actions/repairShopActions';
 import RepairOrderComponent from './RepairOrderComponent';
 
 class RepairOrdersPage extends React.Component {
+
+  static propTypes = {
+    intl: intlShape.isRequired,
+    repairOrders: PropTypes.array,
+    loading: PropTypes.bool.isRequired,
+    repairShopActions: PropTypes.object.isRequired
+  };
+
   constructor(props) {
     super(props);
+
+    this.toRepairOrderComponent = this.toRepairOrderComponent.bind(this);
+  }
+
+  toRepairOrderComponent(repairOrder, index) {
+    return (
+      <RepairOrderComponent key={index} repairOrder={repairOrder}
+        onMarkedComplete={this.props.repairShopActions.completeRepairOrder} />
+    );
   }
 
   render() {
-    const { repairOrders, loading, intl, repairShopActions } = this.props;
+    const { repairOrders, loading, intl } = this.props;
 
-    const cards = Array.isArray(repairOrders) ? repairOrders.map(
-      (repairOrder, index) =>
-        <RepairOrderComponent key={index} repairOrder={repairOrder}
-          onMarkedComplete={repairShopActions.completeRepairOrder} />)
-      : null;
+    const cards = Array.isArray(repairOrders) ?
+      repairOrders.map(this.toRepairOrderComponent) : null;
     const orders = ((Array.isArray(cards) && cards.length > 0) ||
       cards === null) ? cards :
       (
@@ -32,7 +46,7 @@ class RepairOrdersPage extends React.Component {
         </div>
       );
     return (
-      <Loading hidden={!loading}
+      <Loading hidden={loading}
         text={intl.formatMessage({ id: 'Loading Repair Orders...' })}>
         <div className='ibm-columns ibm-cards' style={{ minHeight: '30vh' }}
           data-widget='masonry' data-items='.ibm-col-5-1'>
@@ -43,17 +57,10 @@ class RepairOrdersPage extends React.Component {
   }
 }
 
-RepairOrdersPage.propTypes = {
-  intl: intlShape.isRequired,
-  repairOrders: PropTypes.array,
-  loading: PropTypes.bool.isRequired,
-  repairShopActions: PropTypes.object.isRequired
-};
-
 function mapStateToProps(state, ownProps) {
   return {
     repairOrders: state.repairShop.repairOrders,
-    loading: !Array.isArray(state.repairShop.repairOrders)
+    loading: Array.isArray(state.repairShop.repairOrders)
   };
 }
 

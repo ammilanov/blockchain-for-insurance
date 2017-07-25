@@ -134,7 +134,6 @@ export class OrganizationClient extends EventEmitter {
         return new Promise((resolve, reject) => {
           let blockRegistration;
           const cb = block => {
-            debugger;
             clearTimeout(responseTimeout);
             eh.unregisterBlockEvent(blockRegistration);
             if (block.data.data.length === 1) {
@@ -148,7 +147,7 @@ export class OrganizationClient extends EventEmitter {
             }
           };
 
-          blockRegistration = eh.registerBlockEvent(cb)
+          blockRegistration = eh.registerBlockEvent(cb);
           const responseTimeout = setTimeout(() => {
             eh.unregisterBlockEvent(blockRegistration);
             reject(new Error('Peer did not respond in a timely fashion!'));
@@ -349,7 +348,6 @@ export class OrganizationClient extends EventEmitter {
       args: marshalArgs(args),
       txId: this._client.newTransactionID(),
     };
-    debugger;
     return unmarshalResult(await this._channel.queryByChaincode(request));
   }
 
@@ -367,19 +365,19 @@ export class OrganizationClient extends EventEmitter {
       blockCount = height;
     }
     if (typeof blockCount === 'number') {
-      blockCount = Long.fromNumber(blockCount, blockCount.unsigned);
+      blockCount = Long.fromNumber(blockCount, height.unsigned);
     } else if (typeof blockCount === 'string') {
-      blockCount = Long.fromString(blockCount, blockCount.unsigned);
+      blockCount = Long.fromString(blockCount, height.unsigned);
     }
-
+    blockCount = blockCount.toNumber();
     const queryBlock = this._channel.queryBlock.bind(this._channel);
     const blockPromises = {};
     blockPromises[Symbol.iterator] = function* () {
-      for (let i = Long.fromInt(1); i.comp(blockCount) <= 0; i = i.add(1)) {
-        yield queryBlock(height.sub(i).toInt());
+      for (let i = 1; i <= blockCount; i++) {
+        yield queryBlock(height.sub(i).toNumber());
       }
     };
-    const blocks = await Promise.all(blockPromises);
+    const blocks = await Promise.all([...blockPromises]);
     return blocks.map(unmarshalBlock);
   }
 }

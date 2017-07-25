@@ -11,6 +11,16 @@ import * as shopActions from '../actions/shopActions';
 import ProductCarousel from './ProductCarousel';
 
 class ChooseProductPage extends React.Component {
+
+  static propTypes = {
+    intl: intlShape.isRequired,
+    shopType: PropTypes.string.isRequired,
+    products: PropTypes.array.isRequired,
+    productInfo: PropTypes.object,
+    shopActions: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired
+  };
+
   constructor(props) {
     super(props);
     this.state = {
@@ -134,15 +144,6 @@ class ChooseProductPage extends React.Component {
     );
   }
 }
-
-ChooseProductPage.propTypes = {
-  intl: intlShape.isRequired,
-  shopType: PropTypes.string.isRequired,
-  products: PropTypes.array.isRequired,
-  productInfo: PropTypes.object,
-  shopActions: PropTypes.object.isRequired,
-  history: PropTypes.object.isRequired
-};
 
 function generateSerialNo() {
   return Math.random().toString(36).substring(7).toUpperCase();

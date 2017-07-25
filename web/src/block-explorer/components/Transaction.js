@@ -11,6 +11,15 @@ const calcDate = (timestamp) => {
 };
 
 class Transaction extends React.Component {
+
+  static propTypes = {
+    intl: intlShape.isRequired,
+    data: PropTypes.shape({
+      type: PropTypes.string.isRequired,
+      timestamp: PropTypes.string.isRequired
+    })
+  };
+
   constructor(props) {
     super(props);
 
@@ -49,13 +58,5 @@ class Transaction extends React.Component {
     );
   }
 }
-
-Transaction.propTypes = {
-  intl: intlShape.isRequired,
-  data: PropTypes.shape({
-    type: PropTypes.string.isRequired,
-    timestamp: PropTypes.string.isRequired
-  })
-};
 
 export default injectIntl(Transaction);

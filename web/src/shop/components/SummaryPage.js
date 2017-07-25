@@ -6,6 +6,13 @@ import { FormattedMessage } from 'react-intl';
 import { connect } from 'react-redux';
 
 class SummaryPage extends React.Component {
+
+  static propTypes = {
+    productInfo: PropTypes.object.isRequired,
+    contractInfo: PropTypes.object.isRequired,
+    user: PropTypes.object.isRequired
+  };
+
   constructor(props) {
     super(props);
   }
@@ -38,12 +45,6 @@ class SummaryPage extends React.Component {
     );
   }
 }
-
-SummaryPage.propTypes = {
-  productInfo: PropTypes.object.isRequired,
-  contractInfo: PropTypes.object.isRequired,
-  user: PropTypes.object.isRequired
-};
 
 function mapStateToProps(state, ownProps) {
   return {

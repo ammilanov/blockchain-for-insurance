@@ -12,9 +12,9 @@ export default {
       resolve(__dirname, 'src/common')
     ],
     'shop': resolve(__dirname, 'src/shop/index'),
-    'self-service': resolve(__dirname, 'src/self-service/index'),
+    'police': resolve(__dirname, 'src/police/index'),
     'repair-shop': resolve(__dirname, 'src/repair-shop/index'),
-    'contract-management': resolve(__dirname, 'src/contract-management/index'),
+    'insurance': resolve(__dirname, 'src/insurance/index'),
     'block-explorer': resolve(__dirname, 'src/block-explorer/index')
   },
   target: 'web',

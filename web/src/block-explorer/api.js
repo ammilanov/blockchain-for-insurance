@@ -15,7 +15,7 @@ export function getBlocksFromRepairShop(noOfLastBlocks) {
 }
 
 export function getBlocksFromContractManagement(noOfLastBlocks) {
-  return getBlocks('/contract-management/api/blocks', noOfLastBlocks);
+  return getBlocks('/insurance/api/blocks', noOfLastBlocks);
 }
 
 function getBlocks(url, noOfLastBlocks) {

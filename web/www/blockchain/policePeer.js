@@ -19,8 +19,13 @@ export async function listTheftClaims() {
 export async function processTheftClaim(
   { uuid, contractUuid, isTheft, fileReference }) {
   if (!isReady()) {
+    return;
+  }
+  try {
     await invoke('theft_claim_process',
       { uuid, contractUuid, isTheft, fileReference });
+  } catch (e) {
+    throw wrapError(`Error processing theft claim ${e.message}`, e);
   }
 }
 

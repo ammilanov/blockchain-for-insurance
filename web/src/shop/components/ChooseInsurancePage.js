@@ -13,6 +13,18 @@ import DateInput from '../../shared/DateInput';
 import * as insuranceActions from '../actions/insuranceActions';
 
 class ChooseInsurancePage extends React.Component {
+
+  static propTypes = {
+    intl: intlShape.isRequired,
+    shopType: PropTypes.string.isRequired,
+    productInfo: PropTypes.object.isRequired,
+    contractsLoaded: PropTypes.bool.isRequired,
+    contractTypes: PropTypes.array.isRequired,
+    contractInfo: PropTypes.object,
+    insuranceActions: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired
+  };
+
   constructor(props) {
     super(props);
 
@@ -139,7 +151,7 @@ class ChooseInsurancePage extends React.Component {
 
     return (
       <Loading hidden={contractsLoaded}
-        text={intl.formatMessage({id: 'Loading Contracts...' })}>
+        text={intl.formatMessage({ id: 'Loading Contracts...' })}>
         <div>
           <div className='ibm-columns'>
             <div className='ibm-col-1-1'>
@@ -172,13 +184,13 @@ class ChooseInsurancePage extends React.Component {
                 </p>
                 <p className='ibm-form-elem-grp'>
                   <label><FormattedMessage className='ibm-field-label'
-                  id='Theft Protection' />:</label>
+                    id='Theft Protection' />:</label>
                   <span className='ibm-input-group'>
                     <input type='checkbox' className='ibm-styled-checkbox'
                       ref='theftInsuredField'
                       checked={contractType.theftInsured} readOnly />
                     <label className='ibm-field-label'
-                    htmlFor='theftInsuredField' />
+                      htmlFor='theftInsuredField' />
                   </span>
                 </p>
                 <p>
@@ -244,17 +256,6 @@ class ChooseInsurancePage extends React.Component {
   }
 }
 
-ChooseInsurancePage.propTypes = {
-  intl: intlShape.isRequired,
-  shopType: PropTypes.string.isRequired,
-  productInfo: PropTypes.object.isRequired,
-  contractsLoaded: PropTypes.bool.isRequired,
-  contractTypes: PropTypes.array.isRequired,
-  contractInfo: PropTypes.object,
-  insuranceActions: PropTypes.object.isRequired,
-  history: PropTypes.object.isRequired
-};
-
 function mapStateToProps(state, ownProps) {
   return {
     shopType: state.shop.type,
@@ -272,4 +273,4 @@ function mapDispatchToProps(dispatch) {
 }
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(
-    injectIntl(ChooseInsurancePage)));
+  injectIntl(ChooseInsurancePage)));

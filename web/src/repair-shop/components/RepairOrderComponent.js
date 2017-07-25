@@ -5,6 +5,12 @@ import PropTypes from 'prop-types';
 import { FormattedMessage } from 'react-intl';
 
 class RepairOrderComponent extends React.Component {
+
+  static propTypes = {
+    repairOrder: PropTypes.object.isRequired,
+    onMarkedComplete: PropTypes.func.isRequired
+  };
+
   constructor(props) {
     super(props);
 
@@ -52,10 +58,5 @@ class RepairOrderComponent extends React.Component {
     );
   }
 }
-
-RepairOrderComponent.propTypes = {
-  repairOrder: PropTypes.object.isRequired,
-  onMarkedComplete: PropTypes.func.isRequired
-};
 
 export default RepairOrderComponent;

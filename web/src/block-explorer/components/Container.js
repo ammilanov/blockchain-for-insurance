@@ -22,6 +22,10 @@ const retrieveItem = (key, def) => {
 };
 class Container extends React.Component {
 
+  static propTypes = {
+    intl: intlShape.isRequired
+  };
+
   constructor(props) {
     super(props);
 
@@ -36,7 +40,7 @@ class Container extends React.Component {
     this.hideHint = this.hideHint.bind(this);
 
     setTimeout(async () => {
-      const socket = io('/contract-management');
+      const socket = io('/insurance');  // Getting all events from the Insurance
       let blocks = await Api.getBlocksFromContractManagement(MAX_BLOCK_COUNT);
       socket.on('block', block => {
         console.log(block);
@@ -107,15 +111,24 @@ class Container extends React.Component {
         </div>
         <div className={`contents${hidden ? ' hidden' : ''}`}
           style={{ textAlign: 'center' }}>
-          <div style={{ display: 'inline-block', textAlign: 'initial' }}>
-            <div>
-              <h2 className='ibm-h2'
-                style={{ paddingTop: '10px', paddingLeft: '10px' }}>
-                <FormattedMessage id='Block Explorer' />
-              </h2>
-            </div>
-            <div style={{ width: '100%' }}>
-              {blocksDisplay}
+          <div style={{
+            display: 'inline-block', textAlign: 'initial', height: '100%'
+          }}>
+            <div style={{
+              display: 'flex', flexDirection: 'column',
+              height: '100%'
+            }}>
+              <div>
+                <h2 className='ibm-h2'
+                  style={{ paddingTop: '10px', paddingLeft: '10px' }}>
+                  <FormattedMessage id='Block Explorer' />
+                </h2>
+              </div>
+              <div style={{ flex: 'auto' }}>
+                <div style={{ height: '100%', width: '100%' }}>
+                  {blocksDisplay}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -124,9 +137,5 @@ class Container extends React.Component {
   }
 
 }
-
-Container.propTypes = {
-  intl: intlShape.isRequired
-};
 
 export default injectIntl(Container);

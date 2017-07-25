@@ -3,7 +3,6 @@
 import React, { Props } from 'react';
 import PropTypes from 'prop-types';
 import { FormattedMessage } from 'react-intl';
-import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 
 const app = ({ children }) => {
@@ -16,7 +15,9 @@ const app = ({ children }) => {
           </h2>
         </div>
       </div>
-      {children}
+      <div>
+        {children}
+      </div>
     </div>
   );
 };

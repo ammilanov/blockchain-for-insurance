@@ -14,44 +14,60 @@ import * as userMgmtActions from '../actions/userMgmtActions';
 import { enterContract } from '../api';
 
 class PaymentPage extends React.Component {
+
+  static propTypes = {
+    intl: intlShape.isRequired,
+    shopType: PropTypes.string.isRequired,
+    productInfo: PropTypes.object.isRequired,
+    contractInfo: PropTypes.object.isRequired,
+    payed: PropTypes.bool.isRequired,
+    user: PropTypes.object,
+    paymentActions: PropTypes.object.isRequired,
+    userMgmtActions: PropTypes.object.isRequired
+  };
+
   constructor(props) {
     super(props);
 
-    this.state = { loading: false, inTransaction: false };
+    this.inTransaction = false;
+    this.state = { loading: false };
     this.order = this.order.bind(this);
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.payed && !this.state.inTransaction) {
-      this.setState({ loading: true, inTransaction: true }, async () => {
-        const { email, firstName, lastName } = nextProps.contractInfo;
-        const user = { username: email, firstName, lastName };
-        // Sign the insurance contract, the login info should be returned
-        let loginInfo = await enterContract(user, nextProps.contractInfo.uuid, {
-          item: {
-            id: parseInt(nextProps.productInfo.index),
-            brand: nextProps.productInfo.brand,
-            model: nextProps.productInfo.model,
-            price: nextProps.productInfo.price,
-            serialNo: nextProps.productInfo.serialNo
-          },
-          startDate: new Date(nextProps.contractInfo.startDate),
-          endDate: new Date(nextProps.contractInfo.endDate)
-        });
-        this.setState({ loading: false, inTransaction: false }, () => {
-          this.props.userMgmtActions.setUser({
-            firstName, lastName,
-            username: email, password: loginInfo.password
-          });
-          this.setState({ redirectToNext: true });
-        });
-      });
-    }
+    this.executeTransaction = this.executeTransaction.bind(this);
   }
 
   order() {
-    this.setState({ loading: true });
-    this.props.paymentActions.pay();
+    this.setState({ loading: true }, async () => {
+      this.props.paymentActions.pay();
+      await this.executeTransaction();
+      this.setState({ redirectToNext: true });
+    });
+  }
+
+  async executeTransaction() {
+    if (this.inTransaction) {
+      return;
+    }
+    this.inTransaction = true;
+    const { contractInfo, productInfo, userMgmtActions } = this.props;
+    const { email, firstName, lastName } = contractInfo;
+    const user = { username: email, firstName, lastName };
+    const loginInfo = await enterContract(user, contractInfo.uuid, {
+      item: {
+        id: parseInt(productInfo.index),
+        brand: productInfo.brand,
+        model: productInfo.model,
+        price: productInfo.price,
+        serialNo: productInfo.serialNo,
+        description: productInfo.description
+      },
+      startDate: new Date(contractInfo.startDate),
+      endDate: new Date(contractInfo.endDate)
+    });
+    userMgmtActions.setUser({
+      firstName, lastName,
+      username: email, password: loginInfo.password
+    });
+    this.inTransaction = false;
   }
 
   render() {
@@ -166,17 +182,6 @@ class PaymentPage extends React.Component {
     );
   }
 }
-
-PaymentPage.propTypes = {
-  intl: intlShape.isRequired,
-  shopType: PropTypes.string.isRequired,
-  productInfo: PropTypes.object.isRequired,
-  contractInfo: PropTypes.object.isRequired,
-  payed: PropTypes.bool.isRequired,
-  user: PropTypes.object,
-  paymentActions: PropTypes.object.isRequired,
-  userMgmtActions: PropTypes.object.isRequired
-};
 
 function mapStateToProps(state, ownProps) {
   return {

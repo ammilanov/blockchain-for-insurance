@@ -28,10 +28,10 @@ export function completeRepairOrder(uuid) {
   return async dispatch => {
     try {
       await Api.completeRepairOrder(uuid);
+      dispatch(completeRepairOrderSuccess(uuid));
     } catch (e) {
       console.log(e);
     }
-    dispatch(completeRepairOrderSuccess(uuid));
   };
 }
 

@@ -8,6 +8,13 @@ import moment from 'moment';
 import 'moment/locale/de';
 
 class DateInput extends React.Component {
+
+  static propTypes = {
+    onChange: PropTypes.func,
+    value: PropTypes.number,
+    intl: intlShape.isRequired
+  };
+
   constructor(props) {
     super(props);
 
@@ -43,11 +50,5 @@ class DateInput extends React.Component {
     );
   }
 }
-
-DateInput.propTypes = {
-  onChange: PropTypes.func,
-  value: PropTypes.number,
-  intl: intlShape.isRequired
-};
 
 export default injectIntl(DateInput);
