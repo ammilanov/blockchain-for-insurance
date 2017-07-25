@@ -8,7 +8,7 @@ import (
 
 func listTheftClaims(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	results := []interface{}{}
-	resultsIterator, err := stub.GetStateByPartialCompositeKey(prefixContract, []string{})
+	resultsIterator, err := stub.GetStateByPartialCompositeKey(prefixClaim, []string{})
 	if err != nil {
 		return shim.Error(err.Error())
 	}
@@ -20,7 +20,7 @@ func listTheftClaims(stub shim.ChaincodeStubInterface, args []string) pb.Respons
 			return shim.Error(err.Error())
 		}
 
-		var claim claim
+		claim := claim{}
 		err = json.Unmarshal(kvResult.Value, &claim)
 		if err != nil {
 			return shim.Error(err.Error())
@@ -38,6 +38,14 @@ func listTheftClaims(stub shim.ChaincodeStubInterface, args []string) pb.Respons
 		err = json.Unmarshal(kvResult.Value, &result)
 		if err != nil {
 			return shim.Error(err.Error())
+		}
+
+		// Fetch key
+		prefix, keyParts, err := stub.SplitCompositeKey(kvResult.Key)
+		if len(keyParts) < 2 {
+			result.UUID = prefix
+		} else {
+			result.UUID = keyParts[1]
 		}
 
 		results = append(results, result)

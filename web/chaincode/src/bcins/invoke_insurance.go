@@ -332,7 +332,9 @@ func fileClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	// Update the claim index in the contract
 	contract.ClaimIndex = append(contract.ClaimIndex, claimKey)
-	contractKey, err := stub.CreateCompositeKey(prefixContract, []string{contract.Username, claim.ContractUUID})
+	contractKey, err := stub.CreateCompositeKey(prefixContract,
+		[]string{contract.Username, claim.ContractUUID})
+
 	if err != nil {
 		return shim.Error(err.Error())
 	}
