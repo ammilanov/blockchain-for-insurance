@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 )
@@ -30,23 +31,41 @@ func listTheftClaims(stub shim.ChaincodeStubInterface, args []string) pb.Respons
 			continue
 		}
 
+		contract, err := claim.Contract(stub)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+		if contract == nil {
+			return shim.Error("Error acquiring contracts.")
+		}
+
 		result := struct {
 			UUID         string `json:"uuid"`
 			ContractUUID string `json:"contract_uuid"`
 			Item         item   `json:"item"`
+			Description  string `json:"description"`
+			Name         string `json:"name"`
 		}{}
-		err = json.Unmarshal(kvResult.Value, &result)
-		if err != nil {
-			return shim.Error(err.Error())
-		}
 
-		// Fetch key
+		// Fetch key and set other properties
 		prefix, keyParts, err := stub.SplitCompositeKey(kvResult.Key)
 		if len(keyParts) < 2 {
 			result.UUID = prefix
 		} else {
+			result.ContractUUID = keyParts[0]
 			result.UUID = keyParts[1]
 		}
+		user, err := contract.User(stub)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+		if user == nil {
+			return shim.Error("Error acquiring user.")
+		}
+
+		result.Item = contract.Item
+		result.Description = claim.Description
+		result.Name = fmt.Sprintf("%s %s", user.FirstName, user.LastName)
 
 		results = append(results, result)
 	}

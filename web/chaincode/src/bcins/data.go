@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"errors"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"strings"
 )
@@ -58,8 +59,10 @@ type claim struct {
 type ClaimStatus int8
 
 const (
+	// The claims status is unknown
+	ClaimStatusUnknown ClaimStatus = iota
 	// The claim is new
-	ClaimStatusNew ClaimStatus = iota
+	ClaimStatusNew
 	// The claim has been rejected (either by the insurer, or by authorities
 	ClaimStatusRejected
 	// The item is up for repairs, or has been repaired
@@ -78,7 +81,7 @@ func (s *ClaimStatus) UnmarshalJSON(b []byte) error {
 
 	switch strings.ToUpper(value) {
 	default:
-		fallthrough
+		*s = ClaimStatusUnknown
 	case "N":
 		*s = ClaimStatusNew
 	case "J":
@@ -100,6 +103,8 @@ func (s ClaimStatus) MarshalJSON() ([]byte, error) {
 	switch s {
 	default:
 		fallthrough
+	case ClaimStatusUnknown:
+		value = ""
 	case ClaimStatusNew:
 		value = "N"
 	case ClaimStatusRejected:
@@ -107,9 +112,9 @@ func (s ClaimStatus) MarshalJSON() ([]byte, error) {
 	case ClaimStatusRepair:
 		value = "R"
 	case ClaimStatusReimbursement:
-		value = "J"
-	case ClaimStatusTheftConfirmed:
 		value = "F"
+	case ClaimStatusTheftConfirmed:
+		value = "P"
 	}
 
 	return json.Marshal(value)
@@ -181,6 +186,30 @@ func (c *contract) Claims(stub shim.ChaincodeStubInterface) ([]claim, error) {
 	}
 
 	return claims, nil
+}
+
+func (c *contract) User(stub shim.ChaincodeStubInterface) (*user, error) {
+	user := &user{}
+
+	if len(c.Username) == 0 {
+		return nil, errors.New("Invalid user name in contract.")
+	}
+
+	userKey, err := stub.CreateCompositeKey(prefixUser, []string{c.Username})
+	if err != nil {
+		return nil, err
+	}
+
+	userAsBytes, err := stub.GetState(userKey)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(userAsBytes, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (c *claim) Contract(stub shim.ChaincodeStubInterface) (*contract, error) {

@@ -186,7 +186,7 @@ func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 
 		// Construct response struct
 		result := struct {
-			UUID string `json:"uuid"`
+			UUID   string `json:"uuid"`
 			*contract
 			Claims []claim `json:"claims,omitempty"`
 		}{}
@@ -257,8 +257,9 @@ func listClaims(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 			return shim.Error(err.Error())
 		}
 
-		// Skip the processing of the result, if the status does not equal the query status
-		if result.Status != status {
+		// Skip the processing of the result, if the status
+		// does not equal the query status; list all, if unknown
+		if result.Status != status && status != ClaimStatusUnknown {
 			continue
 		}
 
@@ -382,10 +383,12 @@ func processClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 		return shim.Error(err.Error())
 	}
 
-	if claim.Status == ClaimStatusNew && claim.IsTheft {
-		return shim.Error("Theft must first be confirmed by authorities.")
-	} else if claim.Status != ClaimStatusNew { // Check if altering claim is allowed
+	if !claim.IsTheft && claim.Status != ClaimStatusNew {
+		// Check if altering claim is allowed
 		return shim.Error("Cannot change the status of a non-new claim.")
+	}
+	if claim.IsTheft && claim.Status == ClaimStatusNew {
+		return shim.Error("Theft must first be confirmed by authorities.")
 	}
 
 	claim.Status = input.Status // Assigning requested status
