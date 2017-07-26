@@ -130,22 +130,22 @@ services:
     - shop-peer
     - repairshop-peer
 
-  # web:
-  #   container_name: web
-  #   image: registry.eu-de.bluemix.net/bcins/web
-  #   environment:
-  #   - PORT=3000
-  #   - DOCKER_SOCKET_PATH=/host/var/run/docker.sock
-  #   - DOCKER_CCENV_IMAGE=hyperledger/fabric-ccenv:x86_64-1.0.0
-  #   ports:
-  #   - 3000:3000
-  #   volumes:
-  #   - /var/run/:/host/var/run/
-  #   depends_on:
-  #   - orderer0
-  #   - insurance-ca
-  #   - insurance-peer
-  #   - shop-ca
-  #   - shop-peer
-  #   - repairshop-ca
-  #   - repairshop-peer
+  web:
+    container_name: web
+    image: registry.eu-de.bluemix.net/bcins/web
+    environment:
+    - PORT=3000
+    - DOCKER_SOCKET_PATH=/host/var/run/docker.sock
+    - DOCKER_CCENV_IMAGE=hyperledger/fabric-ccenv:x86_64-1.0.0
+    ports:
+    - 3000:3000
+    volumes:
+    - /var/run/:/host/var/run/
+    depends_on:
+    - orderer0
+    - insurance-ca
+    - insurance-peer
+    - shop-ca
+    - shop-peer
+    - repairshop-ca
+    - repairshop-peer
