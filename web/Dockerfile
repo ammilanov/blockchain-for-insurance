@@ -10,9 +10,11 @@ COPY . /app
 WORKDIR /app
 RUN apt update && apt install -y git build-essential \
       && npm i && npm i --only=dev \
+      && git apply block-decoder.patch \
       && npm run build \
       && npm prune \
-      && apt remove -y git build-essential
+      && apt remove -y git build-essential \
+      && rm block-decoder.patch
 
 EXPOSE 3000
 CMD ["npm", "run", "serve"]
