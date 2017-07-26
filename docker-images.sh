@@ -84,5 +84,5 @@ if [ $PUSH ]; then
     docker push registry.eu-de.bluemix.net/bcins/insurance-ca:latest
     docker push registry.eu-de.bluemix.net/bcins/shop-ca:latest
     docker push registry.eu-de.bluemix.net/bcins/police-ca:latest
-    docker push registry.eu-de.bluemix.net/bcins/repairshow-ca:latest
+    docker push registry.eu-de.bluemix.net/bcins/repairshop-ca:latest
 fi
