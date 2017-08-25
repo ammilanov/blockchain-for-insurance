@@ -1,5 +1,5 @@
---- web/node_modules/fabric-client/lib/BlockDecoder.js
-+++ web/node_modules/fabric-client/lib/BlockDecoder.js
+--- node_modules/fabric-client/lib/BlockDecoder.js
++++ node_modules/fabric-client/lib/BlockDecoder.js
 @@ -1237,7 +1237,7 @@
  	range_query_info.reads_info = {};
  	// reads_info is one of QueryReads

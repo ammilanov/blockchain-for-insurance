@@ -52,22 +52,22 @@ spec:
         - name: GODEBUG
           value: netdns=go
 
-# Repair Serivce CA
+# Repair Shop CA
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: repairservice-ca
+  name: repairshop-ca
 spec:
   template:
     metadata:
       labels:
-        app: repairservice-ca
+        app: repairshop-ca
         type: ca
     spec:
       containers:
-      - name: repairservice-ca
-        image: registry.eu-de.bluemix.net/bcins/repairservice-ca:latest
+      - name: repairshop-ca
+        image: registry.eu-de.bluemix.net/bcins/repairshop-ca:latest
         command: ["fabric-ca-server"]
         args: ["start"]
         ports:
@@ -77,6 +77,33 @@ spec:
           value: /ca
         - name: GODEBUG
           value: netdns=go
+
+# Police CA
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: police-ca
+spec:
+  template:
+    metadata:
+      labels:
+        app: police-ca
+        type: ca
+    spec:
+      containers:
+      - name: repairshop-ca
+        image: registry.eu-de.bluemix.net/bcins/police-ca:latest
+        command: ["fabric-ca-server"]
+        args: ["start"]
+        ports:
+        - containerPort: 7054
+        env:
+        - name: FABRIC_CA_HOME
+          value: /ca
+        - name: GODEBUG
+          value: netdns=go
+
 # Orderer
 ---
 apiVersion: extensions/v1beta1
@@ -96,7 +123,7 @@ spec:
         command: ["orderer"]
         ports:
         - containerPort: 7050
-        workingDir: /peer
+        workingDir: /orderer
         env:
         - name: ORDERER_GENERAL_LOGLEVEL
           value: debug
@@ -105,11 +132,19 @@ spec:
         - name: ORDERER_GENERAL_GENESISMETHOD
           value: file
         - name: ORDERER_GENERAL_GENESISFILE
-          value: /peer/crypto/orderer.block
+          value: /orderer/crypto/genesis.block
         - name: ORDERER_GENERAL_LOCALMSPID
           value: OrdererMSP
         - name: ORDERER_GENERAL_LOCALMSPDIR
-          value: /peer/crypto/localMspConfig
+          value: /orderer/crypto/msp
+        - name: ORDERER_GENERAL_TLS_ENABLED
+          value: "true"
+        - name: ORDERER_GENERAL_TLS_PRIVATEKEY
+          value: /orderer/crypto/tls/server.key
+        - name: ORDERER_GENERAL_TLS_CERTIFICATE
+          value: /orderer/crypto/tls/server.crt
+        - name: ORDERER_GENERAL_TLS_ROOTCAS
+          value: "[/orderer/crypto/tls/ca.crt]"
         - name: GODEBUG
           value: netdns=go
 
@@ -134,7 +169,7 @@ spec:
       - name: insurance-peer
         image: registry.eu-de.bluemix.net/bcins/insurance-peer:latest
         command: ["peer"]
-        args: ["node", "start", "--peer-defaultchain=false"]
+        args: ["node", "start"]
         ports:
         - containerPort: 7051
         - containerPort: 7053
@@ -153,18 +188,24 @@ spec:
           value: default.svc.cluster.local
         - name: CORE_LOGGING_LEVEL
           value: DEBUG
-        - name: CORE_NEXT
-          value: "true"
+        - name: CORE_PEER_TLS_ENABLED
+          value: "true" 
         - name: CORE_PEER_ENDORSER_ENABLED
-          value: "true"
+          value: "true" 
         - name: CORE_PEER_GOSSIP_USELEADERELECTION
-          value: "true"
+          value: "true" 
         - name: CORE_PEER_GOSSIP_ORGLEADER
-          value: "false"
-        - name: CORE_PEER_GOSSIP_SKIPHANDSHAKE
-          value: "true"
+          value: "false" 
         - name: CORE_PEER_PROFILE_ENABLED
-          value: "true"
+          value: "true" 
+        - name: CORE_PEER_MSPCONFIGPATH
+          value: /peer/crypto/msp
+        - name: CORE_PEER_TLS_CERT_FILE
+          value: /peer/crypto/tls/server.crt
+        - name: CORE_PEER_TLS_KEY_FILE
+          value: /peer/crypto/tls/server.key
+        - name: CORE_PEER_TLS_ROOTCERT_FILE
+          value: /peer/crypto/tls/ca.crt
         - name: CORE_PEER_ID
           value: insurance-peer
         - name: CORE_PEER_ADDRESS
@@ -173,8 +214,6 @@ spec:
           value: insurance-peer:7051
         - name: CORE_PEER_LOCALMSPID
           value: InsuranceOrgMSP
-        - name: CORE_PEER_MSPCONFIGPATH
-          value: /peer/crypto/localMspConfig
         - name: GODEBUG
           value: netdns=go
 
@@ -199,7 +238,7 @@ spec:
       - name: shop-peer
         image: registry.eu-de.bluemix.net/bcins/shop-peer:latest
         command: ["peer"]
-        args: ["node", "start", "--peer-defaultchain=false"]
+        args: ["node", "start"]
         ports:
         - containerPort: 7051
         - containerPort: 7053
@@ -218,18 +257,24 @@ spec:
           value: default.svc.cluster.local
         - name: CORE_LOGGING_LEVEL
           value: DEBUG
-        - name: CORE_NEXT
-          value: "true"
+        - name: CORE_PEER_TLS_ENABLED
+          value: "true" 
         - name: CORE_PEER_ENDORSER_ENABLED
-          value: "true"
+          value: "true" 
         - name: CORE_PEER_GOSSIP_USELEADERELECTION
-          value: "true"
+          value: "true" 
         - name: CORE_PEER_GOSSIP_ORGLEADER
-          value: "false"
-        - name: CORE_PEER_GOSSIP_SKIPHANDSHAKE
-          value: "true"
+          value: "false" 
         - name: CORE_PEER_PROFILE_ENABLED
-          value: "true"
+          value: "true" 
+        - name: CORE_PEER_MSPCONFIGPATH
+          value: /peer/crypto/msp
+        - name: CORE_PEER_TLS_CERT_FILE
+          value: /peer/crypto/tls/server.crt
+        - name: CORE_PEER_TLS_KEY_FILE
+          value: /peer/crypto/tls/server.key
+        - name: CORE_PEER_TLS_ROOTCERT_FILE
+          value: /peer/crypto/tls/ca.crt
         - name: CORE_PEER_ID
           value: shop-peer
         - name: CORE_PEER_ADDRESS
@@ -238,22 +283,20 @@ spec:
           value: shop-peer:7051
         - name: CORE_PEER_LOCALMSPID
           value: ShopOrgMSP
-        - name: CORE_PEER_MSPCONFIGPATH
-          value: /peer/crypto/localMspConfig
         - name: GODEBUG
           value: netdns=go
 
-# Repair Service Peer
+# Repair Shop Peer
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: repairservice-peer
+  name: repairshop-peer
 spec:
   template:
     metadata:
       labels:
-        app: repairservice-peer
+        app: repairshop-peer
         type: peer
     spec:
       volumes:
@@ -261,10 +304,10 @@ spec:
         hostPath:
           path: /var/run/
       containers:
-      - name: repairservice-peer
-        image: registry.eu-de.bluemix.net/bcins/repairservice-peer:latest
+      - name: repairshop-peer
+        image: registry.eu-de.bluemix.net/bcins/repairshop-peer:latest
         command: ["peer"]
-        args: ["node", "start", "--peer-defaultchain=false"]
+        args: ["node", "start"]
         ports:
         - containerPort: 7051
         - containerPort: 7053
@@ -283,28 +326,101 @@ spec:
           value: default.svc.cluster.local
         - name: CORE_LOGGING_LEVEL
           value: DEBUG
-        - name: CORE_NEXT
-          value: "true"
+        - name: CORE_PEER_TLS_ENABLED
+          value: "true" 
         - name: CORE_PEER_ENDORSER_ENABLED
-          value: "true"
+          value: "true" 
         - name: CORE_PEER_GOSSIP_USELEADERELECTION
-          value: "true"
+          value: "true" 
         - name: CORE_PEER_GOSSIP_ORGLEADER
-          value: "false"
-        - name: CORE_PEER_GOSSIP_SKIPHANDSHAKE
-          value: "true"
+          value: "false" 
         - name: CORE_PEER_PROFILE_ENABLED
-          value: "true"
+          value: "true" 
+        - name: CORE_PEER_MSPCONFIGPATH
+          value: /peer/crypto/msp
+        - name: CORE_PEER_TLS_CERT_FILE
+          value: /peer/crypto/tls/server.crt
+        - name: CORE_PEER_TLS_KEY_FILE
+          value: /peer/crypto/tls/server.key
+        - name: CORE_PEER_TLS_ROOTCERT_FILE
+          value: /peer/crypto/tls/ca.crt
         - name: CORE_PEER_ID
-          value: repairservice-peer
+          value: repairshop-peer
         - name: CORE_PEER_ADDRESS
-          value: repairservice-peer:7051
+          value: repairshop-peer:7051
         - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
-          value: repairservice-peer:7051
+          value: repairshop-peer:7051
         - name: CORE_PEER_LOCALMSPID
           value: RepairShopOrgMSP
+        - name: GODEBUG
+          value: netdns=go
+
+# Police Peer
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: police-peer
+spec:
+  template:
+    metadata:
+      labels:
+        app: police-peer
+        type: peer
+    spec:
+      volumes:
+      - name: docker-internals
+        hostPath:
+          path: /var/run/
+      containers:
+      - name: police-peer
+        image: registry.eu-de.bluemix.net/bcins/police-peer:latest
+        command: ["peer"]
+        args: ["node", "start"]
+        ports:
+        - containerPort: 7051
+        - containerPort: 7053
+        workingDir: /peer
+        volumeMounts:
+        - name: docker-internals
+          mountPath: /host/var/run/
+        env:
+        - name: CORE_VM_ENDPOINT
+          value: unix:///host/var/run/docker.sock
+        - name: CORE_VM_DOCKER_HOSTCONFIG_DNS
+          value: 10.10.10.10
+        - name: CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE
+          value: bridge
+        - name: CORE_VM_DOCKER_HOSTCONFIG_DNSSEARCH
+          value: default.svc.cluster.local
+        - name: CORE_LOGGING_LEVEL
+          value: DEBUG
+        - name: CORE_PEER_TLS_ENABLED
+          value: "true" 
+        - name: CORE_PEER_ENDORSER_ENABLED
+          value: "true" 
+        - name: CORE_PEER_GOSSIP_USELEADERELECTION
+          value: "true" 
+        - name: CORE_PEER_GOSSIP_ORGLEADER
+          value: "false" 
+        - name: CORE_PEER_PROFILE_ENABLED
+          value: "true" 
         - name: CORE_PEER_MSPCONFIGPATH
-          value: /peer/crypto/localMspConfig
+          value: /peer/crypto/msp
+        - name: CORE_PEER_TLS_CERT_FILE
+          value: /peer/crypto/tls/server.crt
+        - name: CORE_PEER_TLS_KEY_FILE
+          value: /peer/crypto/tls/server.key
+        - name: CORE_PEER_TLS_ROOTCERT_FILE
+          value: /peer/crypto/tls/ca.crt
+        - name: CORE_PEER_ID
+          value: police-peer
+        - name: CORE_PEER_ADDRESS
+          value: police-peer:7051
+        - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
+          value: police-peer:7051
+        - name: CORE_PEER_LOCALMSPID
+          value: PoliceOrgMSP
         - name: GODEBUG
           value: netdns=go
 
@@ -377,10 +493,24 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: repairservice-ca
+  name: repairshop-ca
 spec:
   selector:
-    app: repairservice-ca
+    app: repairshop-ca
+  ports:
+  - protocol: TCP
+    port: 7054
+    targetPort: 7054
+
+# Police CA
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: police-ca
+spec:
+  selector:
+    app: police-ca
   ports:
   - protocol: TCP
     port: 7054
@@ -438,15 +568,34 @@ spec:
     port: 7053
     targetPort: 7053
 
-# Repair Service Peer
+# Repair Shop Peer
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: repairservice-peer
+  name: repairshop-peer
 spec:
   selector:
-    app: repairservice-peer
+    app: repairshop-peer
+  ports:
+  - name: requests
+    protocol: TCP
+    port: 7051
+    targetPort: 7051
+  - name: events
+    protocol: TCP
+    port: 7053
+    targetPort: 7053
+
+# Police Peer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: police-peer
+spec:
+  selector:
+    app: police-peer
   ports:
   - name: requests
     protocol: TCP

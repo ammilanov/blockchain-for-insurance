@@ -129,7 +129,7 @@ func setActiveContractType(stub shim.ChaincodeStubInterface, args []string) pb.R
 		return shim.Error(err.Error())
 	}
 	if len(valAsBytes) == 0 {
-		return shim.Error("Contract Type coould not be found")
+		return shim.Error("Contract Type could not be found")
 	}
 	err = json.Unmarshal(valAsBytes, &ct)
 	if err != nil {
@@ -186,7 +186,7 @@ func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 
 		// Construct response struct
 		result := struct {
-			UUID   string `json:"uuid"`
+			UUID string `json:"uuid"`
 			*contract
 			Claims []claim `json:"claims,omitempty"`
 		}{}
