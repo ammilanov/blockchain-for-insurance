@@ -6,10 +6,12 @@ import { FormattedMessage } from 'react-intl';
 
 class TheftClaimComponent extends React.Component {
 
-  static propTypes = {
-    theftClaim: PropTypes.object.isRequired,
-    onProcessedClaim: PropTypes.func.isRequired
-  };
+  static get propTypes() {
+    return {
+      theftClaim: PropTypes.object.isRequired,
+      onProcessedClaim: PropTypes.func.isRequired
+    };
+  }
 
   constructor(props) {
     super(props);

@@ -15,16 +15,18 @@ import { enterContract } from '../api';
 
 class PaymentPage extends React.Component {
 
-  static propTypes = {
-    intl: intlShape.isRequired,
-    shopType: PropTypes.string.isRequired,
-    productInfo: PropTypes.object.isRequired,
-    contractInfo: PropTypes.object.isRequired,
-    payed: PropTypes.bool.isRequired,
-    user: PropTypes.object,
-    paymentActions: PropTypes.object.isRequired,
-    userMgmtActions: PropTypes.object.isRequired
-  };
+  static get propTypes() {
+    return {
+      intl: intlShape.isRequired,
+      shopType: PropTypes.string.isRequired,
+      productInfo: PropTypes.object.isRequired,
+      contractInfo: PropTypes.object.isRequired,
+      payed: PropTypes.bool.isRequired,
+      user: PropTypes.object,
+      paymentActions: PropTypes.object.isRequired,
+      userMgmtActions: PropTypes.object.isRequired
+    };
+  }
 
   constructor(props) {
     super(props);

@@ -6,10 +6,12 @@ import { FormattedMessage } from 'react-intl';
 
 class RepairOrderComponent extends React.Component {
 
-  static propTypes = {
-    repairOrder: PropTypes.object.isRequired,
-    onMarkedComplete: PropTypes.func.isRequired
-  };
+  static get propTypes() {
+    return {
+      repairOrder: PropTypes.object.isRequired,
+      onMarkedComplete: PropTypes.func.isRequired
+    };
+  }
 
   constructor(props) {
     super(props);

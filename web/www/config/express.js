@@ -27,11 +27,10 @@ export default function (app) {
   app.use(bodyParser.json());
 
   // Serve static files with lower priority
-  app.use(express.static(path.join(__dirname, '../..', 'static')));
-
+  app.use(express.static(path.resolve(__dirname, '../..', 'static')));
+  const webpackConfig = isDev ? require('../../webpack.config.dev').default : require('../webpack.config.prod').default;
   if (isDev) {
     const webpack = require('webpack');
-    const webpackConfig = require('../../webpack.config.dev').default;
     const compiler = webpack(webpackConfig);
     // Configure logging
     app.use(morgan('dev'));
@@ -42,7 +41,8 @@ export default function (app) {
     }));
     app.use(require('webpack-hot-middleware')(compiler));
   } else {
-    app.use(express.static(path.join(__dirname, '../..', 'dist')));
+    console.log(webpackConfig.output.path);
+    app.use(express.static(webpackConfig.output.path));
   }
 
   // Set up internationalization for the backend

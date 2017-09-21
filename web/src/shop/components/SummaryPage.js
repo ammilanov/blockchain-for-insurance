@@ -7,11 +7,13 @@ import { connect } from 'react-redux';
 
 class SummaryPage extends React.Component {
 
-  static propTypes = {
-    productInfo: PropTypes.object.isRequired,
-    contractInfo: PropTypes.object.isRequired,
-    user: PropTypes.object.isRequired
-  };
+  static get propTypes() {
+    return {
+      productInfo: PropTypes.object.isRequired,
+      contractInfo: PropTypes.object.isRequired,
+      user: PropTypes.object.isRequired
+    };
+  }
 
   constructor(props) {
     super(props);

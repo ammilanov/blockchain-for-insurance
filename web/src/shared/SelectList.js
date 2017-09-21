@@ -5,12 +5,14 @@ import PropTypes from 'prop-types';
 
 class SelectList extends React.Component {
 
-  static propTypes = {
-    options: PropTypes.array.isRequired,
-    getCaptionFunc: PropTypes.func.isRequired,
-    onChange: PropTypes.func,
-    selectedItemIndex: PropTypes.number
-  };
+  static get propTypes() {
+    return {
+      options: PropTypes.array.isRequired,
+      getCaptionFunc: PropTypes.func.isRequired,
+      onChange: PropTypes.func,
+      selectedItemIndex: PropTypes.number
+    };
+  }
 
   constructor(props) {
     super(props);

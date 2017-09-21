@@ -15,12 +15,14 @@ import * as contractsActions from '../../actions/contractsActions';
 
 class ContractsPage extends React.Component {
 
-  static propTypes = {
-    intl: intlShape.isRequired,
-    user: PropTypes.object,
-    contracts: PropTypes.array,
-    contractsActions: PropTypes.object.isRequired
-  };
+  static get propTypes() {
+    return {
+      intl: intlShape.isRequired,
+      user: PropTypes.object,
+      contracts: PropTypes.array,
+      contractsActions: PropTypes.object.isRequired
+    };
+  }
 
   constructor(props) {
     super(props);

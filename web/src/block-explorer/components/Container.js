@@ -22,9 +22,11 @@ const retrieveItem = (key, def) => {
 };
 class Container extends React.Component {
 
-  static propTypes = {
-    intl: intlShape.isRequired
-  };
+  static get propTypes() {
+    return {
+      intl: intlShape.isRequired
+    };
+  }
 
   constructor(props) {
     super(props);
@@ -84,7 +86,7 @@ class Container extends React.Component {
     const { blocks, hidden, hintHidden } = this.state;
     const { intl } = this.props;
 
-    const explorerMessage = hidden ? 'Show Explorer' : 'Hide Explorer';
+    const explorerMessage = hidden ? 'Show Explorer' : 'Close Explorer';
     const explorerIcon = hidden ? '/img/icons/maximize_24.svg' :
       '/img/icons/minimize_24.svg';
     const blocksDisplay = !hidden ?
@@ -103,9 +105,8 @@ class Container extends React.Component {
           <div className={`hint ${hintHidden ? 'hidden' : ''}`}>
             {intl.formatMessage({ id: explorerMessage })}
           </div>
-          <div onClick={this.toggleVisibility}
-            onMouseEnter={this.showHint}
-            onMouseLeave={this.hideHint}>
+          <div onMouseLeave={this.hideHint} onMouseEnter={this.showHint}
+            onClick={this.toggleVisibility}>
             <img src={explorerIcon} />
           </div>
         </div>

@@ -11,16 +11,18 @@ import { withRouter, Redirect } from 'react-router-dom';
 
 class ContractClaimsPage extends React.Component {
 
-  static propTypes = {
-    intl: intlShape.isRequired,
-    user: PropTypes.object,
-    contracts: PropTypes.array.isRequired,
-    match: PropTypes.shape({
-      params: PropTypes.shape({
-        contractUuid: PropTypes.string.isRequired
-      })
-    }).isRequired
-  };
+  static get propTypes() {
+    return {
+      intl: intlShape.isRequired,
+      user: PropTypes.object,
+      contracts: PropTypes.array.isRequired,
+      match: PropTypes.shape({
+        params: PropTypes.shape({
+          contractUuid: PropTypes.string.isRequired
+        })
+      }).isRequired
+    };
+  }
 
   constructor(props) {
     super(props);

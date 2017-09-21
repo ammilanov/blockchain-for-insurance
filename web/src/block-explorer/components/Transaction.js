@@ -12,13 +12,15 @@ const calcDate = (timestamp) => {
 
 class Transaction extends React.Component {
 
-  static propTypes = {
-    intl: intlShape.isRequired,
-    data: PropTypes.shape({
-      type: PropTypes.string.isRequired,
-      timestamp: PropTypes.string.isRequired
-    })
-  };
+  static get propTypes() {
+    return {
+      intl: intlShape.isRequired,
+      data: PropTypes.shape({
+        type: PropTypes.string.isRequired,
+        timestamp: PropTypes.string.isRequired
+      })
+    };
+  }
 
   constructor(props) {
     super(props);

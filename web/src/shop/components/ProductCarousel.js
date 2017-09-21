@@ -6,11 +6,13 @@ import PropTypes from 'prop-types';
 
 class ProductCarousel extends React.Component {
 
-  static propTypes = {
-    products: PropTypes.array.isRequired,
-    selectedProductIndex: PropTypes.number,
-    onSelectedProduct: PropTypes.func
-  };
+  static get propTypes() {
+    return {
+      products: PropTypes.array.isRequired,
+      selectedProductIndex: PropTypes.number,
+      onSelectedProduct: PropTypes.func
+    };
+  }
 
   constructor(props) {
     super(props);

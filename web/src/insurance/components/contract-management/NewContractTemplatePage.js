@@ -11,11 +11,13 @@ import * as contractTemplateActions from '../../actions/contractTemplateActions'
 
 class NewContractTemplatePage extends React.Component {
 
-  static propTypes = {
-    intl: intlShape.isRequired,
-    contractTemplateActions: PropTypes.object.isRequired,
-    history: PropTypes.object.isRequired
-  };
+  static get propTypes() {
+    return {
+      intl: intlShape.isRequired,
+      contractTemplateActions: PropTypes.object.isRequired,
+      history: PropTypes.object.isRequired
+    };
+  }
 
   constructor(props) {
     super(props);

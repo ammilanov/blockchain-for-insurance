@@ -12,13 +12,15 @@ import * as userMgmtActions from '../../actions/userMgmtActions';
 
 class LoginPage extends React.Component {
 
-  static propTypes = {
-    intl: intlShape.isRequired,
-    user: PropTypes.object.isRequired,
-    userLoaded: PropTypes.bool.isRequired,
-    loginError: PropTypes.bool.isRequired,
-    userMgmtActions: PropTypes.object.isRequired
-  };
+  static get propTypes() {
+    return {
+      intl: intlShape.isRequired,
+      user: PropTypes.object.isRequired,
+      userLoaded: PropTypes.bool.isRequired,
+      loginError: PropTypes.bool.isRequired,
+      userMgmtActions: PropTypes.object.isRequired
+    };
+  }
 
   constructor(props) {
     super(props);

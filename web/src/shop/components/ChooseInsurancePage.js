@@ -14,16 +14,18 @@ import * as insuranceActions from '../actions/insuranceActions';
 
 class ChooseInsurancePage extends React.Component {
 
-  static propTypes = {
-    intl: intlShape.isRequired,
-    shopType: PropTypes.string.isRequired,
-    productInfo: PropTypes.object.isRequired,
-    contractsLoaded: PropTypes.bool.isRequired,
-    contractTypes: PropTypes.array.isRequired,
-    contractInfo: PropTypes.object,
-    insuranceActions: PropTypes.object.isRequired,
-    history: PropTypes.object.isRequired
-  };
+  static get propTypes() {
+    return {
+      intl: intlShape.isRequired,
+      shopType: PropTypes.string.isRequired,
+      productInfo: PropTypes.object.isRequired,
+      contractsLoaded: PropTypes.bool.isRequired,
+      contractTypes: PropTypes.array.isRequired,
+      contractInfo: PropTypes.object,
+      insuranceActions: PropTypes.object.isRequired,
+      history: PropTypes.object.isRequired
+    };
+  }
 
   constructor(props) {
     super(props);

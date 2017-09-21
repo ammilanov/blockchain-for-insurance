@@ -13,12 +13,14 @@ import RepairOrderComponent from './RepairOrderComponent';
 
 class RepairOrdersPage extends React.Component {
 
-  static propTypes = {
-    intl: intlShape.isRequired,
-    repairOrders: PropTypes.array,
-    loading: PropTypes.bool.isRequired,
-    repairShopActions: PropTypes.object.isRequired
-  };
+  static get propTypes() {
+    return {
+      intl: intlShape.isRequired,
+      repairOrders: PropTypes.array,
+      loading: PropTypes.bool.isRequired,
+      repairShopActions: PropTypes.object.isRequired
+    };
+  }
 
   constructor(props) {
     super(props);

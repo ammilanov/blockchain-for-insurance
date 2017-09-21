@@ -39,7 +39,6 @@ IBMCore.common.util.config.set({
   }
 });
 
-
 jQuery(() => {
   let regionSelector = jQuery('#region-selector');
   regionSelector.select2()

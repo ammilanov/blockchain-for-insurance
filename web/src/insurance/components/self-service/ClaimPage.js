@@ -11,15 +11,17 @@ import { fileClaim } from '../../api';
 
 class ClaimPage extends React.Component {
 
-  static propTypes = {
-    user: PropTypes.object,
-    history: PropTypes.object.isRequired,
-    match: PropTypes.shape({
-      params: PropTypes.shape({
-        contractUuid: PropTypes.string.isRequired
-      })
-    }).isRequired
-  };
+  static get propTypes() {
+    return {
+      user: PropTypes.object,
+      history: PropTypes.object.isRequired,
+      match: PropTypes.shape({
+        params: PropTypes.shape({
+          contractUuid: PropTypes.string.isRequired
+        })
+      }).isRequired
+    };
+  }
 
   constructor(props) {
     super(props);

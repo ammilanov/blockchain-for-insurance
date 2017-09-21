@@ -12,14 +12,16 @@ import ProductCarousel from './ProductCarousel';
 
 class ChooseProductPage extends React.Component {
 
-  static propTypes = {
-    intl: intlShape.isRequired,
-    shopType: PropTypes.string.isRequired,
-    products: PropTypes.array.isRequired,
-    productInfo: PropTypes.object,
-    shopActions: PropTypes.object.isRequired,
-    history: PropTypes.object.isRequired
-  };
+  static get propTypes() {
+    return {
+      intl: intlShape.isRequired,
+      shopType: PropTypes.string.isRequired,
+      products: PropTypes.array.isRequired,
+      productInfo: PropTypes.object,
+      shopActions: PropTypes.object.isRequired,
+      history: PropTypes.object.isRequired
+    };
+  }
 
   constructor(props) {
     super(props);

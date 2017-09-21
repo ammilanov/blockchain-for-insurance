@@ -1,9 +1,13 @@
 'use strict';
 
-import { resolve } from 'path';
+import {
+  resolve
+} from 'path';
 import EventEmitter from 'events';
 
-import { load as loadProto } from 'grpc';
+import {
+  load as loadProto
+} from 'grpc';
 import Long from 'long';
 import hfc from 'fabric-client';
 import utils from 'fabric-client/lib/utils';
@@ -12,10 +16,14 @@ import Peer from 'fabric-client/lib/Peer';
 import EventHub from 'fabric-client/lib/EventHub';
 import User from 'fabric-client/lib/User';
 import CAClient from 'fabric-ca-client';
-import { snakeToCamelCase, camelToSnakeCase } from 'json-style-converter';
+import {
+  snakeToCamelCase,
+  camelToSnakeCase
+} from 'json-style-converter';
 
 process.env.GOPATH = resolve(__dirname, '../../chaincode');
-const JOIN_TIMEOUT = 120000, TRANSACTION_TIMEOUT = 120000;
+const JOIN_TIMEOUT = 120000,
+  TRANSACTION_TIMEOUT = 120000;
 
 export class OrganizationClient extends EventEmitter {
 
@@ -73,7 +81,9 @@ export class OrganizationClient extends EventEmitter {
       });
       defaultEventHub.connect();
       defaultEventHub.registerBlockEvent(
-        block => { this.emit('block', unmarshalBlock(block)); });
+        block => {
+          this.emit('block', unmarshalBlock(block));
+        });
       this._eventHubs.push(defaultEventHub);
     } catch (e) {
       console.log(`Failed to configure event hubs. Error ${e.message}`);
@@ -115,7 +125,9 @@ export class OrganizationClient extends EventEmitter {
     const response = await this._client.createChannel(request);
 
     // Wait for 5sec to create channel
-    await new Promise(resolve => { setTimeout(resolve, 5000); });
+    await new Promise(resolve => {
+      setTimeout(resolve, 5000);
+    });
     return response;
   }
 
@@ -167,15 +179,20 @@ export class OrganizationClient extends EventEmitter {
 
   async checkChannelMembership() {
     try {
-      const channelConfig = await this._channel.getChannelConfig();
-      return true;
+      const { channels } = await this._client.queryChannels(this._peers[0]);
+      if (!Array.isArray(channels)) {
+        return false;
+      }
+      return channels.some(({channel_id}) => channel_id === this._channelName);
     } catch (e) {
       return false;
     }
   }
 
   async checkInstalled(chaincodeId, chaincodeVersion, chaincodePath) {
-    let { chaincodes } = await this._channel.queryInstantiatedChaincodes();
+    let {
+      chaincodes
+    } = await this._channel.queryInstantiatedChaincodes();
     if (!Array.isArray(chaincodes)) {
       return false;
     }
@@ -357,7 +374,9 @@ export class OrganizationClient extends EventEmitter {
       return [];
     }
 
-    const { height } = await this._channel.queryInfo();
+    const {
+      height
+    } = await this._channel.queryInfo();
     let blockCount;
     if (height.comp(noOfLastBlocks) > 0) {
       blockCount = noOfLastBlocks;
@@ -393,7 +412,10 @@ export class OrganizationClient extends EventEmitter {
  * @returns the User object
  */
 async function getSubmitter(
-  client, enrollmentID, enrollmentSecret, { url, mspId }) {
+  client, enrollmentID, enrollmentSecret, {
+    url,
+    mspId
+  }) {
 
   try {
     let user = await client.getUserContext(enrollmentID, true);
@@ -402,9 +424,14 @@ async function getSubmitter(
     }
 
     // Need to enroll with CA server
-    const ca = new CAClient(url, { verify: false });
+    const ca = new CAClient(url, {
+      verify: false
+    });
     try {
-      const enrollment = await ca.enroll({ enrollmentID, enrollmentSecret });
+      const enrollment = await ca.enroll({
+        enrollmentID,
+        enrollmentSecret
+      });
       user = new User(enrollmentID, client);
       await user.setEnrollment(enrollment.key, enrollment.certificate, mspId);
       await client.setUserContext(user);
@@ -464,9 +491,20 @@ function unmarshalResult(result) {
 
 function unmarshalBlock(block) {
   const transactions = Array.isArray(block.data.data) ?
-    block.data.data.map(({ payload: { header, data } }) => {
-      const { channel_header } = header;
-      const { type, timestamp, epoch } = channel_header;
+    block.data.data.map(({
+      payload: {
+        header,
+        data
+      }
+    }) => {
+      const {
+        channel_header
+      } = header;
+      const {
+        type,
+        timestamp,
+        epoch
+      } = channel_header;
       return {
         type,
         timestamp

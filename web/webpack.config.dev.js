@@ -1,21 +1,25 @@
 import webpack from 'webpack';
 import { resolve } from 'path';
 
+const hotReloadModules = [
+  'react-hot-loader/patch',
+  'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000'
+];
+
 export default {
-  devtool: 'source-map',
+  devtool: 'eval',
   entry: {
     'common': [
-      'event-source-polyfill',
       'babel-polyfill',
       'isomorphic-fetch',
-      'webpack-hot-middleware/client?reload=true', //note that it reloads the page if hot module reloading fails.
+      ...hotReloadModules,
       resolve(__dirname, 'src/common')
     ],
-    'shop': resolve(__dirname, 'src/shop/index'),
-    'police': resolve(__dirname, 'src/police/index'),
-    'repair-shop': resolve(__dirname, 'src/repair-shop/index'),
-    'insurance': resolve(__dirname, 'src/insurance/index'),
-    'block-explorer': resolve(__dirname, 'src/block-explorer/index')
+    'shop': [...hotReloadModules, resolve(__dirname, 'src/shop/index')],
+    'police': [...hotReloadModules, resolve(__dirname, 'src/police/index')],
+    'repair-shop': [...hotReloadModules, resolve(__dirname, 'src/repair-shop/index')],
+    'insurance': [...hotReloadModules, resolve(__dirname, 'src/insurance/index')],
+    'block-explorer': [...hotReloadModules, resolve(__dirname, 'src/block-explorer/index')]
   },
   target: 'web',
   output: {
@@ -23,17 +27,11 @@ export default {
     publicPath: '/',
     filename: '[name].bundle.js'
   },
-  devServer: {
-    contentBase: resolve(__dirname, 'src')
-  },
   plugins: [
     new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.HotModuleReplacementPlugin({
-      debug: true
-    }),
-    new webpack.NoEmitOnErrorsPlugin({
-      debug: true
-    })
+    new webpack.HotModuleReplacementPlugin(),
+    new webpack.NamedModulesPlugin(),
+    new webpack.NoEmitOnErrorsPlugin()
   ],
   module: {
     rules: [

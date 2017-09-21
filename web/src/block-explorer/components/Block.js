@@ -19,7 +19,7 @@ const Block = ({ data }) => {
         </p>
         <p>
           <b><FormattedMessage id='Transactions' />:</b>&nbsp;
-        {data.transactions.length}
+          {data.transactions.length}
         </p>
         <div className='transactions'>
           {data.transactions.map((t, i) => <Transaction key={i} data={t} />)}

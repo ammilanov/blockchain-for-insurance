@@ -12,12 +12,14 @@ import TheftClaimComponent from './TheftClaimComponent';
 
 class TheftClaimsPage extends React.Component {
 
-  static propTypes = {
-    intl: intlShape.isRequired,
-    theftClaims: PropTypes.array,
-    loading: PropTypes.bool.isRequired,
-    policeActions: PropTypes.object.isRequired
-  };
+  static get propTypes() {
+    return {
+      intl: intlShape.isRequired,
+      theftClaims: PropTypes.array,
+      loading: PropTypes.bool.isRequired,
+      policeActions: PropTypes.object.isRequired
+    };
+  }
 
   constructor(props) {
     super(props);

@@ -16,12 +16,14 @@ import * as claimProcessingActions from '../../actions/claimProcessingActions';
 
 class ClaimsPage extends React.Component {
 
-  static propTypes = {
-    intl: intlShape.isRequired,
-    claims: PropTypes.array,
-    loading: PropTypes.bool.isRequired,
-    claimProcessingActions: PropTypes.object.isRequired
-  };
+  static get propTypes() {
+    return {
+      intl: intlShape.isRequired,
+      claims: PropTypes.array,
+      loading: PropTypes.bool.isRequired,
+      claimProcessingActions: PropTypes.object.isRequired
+    };
+  }
 
   constructor(props) {
     super(props);

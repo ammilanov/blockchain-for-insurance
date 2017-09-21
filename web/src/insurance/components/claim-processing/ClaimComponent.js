@@ -4,12 +4,14 @@ import { FormattedDate, FormattedMessage } from 'react-intl';
 
 class ClaimComponent extends React.Component {
 
-  static propTypes = {
-    claim: PropTypes.object.isRequired,
-    onRepair: PropTypes.func.isRequired,
-    onReimburse: PropTypes.func.isRequired,
-    onReject: PropTypes.func.isRequired
-  };
+  static get propTypes() {
+    return {
+      claim: PropTypes.object.isRequired,
+      onRepair: PropTypes.func.isRequired,
+      onReimburse: PropTypes.func.isRequired,
+      onReject: PropTypes.func.isRequired
+    };
+  }
 
   constructor(props) {
     super(props);

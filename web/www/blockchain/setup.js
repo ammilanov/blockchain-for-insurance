@@ -2,7 +2,8 @@
 
 import config, { DEFAULT_CONTRACT_TYPES } from './config';
 import { OrganizationClient } from './utils';
-import Docker from 'dockerode';
+import http from 'http';
+import url from 'url';
 
 let status = 'down';
 let statusChangedCallbacks = [];
@@ -107,7 +108,9 @@ function getAdminOrgs() {
           policeClient.joinChannel()
         ]);
         // Wait for 10s for the peers to join the newly created channel
-        await new Promise(resolve => { setTimeout(resolve, 10000); });
+        await new Promise(resolve => {
+          setTimeout(resolve, 10000);
+        });
       }
     }
   } catch (e) {
@@ -149,41 +152,46 @@ function getAdminOrgs() {
     process.exit(-1);
   }
 
-  if (!(installedOnInsuranceOrg && installedOnShopOrg
-    && installedOnRepairShopOrg && installedOnPoliceOrg)) {
+  if (!(installedOnInsuranceOrg && installedOnShopOrg &&
+    installedOnRepairShopOrg && installedOnPoliceOrg)) {
     console.log('Chaincode is not installed, attempting installation...');
 
     // Pull chaincode environment base image
     try {
       await getAdminOrgs();
-      const socketPath = process.env.DOCKER_SOCKET_PATH
-        || '/var/run/docker.sock';
-      const ccenvImage = process.env.DOCKER_CCENV_IMAGE
-        || 'hyperledger/fabric-ccenv:x86_64-1.0.0';
-      const docker = new Docker({ socketPath });
-      const images = await docker.listImages();
+      const socketPath = process.env.DOCKER_SOCKET_PATH ||
+      (process.platform === 'win32' ? '//./pipe/docker_engine' : '/var/run/docker.sock');
+      const ccenvImage = process.env.DOCKER_CCENV_IMAGE ||
+        'hyperledger/fabric-ccenv:x86_64-1.0.2';
+      const listOpts = { socketPath, method: 'GET', path: '/images/json' };
+      const pullOpts = {
+        socketPath, method: 'POST',
+        path: url.format({ pathname: '/images/create', query: { fromImage: ccenvImage } })
+      };
+
+      const images = await new Promise((resolve, reject) => {
+        const req = http.request(listOpts, (response) => {
+          let data = '';
+          response.setEncoding('utf-8');
+          response.on('data', chunk => { data += chunk; });
+          response.on('end', () => { resolve(JSON.parse(data)); });
+        });
+        req.on('error', reject); req.end();
+      });
+
       const imageExists = images.some(
         i => i.RepoTags && i.RepoTags.some(tag => tag === ccenvImage));
       if (!imageExists) {
         console.log(
           'Base container image not present, pulling from Docker Hub...');
-
         await new Promise((resolve, reject) => {
-          docker.pull(ccenvImage, (err, stream) => {
-            if (err) {
-              reject(err);
-              return;
-            }
-            docker.modem.followProgress(stream, (err, output) => {
-              if (err) {
-                reject(err);
-                return;
-              }
-              resolve();
-            }, () => { });
+          const req = http.request(pullOpts, (response) => {
+            response.on('data', () => { });
+            response.on('end', () => { resolve(); });
           });
+          req.on('error', reject); req.end();
         });
-
+        console.log('Base container image downloaded.');
       } else {
         console.log('Base container image present.');
       }
@@ -192,6 +200,8 @@ function getAdminOrgs() {
       console.log(e);
       process.exit(-1);
     }
+
+    // Install chaincode
     const installationPromises = [
       insuranceClient.install(
         config.chaincodeId, config.chaincodeVersion, config.chaincodePath),
@@ -204,7 +214,7 @@ function getAdminOrgs() {
     ];
     try {
       await Promise.all(installationPromises);
-      await new Promise(resolve => { setTimeout(resolve, 10000); });
+      await new Promise(resolve => {   setTimeout(resolve, 10000); });
       console.log('Successfully installed chaincode on the default channel.');
     } catch (e) {
       console.log('Fatal error installing chaincode on the default channel!');
@@ -232,4 +242,9 @@ function getAdminOrgs() {
 })();
 
 // Export organization clients
-export { insuranceClient, shopClient, repairShopClient, policeClient };
+export {
+  insuranceClient,
+  shopClient,
+  repairShopClient,
+  policeClient
+};

@@ -9,11 +9,13 @@ import 'moment/locale/de';
 
 class DateInput extends React.Component {
 
-  static propTypes = {
-    onChange: PropTypes.func,
-    value: PropTypes.number,
-    intl: intlShape.isRequired
-  };
+  static get propTypes() {
+    return {
+      onChange: PropTypes.func,
+      value: PropTypes.number,
+      intl: intlShape.isRequired
+    };
+  }
 
   constructor(props) {
     super(props);
