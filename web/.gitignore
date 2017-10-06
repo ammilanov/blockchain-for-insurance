@@ -9,9 +9,9 @@ npm-debug.log
 .jshintrc
 bin
 dist
-!chaincode/
-!chaincode/src
-!chaincode/src/bcins
+/chaincode/bin
+/chaincode/pkg
+/chaincode/src/**/vendor
 insurance-peer
 shop-peer
 repairshop-peer

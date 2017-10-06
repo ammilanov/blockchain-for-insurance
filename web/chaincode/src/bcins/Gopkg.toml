@@ -1,0 +1,4 @@
+
+[[constraint]]
+  name = "github.com/hyperledger/fabric"
+  version = "1.0.2"

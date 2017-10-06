@@ -1,13 +1,9 @@
 'use strict';
 
-import {
-  resolve
-} from 'path';
+import { resolve } from 'path';
 import EventEmitter from 'events';
 
-import {
-  load as loadProto
-} from 'grpc';
+import { load as loadProto } from 'grpc';
 import Long from 'long';
 import hfc from 'fabric-client';
 import utils from 'fabric-client/lib/utils';
@@ -16,10 +12,7 @@ import Peer from 'fabric-client/lib/Peer';
 import EventHub from 'fabric-client/lib/EventHub';
 import User from 'fabric-client/lib/User';
 import CAClient from 'fabric-ca-client';
-import {
-  snakeToCamelCase,
-  camelToSnakeCase
-} from 'json-style-converter';
+import { snakeToCamelCase, camelToSnakeCase } from 'json-style-converter';
 
 process.env.GOPATH = resolve(__dirname, '../../chaincode');
 const JOIN_TIMEOUT = 120000,
