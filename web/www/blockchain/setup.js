@@ -1,9 +1,15 @@
 'use strict';
 
-import config, { DEFAULT_CONTRACT_TYPES } from './config';
-import { OrganizationClient } from './utils';
 import http from 'http';
 import url from 'url';
+
+import moment from 'moment';
+
+import getLogger from '../config/logger';
+import config, { DEFAULT_CONTRACT_TYPES } from './config';
+import { OrganizationClient, getTarGzBufferFromPathAsync } from './utils';
+
+const logger = getLogger('Blockchain Setup');
 
 let status = 'down';
 let statusChangedCallbacks = [];
@@ -81,8 +87,8 @@ function getAdminOrgs() {
       policeClient.login()
     ]);
   } catch (e) {
-    console.log('Fatal error logging into blockchain organization clients!');
-    console.log(e);
+    logger.error('Fatal error logging into blockchain organization clients!');
+    logger.error(e);
     process.exit(-1);
   }
   // Setup event hubs
@@ -95,12 +101,12 @@ function getAdminOrgs() {
   try {
     await getAdminOrgs();
     if (!(await insuranceClient.checkChannelMembership())) {
-      console.log('Default channel not found, attempting creation...');
+      logger.info('Default channel not found, attempting creation...');
       const createChannelResponse =
         await insuranceClient.createChannel(config.channelConfig);
       if (createChannelResponse.status === 'SUCCESS') {
-        console.log('Successfully created a new default channel.');
-        console.log('Joining peers to the default channel.');
+        logger.info('Successfully created a new default channel.');
+        logger.info('Joining peers to the default channel.');
         await Promise.all([
           insuranceClient.joinChannel(),
           shopClient.joinChannel(),
@@ -114,8 +120,8 @@ function getAdminOrgs() {
       }
     }
   } catch (e) {
-    console.log('Fatal error bootstrapping the blockchain network!');
-    console.log(e);
+    logger.error('Fatal error bootstrapping the blockchain network!');
+    logger.error(e);
     process.exit(-1);
   }
 
@@ -128,8 +134,8 @@ function getAdminOrgs() {
       policeClient.initialize()
     ]);
   } catch (e) {
-    console.log('Fatal error initializing blockchain organization clients!');
-    console.log(e);
+    logger.error('Fatal error initializing blockchain organization clients!');
+    logger.error(e);
     process.exit(-1);
   }
 
@@ -147,14 +153,14 @@ function getAdminOrgs() {
     installedOnPoliceOrg = await policeClient.checkInstalled(
       config.chaincodeId, config.chaincodeVersion, config.chaincodePath);
   } catch (e) {
-    console.log('Fatal error getting installation status of the chaincode!');
-    console.log(e);
+    logger.error('Fatal error getting installation status of the chaincode!');
+    logger.error(e);
     process.exit(-1);
   }
 
   if (!(installedOnInsuranceOrg && installedOnShopOrg &&
     installedOnRepairShopOrg && installedOnPoliceOrg)) {
-    console.log('Chaincode is not installed, attempting installation...');
+    logger.info('Chaincode is not installed, attempting installation...');
 
     // Pull chaincode environment base image
     try {
@@ -182,8 +188,9 @@ function getAdminOrgs() {
       const imageExists = images.some(
         i => i.RepoTags && i.RepoTags.some(tag => tag === ccenvImage));
       if (!imageExists) {
-        console.log(
-          'Base container image not present, pulling from Docker Hub...');
+        logger.info(
+          'Base container image not present, pulling image %s from Docker Hub...',
+          ccenvImage);
         await new Promise((resolve, reject) => {
           const req = http.request(pullOpts, (response) => {
             response.on('data', () => { });
@@ -191,34 +198,54 @@ function getAdminOrgs() {
           });
           req.on('error', reject); req.end();
         });
-        console.log('Base container image downloaded.');
+        logger.info('Base container image downloaded.');
       } else {
-        console.log('Base container image present.');
+        logger.info('Base container image %s present.', ccenvImage);
       }
     } catch (e) {
-      console.log('Fatal error pulling docker images.');
-      console.log(e);
+      logger.error('Fatal error pulling docker images.');
+      logger.error(e);
       process.exit(-1);
     }
 
     // Install chaincode
+    let ccPackage;
+    {
+      const benchStart = new Date();
+      logger.info('Packaging chaincode...');
+      try {
+        ccPackage = await getTarGzBufferFromPathAsync(process.env.GOPATH, 'src');
+      } catch (e) {
+        logger.error('Fatal error packaging chaincode.');
+        logger.error(e);
+        process.exit(-1);
+      }
+      const benchEnd = new Date();
+      logger.info('Chaincode packaged in ' +
+        moment.duration(benchEnd - benchStart).humanize() + '.');
+    }
+    logger.info('Installing chaincode package on blockchain peers...');
     const installationPromises = [
       insuranceClient.install(
-        config.chaincodeId, config.chaincodeVersion, config.chaincodePath),
+        config.chaincodeId, config.chaincodeVersion, config.chaincodePath,
+        config.chaincodeType, ccPackage),
       shopClient.install(
-        config.chaincodeId, config.chaincodeVersion, config.chaincodePath),
+        config.chaincodeId, config.chaincodeVersion, config.chaincodePath,
+        config.chaincodeType, ccPackage),
       repairShopClient.install(
-        config.chaincodeId, config.chaincodeVersion, config.chaincodePath),
+        config.chaincodeId, config.chaincodeVersion, config.chaincodePath,
+        config.chaincodeType, ccPackage),
       policeClient.install(
-        config.chaincodeId, config.chaincodeVersion, config.chaincodePath)
+        config.chaincodeId, config.chaincodeVersion, config.chaincodePath,
+        config.chaincodeType, ccPackage)
     ];
     try {
       await Promise.all(installationPromises);
-      await new Promise(resolve => {   setTimeout(resolve, 10000); });
-      console.log('Successfully installed chaincode on the default channel.');
+      await new Promise(resolve => { setTimeout(resolve, 10000); });
+      logger.info('Successfully installed chaincode on the default channel.');
     } catch (e) {
-      console.log('Fatal error installing chaincode on the default channel!');
-      console.log(e);
+      logger.error('Fatal error installing chaincode on the default channel!');
+      logger.error(e);
       process.exit(-1);
     }
 
@@ -228,15 +255,15 @@ function getAdminOrgs() {
       // Initial contract types
       await insuranceClient.instantiate(config.chaincodeId,
         config.chaincodeVersion, DEFAULT_CONTRACT_TYPES);
-      console.log('Successfully instantiated chaincode on all peers.');
+      logger.info('Successfully instantiated chaincode on all peers.');
       setStatus('ready');
     } catch (e) {
-      console.log('Fatal error instantiating chaincode on some(all) peers!');
-      console.log(e);
+      logger.error('Fatal error instantiating chaincode on some(all) peers!');
+      logger.error(e);
       process.exit(-1);
     }
   } else {
-    console.log('Chaincode already installed on the blockchain network.');
+    logger.info('Chaincode already installed on the blockchain network.');
     setStatus('ready');
   }
 })();

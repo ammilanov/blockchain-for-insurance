@@ -14,3 +14,7 @@ export const userMgmt = {
   new: true,
   user: undefined
 };
+
+export const contractHistory = {
+  contracts: null
+};

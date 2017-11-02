@@ -1,0 +1,3 @@
+'use strict';
+
+export const LOAD_ALL_CONTRACTS_SUCCESS = 'LOAD_ALL_CONTRACTS_SUCCESS';

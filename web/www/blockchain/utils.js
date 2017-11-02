@@ -1,9 +1,13 @@
 'use strict';
 
-import { resolve } from 'path';
 import EventEmitter from 'events';
+import { createReadStream } from 'fs';
+import path from 'path';
+import { PassThrough } from 'stream';
+import zlib from 'zlib';
 
 import { load as loadProto } from 'grpc';
+import tar from 'tar';
 import Long from 'long';
 import hfc from 'fabric-client';
 import utils from 'fabric-client/lib/utils';
@@ -14,9 +18,12 @@ import User from 'fabric-client/lib/User';
 import CAClient from 'fabric-ca-client';
 import { snakeToCamelCase, camelToSnakeCase } from 'json-style-converter';
 
-process.env.GOPATH = resolve(__dirname, '../../chaincode');
+import getLogger from '../config/logger';
+
+process.env.GOPATH = path.resolve(__dirname, '../../chaincode');
 const JOIN_TIMEOUT = 120000,
   TRANSACTION_TIMEOUT = 120000;
+const logger = getLogger('Blockchain');
 
 export class OrganizationClient extends EventEmitter {
 
@@ -59,7 +66,7 @@ export class OrganizationClient extends EventEmitter {
       this._adminUser = await getSubmitter(
         this._client, "admin", "adminpw", this._caConfig);
     } catch (e) {
-      console.log(`Failed to enroll user. Error: ${e.message}`);
+      logger.error(`Failed to enroll user. Error: ${e.message}`);
       throw e;
     }
   }
@@ -79,7 +86,7 @@ export class OrganizationClient extends EventEmitter {
         });
       this._eventHubs.push(defaultEventHub);
     } catch (e) {
-      console.log(`Failed to configure event hubs. Error ${e.message}`);
+      logger.error(`Failed to configure event hubs. Error ${e.message}`);
       throw e;
     }
   }
@@ -99,7 +106,7 @@ export class OrganizationClient extends EventEmitter {
     try {
       await this._channel.initialize();
     } catch (e) {
-      console.log(`Failed to initialize chain. Error: ${e.message}`);
+      logger.error(`Failed to initialize chain. Error: ${e.message}`);
       throw e;
     }
   }
@@ -165,7 +172,7 @@ export class OrganizationClient extends EventEmitter {
       ]);
       await Promise.all(completedPromise);
     } catch (e) {
-      console.log(`Error joining peer to channel. Error: ${e.message}`);
+      logger.error(`Error joining peer to channel. Error: ${e.message}`);
       throw e;
     }
   }
@@ -176,7 +183,7 @@ export class OrganizationClient extends EventEmitter {
       if (!Array.isArray(channels)) {
         return false;
       }
-      return channels.some(({channel_id}) => channel_id === this._channelName);
+      return channels.some(({ channel_id }) => channel_id === this._channelName);
     } catch (e) {
       return false;
     }
@@ -195,12 +202,14 @@ export class OrganizationClient extends EventEmitter {
       cc.version === chaincodeVersion);
   }
 
-  async install(chaincodeId, chaincodeVersion, chaincodePath) {
+  async install(chaincodeId, chaincodeVersion, chaincodePath, chaincodeType, chaincodePackage) {
     const request = {
       targets: this._peers,
       chaincodePath,
       chaincodeId,
-      chaincodeVersion
+      chaincodeVersion,
+      chaincodeType,
+      chaincodePackage
     };
 
     // Make install proposal to all peers
@@ -208,7 +217,7 @@ export class OrganizationClient extends EventEmitter {
     try {
       results = await this._client.installChaincode(request);
     } catch (e) {
-      console.log(
+      logger.error(
         `Error sending install proposal to peer! Error: ${e.message}`);
       throw e;
     }
@@ -384,7 +393,7 @@ export class OrganizationClient extends EventEmitter {
     blockCount = blockCount.toNumber();
     const queryBlock = this._channel.queryBlock.bind(this._channel);
     const blockPromises = {};
-    blockPromises[Symbol.iterator] = function* () {
+    blockPromises[Symbol.iterator] = function*() {
       for (let i = 1; i <= blockCount; i++) {
         yield queryBlock(height.sub(i).toNumber());
       }
@@ -441,8 +450,23 @@ async function getSubmitter(
 export function wrapError(message, innerError) {
   let error = new Error(message);
   error.inner = innerError;
-  console.log(error.message);
+  logger.error(error.message);
   throw error;
+}
+
+export function getTarGzBufferFromPathAsync(parent, actual) {
+  const gz = new zlib.Gzip();
+  const buffs = [];
+  const tarGzStream = new PassThrough();
+  const tarStream = tar.create({
+    gzip: false,
+    C: parent
+  }, [actual]);
+  tarStream.pipe(gz).pipe(tarGzStream);
+  return new Promise((resolve, reject) => {
+    tarGzStream.on('data', buff => { buffs.push(buff); });
+    tarGzStream.on('end', () => { resolve(Buffer.concat(buffs)); });
+  });
 }
 
 function marshalArgs(args) {
@@ -484,24 +508,10 @@ function unmarshalResult(result) {
 
 function unmarshalBlock(block) {
   const transactions = Array.isArray(block.data.data) ?
-    block.data.data.map(({
-      payload: {
-        header,
-        data
-      }
-    }) => {
-      const {
-        channel_header
-      } = header;
-      const {
-        type,
-        timestamp,
-        epoch
-      } = channel_header;
-      return {
-        type,
-        timestamp
-      };
+    block.data.data.map(({ payload: { header, data } }) => {
+      const { channel_header } = header;
+      const { type, timestamp, epoch } = channel_header;
+      return { type, timestamp };
     }) : [];
   return {
     id: block.header.number.toString(),

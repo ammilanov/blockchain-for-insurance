@@ -8,7 +8,7 @@ import SelfServiceApp from './components/self-service/App';
 import LoginPage from './components/self-service/LoginPage';
 import ClaimPage from './components/self-service/ClaimPage';
 import ContractClaimsPage from './components/self-service/ContractClaimsPage';
-import ContractsPage from './components/self-service/ContractsPage';
+import SelfServiceContractsPage from './components/self-service/ContractsPage';
 
 import ClaimsPage from './components/claim-processing/ClaimsPage';
 
@@ -17,6 +17,11 @@ import ContractTemplatesPage
   from './components/contract-management/ContractTemplatesPage';
 import NewContractTemplatePage
   from './components/contract-management/NewContractTemplatePage';
+
+import ContractHistoryApp from './components/contract-history/App';
+import HistoryContractsPage from './components/contract-history/ContractsPage';
+import ContractHistoryPage from './components/contract-history/ContractHistoryPage';
+import ClaimHistoryPage from './components/contract-history/ClaimHistoryPage';
 
 export default function router() {
   return (
@@ -30,7 +35,7 @@ export default function router() {
               <Switch>
                 <Route exact path='/self-service' component={LoginPage} />
                 <Route path='/self-service/contracts'
-                  component={ContractsPage} />
+                  component={SelfServiceContractsPage} />
                 <Route path='/self-service/contract/:contractUuid/claims'
                   component={ContractClaimsPage} />
                 <Route path='/self-service/claim/:contractUuid'
@@ -55,6 +60,21 @@ export default function router() {
               </Switch>
             </ContractManagementApp>
           </Route>
+
+          <Route path='/contract-history'>
+            <ContractHistoryApp>
+              <Switch>
+                <Route exact path='/contract-history' component={HistoryContractsPage} />
+                <Route
+                  path='/contract-history/username/:username/uuid/:uuid'
+                  component={ContractHistoryPage} />
+                <Route
+                  path='/contract-history/claim/contract-uuid/:contractUuid/uuid/:uuid'
+                  component={ClaimHistoryPage} />
+              </Switch>
+            </ContractHistoryApp>
+          </Route>
+
           <Route component={NotFoundPage} />
         </Switch>
       </App>

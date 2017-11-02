@@ -1,0 +1,10 @@
+.contract-panel {
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+  transition: all .5s cubic-bezier(0.075, 0.82, 0.165, 1);
+  &.open{
+    opacity: 1;
+    height: auto;
+  }
+}

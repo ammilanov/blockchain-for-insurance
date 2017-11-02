@@ -15,6 +15,22 @@ export function getClaims(status) {
   });
 }
 
+export function getClaimHistory(contractUuid, uuid) {
+  return fetch('/insurance/api/claim-history', {
+    method: 'POST',
+    headers: new Headers({
+      'Content-Type': 'application/json'
+    }),
+    body: JSON.stringify({ contractUuid, uuid })
+  }).then(async res => {
+    const result = await res.json();
+    if (result.error) {
+      throw new Error('Could not get claim history!');
+    }
+    return result.history;
+  });
+}
+
 export function processClaim(contractUuid, uuid, status, reimbursable) {
   return fetch('/insurance/api/process-claim', {
     method: 'POST',
@@ -75,9 +91,9 @@ export function authenticateUser(user) {
     }),
     body: JSON.stringify({ user })
   }).then(async res => {
-    let result = await res.json();
+    const result = await res.json();
     if (result.error) {
-      throw new Error("Invalid login!");
+      throw new Error('Invalid login!');
     } else {
       return result.success;
     }
@@ -92,11 +108,42 @@ export function getContracts(user) {
     }),
     body: JSON.stringify({ user })
   }).then(async res => {
-    let result = await res.json();
+    const result = await res.json();
     if (result.error) {
-      throw new Error("Could not get contracts!");
+      throw new Error('Could not get contracts!');
     }
     return result.contracts;
+  });
+}
+
+export function getAllContracts() {
+  return fetch('/insurance/api/all-contracts', {
+    method: 'POST',
+    headers: new Headers({
+      'Content-Type': 'application/json'
+    })
+  }).then(async res => {
+    const result = await res.json();
+    if (result.error) {
+      throw new Error('Could not get all contracts!');
+    }
+    return result.contracts;
+  });
+}
+
+export function getContractHistory(username, uuid) {
+  return fetch('/insurance/api/contract-history', {
+    method: 'POST',
+    headers: new Headers({
+      'Content-Type': 'application/json'
+    }),
+    body: JSON.stringify({ username, uuid })
+  }).then(async res => {
+    const result = await res.json();
+    if (result.error) {
+      throw new Error('Could not get contract history!');
+    }
+    return result.history;
   });
 }
 
@@ -110,7 +157,7 @@ export function fileClaim(user, contractUuid, claim) {
   }).then(async res => {
     let result = await res.json();
     if (result.error) {
-      throw new Error("Error occurred!");
+      throw new Error('Error occurred!');
     }
     return;
   });

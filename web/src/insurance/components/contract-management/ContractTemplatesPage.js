@@ -18,7 +18,7 @@ const ContractTemplatesPage = ({
       <tr key={index}
         ref={row => {
           jQuery(row).tooltip({
-            content: `<b>Contract Terms:</b> <br />${contractType.conditions}`
+            content: `<b>${intl.formatMessage({ id: 'Contract Terms'})}:</b> <br />${contractType.conditions}`
           });
         }}>
         <td>{activateIcon(contractType)}</td>

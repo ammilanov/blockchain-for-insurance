@@ -54,6 +54,8 @@ html(lang='en')
                     a(role='menuitem', href='/insurance/claim-processing') #{ __('Claim Processing') }
                   li(role='presentation', class=(contractManagementActive ? 'ibm-highlight' : ''))
                     a(role='menuitem', href='/insurance/contract-management') #{ __('Contract Management') }
+                  li(role='presentation', class=(contractHistoryActive ? 'ibm-highlight' : ''))
+                    a(role='menuitem', href='/insurance/contract-history') #{ __('Contract History') }
       main(role='main', aria-labelledby='ibm-pagetitle-h1')
         #ibm-pcon
           #ibm-content

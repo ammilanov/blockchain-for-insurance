@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
 const basePath = resolve(__dirname, '../../certs');
-const readCryptoFile =
+const readCert =
   filename => readFileSync(resolve(basePath, filename)).toString();
 const config = {
   channelName: 'default',
@@ -10,17 +10,18 @@ const config = {
   chaincodeId: 'bcins',
   chaincodeVersion: 'v2',
   chaincodePath: 'bcins',
+  chaincodeType: 'golang',
   orderer0: {
     hostname: 'orderer0',
     url: 'grpcs://orderer0:7050',
-    pem: readCryptoFile('ordererOrg.pem')
+    pem: readCert('ordererOrg.pem')
   },
   insuranceOrg: {
     peer: {
       hostname: 'insurance-peer',
       url: 'grpcs://insurance-peer:7051',
       eventHubUrl: 'grpcs://insurance-peer:7053',
-      pem: readCryptoFile('insuranceOrg.pem')
+      pem: readCert('insuranceOrg.pem')
     },
     ca: {
       hostname: 'insurance-ca',
@@ -28,8 +29,8 @@ const config = {
       mspId: 'InsuranceOrgMSP'
     },
     admin: {
-      key: readCryptoFile('Admin@insurance-org-key.pem'),
-      cert: readCryptoFile('Admin@insurance-org-cert.pem')
+      key: readCert('Admin@insurance-org-key.pem'),
+      cert: readCert('Admin@insurance-org-cert.pem')
     }
   },
   policeOrg: {
@@ -37,7 +38,7 @@ const config = {
       hostname: 'police-peer',
       url: 'grpcs://police-peer:7051',
       eventHubUrl: 'grpcs://police-peer:7053',
-      pem: readCryptoFile('policeOrg.pem')
+      pem: readCert('policeOrg.pem')
     },
     ca: {
       hostname: 'police-ca',
@@ -45,8 +46,8 @@ const config = {
       mspId: 'PoliceOrgMSP'
     },
     admin: {
-      key: readCryptoFile('Admin@police-org-key.pem'),
-      cert: readCryptoFile('Admin@police-org-cert.pem')
+      key: readCert('Admin@police-org-key.pem'),
+      cert: readCert('Admin@police-org-cert.pem')
     }
   },
   shopOrg: {
@@ -54,7 +55,7 @@ const config = {
       hostname: 'shop-peer',
       url: 'grpcs://shop-peer:7051',
       eventHubUrl: 'grpcs://shop-peer:7053',
-      pem: readCryptoFile('shopOrg.pem')
+      pem: readCert('shopOrg.pem')
     },
     ca: {
       hostname: 'shop-ca',
@@ -62,15 +63,15 @@ const config = {
       mspId: 'ShopOrgMSP'
     },
     admin: {
-      key: readCryptoFile('Admin@shop-org-key.pem'),
-      cert: readCryptoFile('Admin@shop-org-cert.pem')
+      key: readCert('Admin@shop-org-key.pem'),
+      cert: readCert('Admin@shop-org-cert.pem')
     }
   },
   repairShopOrg: {
     peer: {
       hostname: 'repairshop-peer',
       url: 'grpcs://repairshop-peer:7051',
-      pem: readCryptoFile('repairShopOrg.pem'),
+      pem: readCert('repairShopOrg.pem'),
       eventHubUrl: 'grpcs://repairshop-peer:7053',
     },
     ca: {
@@ -79,8 +80,8 @@ const config = {
       mspId: 'RepairShopOrgMSP'
     },
     admin: {
-      key: readCryptoFile('Admin@repairshop-org-key.pem'),
-      cert: readCryptoFile('Admin@repairshop-org-cert.pem')
+      key: readCert('Admin@repairshop-org-key.pem'),
+      cert: readCert('Admin@repairshop-org-cert.pem')
     }
   }
 };

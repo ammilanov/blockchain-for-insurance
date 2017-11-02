@@ -3,7 +3,9 @@
 import express from 'express';
 
 import * as ShopPeer from '../blockchain/shopPeer';
+import getLogger from '../config/logger';
 
+const logger = getLogger('Shop Router');
 const router = express.Router();
 
 router.get('/', (req, res) => {
@@ -38,7 +40,7 @@ router.post('/api/contract-types', async (req, res) => {
   try {
     contractTypes = await ShopPeer.getContractTypes(letter);
   } catch (e) {
-    console.log(e);
+    logger.error(e);
     res.json({ error: "Could not retrieve contract types!" });
   }
 
@@ -71,7 +73,7 @@ router.post('/api/request-user', async (req, res) => {
       });
       res.json(responseUser || { username: email, password: passwordProposal });
     } catch (e) {
-      console.log(e);
+      logger.error(e);
       res.json({ error: 'Could not create new user!' });
     }
   } else {
@@ -99,7 +101,7 @@ router.post('/api/enter-contract', async (req, res) => {
       });
       res.json({ success: 'Contract signed.', loginInfo });
     } catch (e) {
-      console.log(e);
+      logger.error(e);
       res.json({ error: 'Could not create new contract!' });
     }
   } else {

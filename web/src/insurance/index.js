@@ -13,10 +13,12 @@ import configStore from './store';
 import translations from './translations';
 import { loadClaims } from './actions/claimProcessingActions';
 import { loadContractTypes } from './actions/contractTemplateActions';
+import { loadAllContracts } from './actions/contractHistoryActions';
 
 const store = configStore();
 store.dispatch(loadClaims());
 store.dispatch(loadContractTypes());
+store.dispatch(loadAllContracts());
 const locale = getLocale();
 addLocaleData([...deLocaleData, ...enLocaleData]);
 

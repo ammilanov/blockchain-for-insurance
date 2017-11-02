@@ -1,7 +1,11 @@
+'use strict';
+
 import express from 'express';
 
 import * as InsurancePeer from '../blockchain/insurancePeer';
+import getLogger from '../config/logger';
 
+const logger = getLogger('Insurance Router');
 const router = express.Router();
 
 // Render main page
@@ -10,7 +14,6 @@ router.get('/', (req, res) => {
 });
 
 // Claim Processing
-
 router.post('/api/claims', async (req, res) => {
   let { status } = req.body;
   if (typeof status === 'string' && status[0]) {
@@ -115,7 +118,6 @@ router.post('/api/set-contract-type-active', async (req, res) => {
 });
 
 // Self Service
-
 router.post('/api/contracts', async (req, res) => {
   if (typeof req.body.user !== 'object') {
     res.json({ error: 'Invalid request!' });
@@ -133,7 +135,7 @@ router.post('/api/contracts', async (req, res) => {
       return;
     }
   } catch (e) {
-    console.log(e);
+    logger.error(e);
     res.json({ error: 'Error accessing blockchain!' });
     return;
   }
@@ -164,7 +166,7 @@ router.post('/api/file-claim', async (req, res) => {
       return;
     }
   } catch (e) {
-    console.log(e);
+    logger.error(e);
     res.json({ error: 'Error accessing blockchain!' });
     return;
   }
@@ -182,7 +184,7 @@ router.post('/api/authenticate-user', async (req, res) => {
     res.json({ success });
     return;
   } catch (e) {
-    console.log(e);
+    logger.error(e);
     res.json({ error: 'Error accessing blockchain!' });
     return;
   }
@@ -191,13 +193,60 @@ router.post('/api/authenticate-user', async (req, res) => {
 router.post('/api/blocks', async (req, res) => {
   const { noOfLastBlocks } = req.body;
   if (typeof noOfLastBlocks !== 'number') {
-    res.json({ error: 'Invalid request' });
+    res.json({ error: 'Invalid request!' });
+    return;
   }
   try {
     const blocks = await InsurancePeer.getBlocks(noOfLastBlocks);
     res.json(blocks);
+    return;
   } catch (e) {
-    res.json({ error: 'Error accessing blockchain.' });
+    res.json({ error: 'Error accessing blockchain!' });
+  }
+});
+
+// Contract History
+router.post('/api/contract-history', async (req, res) => {
+  const { username, uuid } = req.body;
+  if (typeof uuid !== 'string'
+    || typeof username !== 'string') {
+    res.json({ error: 'Invalid request!' });
+    return;
+  }
+  try {
+    const history = await InsurancePeer.getContractHistory(username, uuid);
+    res.json({ success: true, history });
+    return;
+  } catch (e) {
+    res.json({ error: 'Error accessing blockchain!'});
+    return;
+  }
+});
+
+router.post('/api/claim-history', async (req, res) => {
+  const { contractUuid, uuid } = req.body;
+  if (typeof contractUuid !== 'string' || typeof uuid !== 'string') {
+    res.json({ error: 'Invalid request!' });
+    return;
+  }
+  try {
+    const history = await InsurancePeer.getClaimHistory(contractUuid, uuid);
+    res.json({ success: true, history });
+    return;
+  } catch (e) {
+    res.json({ error: 'Error accessing blockchain!'});
+    return;
+  }
+});
+
+router.post('/api/all-contracts', async (req, res) => {
+  try {
+    const contracts = await InsurancePeer.getContracts();
+    res.json({ success: true, contracts });
+    return;
+  } catch (е) {
+    res.json({ error: 'Error accessing blockchain!' });
+    return;
   }
 });
 
@@ -221,7 +270,8 @@ router.get('*', (req, res) => {
     insuranceActive: true,
     selfServiceActive: req.originalUrl.includes('self-service'),
     claimProcessingActive: req.originalUrl.includes('claim-processing'),
-    contractManagementActive: req.originalUrl.includes('contract-management')
+    contractManagementActive: req.originalUrl.includes('contract-management'),
+    contractHistoryActive: req.originalUrl.includes('contract-history')
   });
 });
 

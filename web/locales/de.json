@@ -35,7 +35,10 @@
   "Go To The Claim Processing": "Zur Schadensbearbeitung",
   "Repair Shop": "Werkstatt",
 	"Go To The Repair Shop": "Zur Werkstatt",
-	"Go To The Shop Peer": "Go To The Shop Peer",
-	"Go To The Police Peer": "Go To The Police Peer",
-	"Go To The Repair Shop Peer": "Go To The Repair Shop Peer"
+	"Go To The Shop Peer": "Zum Shop",
+	"Go To The Police Peer": "Zur Polizei",
+  "Go To The Repair Shop Peer": "Zur Werkstatt",
+  "Contract History": "Vertragshistorie",
+  "Review The Contract History": "Vertragshistorie überprüfen"
+
 }

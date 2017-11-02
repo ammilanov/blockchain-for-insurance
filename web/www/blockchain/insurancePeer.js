@@ -71,6 +71,18 @@ export async function getContracts(username) {
   }
 }
 
+export async function getContractHistory(username, uuid) {
+  if (!isReady()) {
+    return;
+  }
+  try {
+    const history = await query('contract_get_history', { username, uuid });
+    return history;
+  } catch (e) {
+    throw wrapError(`Error aquiring contract history ${e.message}`, e);
+  }
+}
+
 export async function getClaims(status) {
   if (!isReady()) {
     return;
@@ -89,6 +101,18 @@ export async function getClaims(status) {
       errMessage = `Error getting all claims: ${e.message}`;
     }
     throw wrapError(errMessage, e);
+  }
+}
+
+export async function getClaimHistory(contractUuid, uuid) {
+  if (!isReady()) {
+    return;
+  }
+  try {
+    const history = await query('claim_get_history', { contractUuid, uuid });
+    return history;
+  } catch (e) {
+    throw wrapError(`Error aquiring claim history: ${e.message}`, e);
   }
 }
 

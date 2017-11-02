@@ -75,7 +75,7 @@ function formulaLexer(formula) {
   lexemes = splitFormulaPart(lexemes, /(\()/);
   lexemes = splitFormulaPart(lexemes, /(\))/);
   lexemes = splitFormulaPart(lexemes, /(\+)/);
-  lexemes = splitFormulaPart(lexemes, /(\-)/);
+  lexemes = splitFormulaPart(lexemes, /(-)/);
   lexemes = splitFormulaPart(lexemes, /(\*)/);
   lexemes = splitFormulaPart(lexemes, /(\/)/);
   lexemes = splitFormulaPart(lexemes, /([0-9]+\.[0-9]+|[0-9]+)/);

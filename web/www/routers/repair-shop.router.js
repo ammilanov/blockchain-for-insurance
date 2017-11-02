@@ -1,6 +1,11 @@
-import express from 'express';
-import * as RepairShopPeer from '../blockchain/repairShopPeer';
+'use strict';
 
+import express from 'express';
+
+import * as RepairShopPeer from '../blockchain/repairShopPeer';
+import getLogger from '../config/logger';
+
+const logger = getLogger('Repair Shop Router');
 const router = express.Router();
 
 router.post('/api/repair-orders', async (req, res) => {
@@ -8,7 +13,7 @@ router.post('/api/repair-orders', async (req, res) => {
     let repairOrders = await RepairShopPeer.getRepairOrders();
     res.json(repairOrders);
   } catch (e) {
-    console.log(e);
+    logger.error(e);
     res.json({ error: "Error accessing blockchain."});
   }
 });
@@ -24,7 +29,7 @@ router.post('/api/complete-repair-order', async (req, res) => {
     await RepairShopPeer.completeRepairOrder(uuid);
     res.json({ success: true });
   } catch (e) {
-    console.log(e);
+    logger.error(e);
     res.json({ error: "Error accessing blockchain." });
   }
 });
