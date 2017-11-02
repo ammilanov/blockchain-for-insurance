@@ -22,7 +22,7 @@ export default {
   },
   target: 'web',
   output: {
-    path: resolve(__dirname, '../dist'), // Note: Physical files are only output by the production build task `npm run build`.
+    path: resolve(__dirname, 'dist'), // Note: Physical files are only output by the production build task `npm run build`.
     publicPath: '/',
     filename: '[name].bundle.js'
   },
