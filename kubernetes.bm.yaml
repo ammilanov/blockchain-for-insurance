@@ -450,7 +450,7 @@ spec:
         - name: DOCKER_SOCKET_PATH
           value: /host/var/run/docker.sock
         - name: DOCKER_CCENV_IMAGE
-          value: hyperledger/fabric-ccenv:x86_64-1.0.0
+          value: hyperledger/fabric-ccenv:x86_64-1.0.2
         volumeMounts:
         - name: docker-internals
           mountPath: /host/var/run/
