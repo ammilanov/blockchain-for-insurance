@@ -2,11 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
+	"strings"
 	"time"
 
-	"errors"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"strings"
 )
 
 // Key consists of prefix + UUID of the contract type
@@ -55,24 +55,28 @@ type claim struct {
 	FileReference string      `json:"file_reference"`
 }
 
-// The claim status indicates how the claim should be treated
+// ClaimStatus indicates how the claim should be treated
 type ClaimStatus int8
 
 const (
-	// The claims status is unknown
+	// ClaimStatusUnknown indicates invalid status.
 	ClaimStatusUnknown ClaimStatus = iota
-	// The claim is new
+	// ClaimStatusNew indicates an unprocessed claim.
 	ClaimStatusNew
-	// The claim has been rejected (either by the insurer, or by authorities
+	// ClaimStatusRejected indicates that the claim has been rejected
+	// (either by the insurer, or by authorities).
 	ClaimStatusRejected
-	// The item is up for repairs, or has been repaired
+	// ClaimStatusRepair indicates that the related item is schedules for repairs,
+	// or has been repaired already.
 	ClaimStatusRepair
-	// The customer should be reimbursed, or has already been
+	// ClaimStatusReimbursement indicates the a reimbursement for the customer
+	// should is approved, or the customer has already been reimbursed.
 	ClaimStatusReimbursement
-	// The theft of the item has been confirmed by authorities
+	// ClaimStatusTheftConfirmed indicates the theft confirmation by authorities.
 	ClaimStatusTheftConfirmed
 )
 
+// UnmarshalJSON provides custom logic for unmarshalling the ClaimStatus enum.
 func (s *ClaimStatus) UnmarshalJSON(b []byte) error {
 	var value string
 	if err := json.Unmarshal(b, &value); err != nil {
@@ -97,6 +101,7 @@ func (s *ClaimStatus) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// MarshalJSON provides custom logic for marshalling the ClaimStatus enum.
 func (s ClaimStatus) MarshalJSON() ([]byte, error) {
 	var value string
 
@@ -166,15 +171,33 @@ func (u *user) Contacts(stub shim.ChaincodeStubInterface) []contract {
 	return contracts
 }
 
-func (c *contract) Claims(stub shim.ChaincodeStubInterface) ([]claim, error) {
-	claims := []claim{}
+func (c *contract) Claims(stub shim.ChaincodeStubInterface) ([]struct {
+	UUID string `json:"uuid"`
+	*claim
+}, error) {
+	claims := []struct {
+		UUID string `json:"uuid"`
+		*claim
+	}{}
 
 	for _, claimKey := range c.ClaimIndex {
-		claim := claim{}
+		claim := struct {
+			UUID string `json:"uuid"`
+			*claim
+		}{}
 
 		claimAsBytes, err := stub.GetState(claimKey)
 		if err != nil {
 			return nil, err
+		}
+
+		// Extracting claim UUID
+		_, parts, err := stub.SplitCompositeKey(claimKey)
+		if err != nil {
+			return nil, err
+		}
+		if len(parts) == 2 {
+			claim.UUID = parts[1]
 		}
 
 		err = json.Unmarshal(claimAsBytes, &claim)
@@ -192,7 +215,7 @@ func (c *contract) User(stub shim.ChaincodeStubInterface) (*user, error) {
 	user := &user{}
 
 	if len(c.Username) == 0 {
-		return nil, errors.New("Invalid user name in contract.")
+		return nil, errors.New("invalid username in contract")
 	}
 
 	userKey, err := stub.CreateCompositeKey(prefixUser, []string{c.Username})

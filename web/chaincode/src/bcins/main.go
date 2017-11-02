@@ -17,7 +17,7 @@ const prefixRepairOrder = "repair_order"
 
 var logger = shim.NewLogger("main")
 
-type SmartContract struct {
+type smartContract struct {
 }
 
 var bcFunctions = map[string]func(shim.ChaincodeStubInterface, []string) pb.Response{
@@ -26,7 +26,9 @@ var bcFunctions = map[string]func(shim.ChaincodeStubInterface, []string) pb.Resp
 	"contract_type_create":     createContractType,
 	"contract_type_set_active": setActiveContractType,
 	"contract_ls":              listContracts,
+	"contract_get_history":     getContractHistory,
 	"claim_ls":                 listClaims,
+	"claim_get_history":        getClaimHistory,
 	"claim_file":               fileClaim,
 	"claim_process":            processClaim,
 	"user_authenticate":        authUser,
@@ -43,7 +45,7 @@ var bcFunctions = map[string]func(shim.ChaincodeStubInterface, []string) pb.Resp
 }
 
 // Init callback representing the invocation of a chaincode
-func (t *SmartContract) Init(stub shim.ChaincodeStubInterface) pb.Response {
+func (t *smartContract) Init(stub shim.ChaincodeStubInterface) pb.Response {
 	_, args := stub.GetFunctionAndParameters()
 
 	if len(args) == 1 {
@@ -74,7 +76,7 @@ func (t *SmartContract) Init(stub shim.ChaincodeStubInterface) pb.Response {
 }
 
 // Invoke Function accept blockchain code invocations.
-func (t *SmartContract) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
+func (t *smartContract) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	function, args := stub.GetFunctionAndParameters()
 
 	if function == "init" {
@@ -90,7 +92,7 @@ func (t *SmartContract) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 func main() {
 	logger.SetLevel(shim.LogInfo)
 
-	err := shim.Start(new(SmartContract))
+	err := shim.Start(new(smartContract))
 	if err != nil {
 		fmt.Printf("Error starting Simple chaincode: %s", err)
 	}

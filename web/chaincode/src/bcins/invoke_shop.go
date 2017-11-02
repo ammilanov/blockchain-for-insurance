@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-
 	"time"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -11,7 +10,7 @@ import (
 
 func createContract(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	if len(args) != 1 {
-		return shim.Error("Invalid argument count.")
+		return shim.Error("invalid argument count")
 	}
 
 	dto := struct {
@@ -69,7 +68,7 @@ func createContract(stub shim.ChaincodeStubInterface, args []string) pb.Response
 		// Validate if the user with the provided username exists
 		userAsBytes, _ := stub.GetState(userKey)
 		if userAsBytes == nil {
-			return shim.Error("User with this username does not exist.")
+			return shim.Error("user with this username does not exist")
 		}
 	}
 
@@ -118,7 +117,7 @@ func createContract(stub shim.ChaincodeStubInterface, args []string) pb.Response
 
 func createUser(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	if len(args) != 1 {
-		return shim.Error("Invalid argument count.")
+		return shim.Error("invalid argument count")
 	}
 
 	user := user{}

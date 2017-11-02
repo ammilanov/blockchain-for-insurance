@@ -37,7 +37,7 @@ func listTheftClaims(stub shim.ChaincodeStubInterface, args []string) pb.Respons
 			return shim.Error(err.Error())
 		}
 		if contract == nil {
-			return shim.Error("Error acquiring contracts.")
+			return shim.Error("error acquiring contracts")
 		}
 
 		result := struct {
@@ -61,7 +61,7 @@ func listTheftClaims(stub shim.ChaincodeStubInterface, args []string) pb.Respons
 			return shim.Error(err.Error())
 		}
 		if user == nil {
-			return shim.Error("Error acquiring user.")
+			return shim.Error("error acquiring user")
 		}
 
 		result.Item = contract.Item
@@ -80,7 +80,7 @@ func listTheftClaims(stub shim.ChaincodeStubInterface, args []string) pb.Respons
 
 func processTheftClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	if len(args) != 1 {
-		return shim.Error("Invalid argument count.")
+		return shim.Error("invalid argument count")
 	}
 
 	dto := struct {
@@ -101,7 +101,7 @@ func processTheftClaim(stub shim.ChaincodeStubInterface, args []string) pb.Respo
 
 	claimAsBytes, _ := stub.GetState(key)
 	if len(claimAsBytes) == 0 {
-		return shim.Error("Claim cannot be found.")
+		return shim.Error("claim cannot be found")
 	}
 
 	claim := claim{}
@@ -112,7 +112,7 @@ func processTheftClaim(stub shim.ChaincodeStubInterface, args []string) pb.Respo
 
 	// Check if the correct kind of claim is about to be processed
 	if !claim.IsTheft || claim.Status != ClaimStatusNew {
-		return shim.Error("Claim is either not related to theft, or has invalid status.")
+		return shim.Error("claim is either not related to theft, or has invalid status")
 	}
 
 	if dto.IsTheft {

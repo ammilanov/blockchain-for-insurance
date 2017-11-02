@@ -3,6 +3,7 @@ package main
 import "github.com/hyperledger/fabric/core/chaincode/shim"
 import (
 	"encoding/json"
+
 	pb "github.com/hyperledger/fabric/protos/peer"
 )
 
@@ -60,7 +61,7 @@ func listRepairOrders(stub shim.ChaincodeStubInterface, args []string) pb.Respon
 
 func completeRepairOrder(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	if len(args) != 1 {
-		return shim.Error("Invalid argument count.")
+		return shim.Error("invalid argument count")
 	}
 
 	input := struct {
@@ -78,7 +79,7 @@ func completeRepairOrder(stub shim.ChaincodeStubInterface, args []string) pb.Res
 
 	repairOrderBytes, _ := stub.GetState(repairOrderKey)
 	if len(repairOrderBytes) == 0 {
-		return shim.Error("Could not find the repair order")
+		return shim.Error("could not find the repair order")
 	}
 
 	repairOrder := repairOrder{}

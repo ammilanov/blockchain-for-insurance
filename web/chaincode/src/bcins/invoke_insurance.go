@@ -67,7 +67,7 @@ func listContractTypes(stub shim.ChaincodeStubInterface, args []string) pb.Respo
 
 func createContractType(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	if len(args) != 1 {
-		return shim.Error("Invalid argument count.")
+		return shim.Error("invalid argument count")
 	}
 
 	partial := struct {
@@ -105,7 +105,7 @@ func createContractType(stub shim.ChaincodeStubInterface, args []string) pb.Resp
 
 func setActiveContractType(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	if len(args) != 1 {
-		return shim.Error("Invalid argument count.")
+		return shim.Error("invalid argument count")
 	}
 
 	req := struct {
@@ -129,7 +129,7 @@ func setActiveContractType(stub shim.ChaincodeStubInterface, args []string) pb.R
 		return shim.Error(err.Error())
 	}
 	if len(valAsBytes) == 0 {
-		return shim.Error("Contract Type could not be found")
+		return shim.Error("contract type could not be found")
 	}
 	err = json.Unmarshal(valAsBytes, &ct)
 	if err != nil {
@@ -188,7 +188,10 @@ func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		result := struct {
 			UUID string `json:"uuid"`
 			*contract
-			Claims []claim `json:"claims,omitempty"`
+			Claims []struct {
+				UUID string `json:"uuid"`
+				*claim
+			} `json:"claims,omitempty"`
 		}{}
 
 		err = json.Unmarshal(kvResult.Value, &result)
@@ -220,6 +223,81 @@ func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		return shim.Error(err.Error())
 	}
 	return shim.Success(resultsAsBytes)
+}
+
+func getContractHistory(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	input := struct {
+		Username     string `json:"username"`
+		ContractUUID string `json:"uuid"`
+	}{}
+	if len(args) != 1 {
+		return shim.Error("invalid argument count")
+	}
+	err := json.Unmarshal([]byte(args[0]), &input)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	key, err := stub.CreateCompositeKey(prefixContract, []string{input.Username, input.ContractUUID})
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	currentData, _ := stub.GetState(key)
+	if currentData == nil {
+		return shim.Error("contract does not currently exist")
+	}
+
+	historyIterator, err := stub.GetHistoryForKey(key)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	history := []interface{}{}
+
+	for historyIterator.HasNext() {
+		historyResult, err := historyIterator.Next()
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+
+		// Preparing history data
+		var contract struct {
+			*contract
+			Claims []struct {
+				UUID string `json:"uuid"`
+				*claim
+			} `json:"claims"`
+		}
+		err = json.Unmarshal(historyResult.Value, &contract)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+
+		// Get current claims (history is implemented only for contracts)
+		claims, err := contract.contract.Claims(stub)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+		contract.Claims = claims
+		contract.contract.ClaimIndex = []string{} // Remove internal data
+
+		entry := struct {
+			TxID    string      `json:"tx_id"`
+			Version time.Time   `json:"version"`
+			Data    interface{} `json:"data"`
+		}{
+			TxID:    historyResult.TxId,
+			Version: time.Unix(historyResult.Timestamp.Seconds, int64(historyResult.Timestamp.Nanos)).UTC(),
+			Data:    contract,
+		}
+		history = append(history, entry)
+	}
+
+	historyAsBytes, err := json.Marshal(history)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success(historyAsBytes)
 }
 
 func listClaims(stub shim.ChaincodeStubInterface, args []string) pb.Response {
@@ -281,9 +359,70 @@ func listClaims(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	return shim.Success(claimsAsBytes)
 }
 
+func getClaimHistory(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	input := struct {
+		UUID         string `json:"uuid"`
+		ContractUUID string `json:"contract_uuid"`
+	}{}
+
+	if len(args) != 1 {
+		return shim.Error("invalid argument count")
+	}
+	err := json.Unmarshal([]byte(args[0]), &input)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	key, err := stub.CreateCompositeKey(prefixClaim, []string{input.ContractUUID, input.UUID})
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	currentData, _ := stub.GetState(key)
+	if currentData == nil {
+		return shim.Error("claim does not currently exist")
+	}
+
+	historyIterator, err := stub.GetHistoryForKey(key)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	history := []interface{}{}
+
+	for historyIterator.HasNext() {
+		historyResult, err := historyIterator.Next()
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+
+		// Preparing history data
+		var result claim
+		err = json.Unmarshal(historyResult.Value, &result)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+
+		entry := struct {
+			Version time.Time `json:"version"`
+			Data    claim     `json:"data"`
+		}{
+			Version: time.Unix(historyResult.Timestamp.Seconds, int64(historyResult.Timestamp.Nanos)).UTC(),
+			Data:    result,
+		}
+
+		history = append(history, entry)
+	}
+
+	historyAsBytes, err := json.Marshal(history)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success(historyAsBytes)
+}
+
 func fileClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	if len(args) != 1 {
-		return shim.Error("Invalid argument count.")
+		return shim.Error("invalid argument count")
 	}
 
 	dto := struct {
@@ -312,7 +451,7 @@ func fileClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 		return shim.Error(err.Error())
 	}
 	if contract == nil {
-		return shim.Error("Contract could not be found.")
+		return shim.Error("contract could not be found")
 	}
 
 	// Persist the claim
@@ -353,7 +492,7 @@ func fileClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 func processClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	if len(args) != 1 {
-		return shim.Error("Invalid argument count.")
+		return shim.Error("invalid argument count")
 	}
 
 	input := struct {
@@ -374,7 +513,7 @@ func processClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	claimBytes, _ := stub.GetState(claimKey)
 	if len(claimBytes) == 0 {
-		return shim.Error("Claim cannot be found.")
+		return shim.Error("claim could not be found")
 	}
 
 	claim := claim{}
@@ -385,10 +524,10 @@ func processClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	if !claim.IsTheft && claim.Status != ClaimStatusNew {
 		// Check if altering claim is allowed
-		return shim.Error("Cannot change the status of a non-new claim.")
+		return shim.Error("cannot change the status of a non-new claim")
 	}
 	if claim.IsTheft && claim.Status == ClaimStatusNew {
-		return shim.Error("Theft must first be confirmed by authorities.")
+		return shim.Error("theft must first be confirmed by authorities")
 	}
 
 	claim.Status = input.Status // Assigning requested status
@@ -396,7 +535,7 @@ func processClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	case ClaimStatusRepair:
 		// Approve and create a repair order
 		if claim.IsTheft {
-			return shim.Error("Cannot repair stolen items.")
+			return shim.Error("cannot repair stolen items")
 		}
 		claim.Reimbursable = 0
 
@@ -454,7 +593,7 @@ func processClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 		// Mark as rejected
 		claim.Reimbursable = 0
 	default:
-		return shim.Error("Unknown status change.")
+		return shim.Error("unknown status change")
 	}
 
 	// Persist claim
@@ -472,7 +611,7 @@ func processClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 func authUser(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	if len(args) != 1 {
-		return shim.Error("Invalid argument count.")
+		return shim.Error("invalid argument count")
 	}
 
 	input := struct {
@@ -509,7 +648,7 @@ func authUser(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 func getUser(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	if len(args) != 1 {
-		return shim.Error("Invalid argument count.")
+		return shim.Error("invalid argument count")
 	}
 
 	input := struct {
