@@ -12,5 +12,8 @@ indent_size = 2
 trim_trailing_whitespace = true
 charset = utf-8
 
+[*.js,*.jsx]
+quote_type = single
+
 [*.md]
 trim_trailing_whitespace = false
