@@ -140,7 +140,7 @@ services:
     ports:
     - 3000:3000
     volumes:
-    - /var/run/:/host/var/run/
+    - /var/run/docker.sock:/host/var/run/docker.sock
     depends_on:
     - orderer0
     - insurance-ca
